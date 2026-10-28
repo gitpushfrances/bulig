@@ -137,7 +137,7 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 | Repo layout | `app/` (React + Vite), `contracts/` (Phase 2), `api/` (Phase 4), `docs/`. One repo, no monorepo tooling. |
 | CI | `.github/workflows/ci.yml`: `npm ci`, `npm run lint`, `npx vitest run`, `npm run build`, run with `working-directory: app`. Branch protection on `main` requires it. |
 | Deploy | Cloudflare Pages with root `app`, build `npm run build`, output `dist`. Every PR gets a preview URL. |
-| App shell | React Router 8 declarative routes `/`, `/services` and `/about` inside a `<Layout>` with a bottom tab bar. `public/_redirects` contains `/* /index.html 200` so refreshing any route works. |
+| App shell | React Router 8 declarative routes `/`, `/services` and `/about` inside a `<Layout>` with a bottom tab bar. `wrangler.jsonc` sets `not_found_handling: "single-page-application"` so refreshing any route works. |
 
 **Connects to:** nothing before it. Every later phase ships through this pipeline (pull request, CI, `main`, live), and the three routes never change, so links shared on Facebook keep working.
 

@@ -25,7 +25,7 @@ src/
 ├── components/Layout.*   Header and tab bar (bottom on phones, top from 48rem)
 ├── pages/                One component per route, shared Page.module.css
 └── test/setup.ts         jest-dom matchers for Vitest
-public/_redirects         Cloudflare Pages SPA fallback, so refreshing any route works
+wrangler.jsonc            Cloudflare Worker static assets, SPA fallback so refreshing any route works
 ```
 
 Styles are plain CSS Modules, mobile first. Design tokens (colours, gutter, tab bar height) live in `src/index.css` and switch for dark mode.
