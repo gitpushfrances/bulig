@@ -17,7 +17,17 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 ## [Unreleased]
 
-Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-23.
+Phase 2: Emergency + Services PWA (target `v0.2`). Tickets SCRUM-24 to SCRUM-27.
+
+---
+
+## [v0.1] - 2026-10-29
+
+Phase 1: Setup and skeleton. Tickets SCRUM-21, SCRUM-22, SCRUM-23.
+
+- A live Cloudflare Worker link with three tabs (Emergency, Services, About), deployed automatically from `main`.
+- CI (lint, tests, build) is required on `main` and proven to block a type error (PR #6).
+- Scope is now global: Guiuan and Mercedes are the first pilot area, and the data contract has a country and an area on every record.
 
 ### Added
 
@@ -81,10 +91,10 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 - Claude Code's auto-mode classifier blocked Claude from merging #2 ("Merge Without Review"). PRs are merged by John on GitHub, or Claude merges them only after an explicit permission rule.
 
-### Still to do in Phase 1
+### Carried over from Phase 1
 
 - Test on a real phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
-- Tag `v0.1` and move these entries under it.
+- Tagged `v0.1` without the real-phone check (John's call, 2026-10-29). Do it before closing the first Phase 2 UI ticket.
 
 ---
 
