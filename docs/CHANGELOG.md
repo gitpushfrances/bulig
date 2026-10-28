@@ -47,9 +47,19 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 - **Fixed (testing only, not an app bug):** the first headless Edge screenshots at 320px and 390px looked cut off on the right. Cause: headless Edge won't use a viewport narrower than 496px and crops the image. Fix: checked with `playwright-core` and real mobile emulation instead. At 320, 390, landscape 844x390, tablet 820 and desktop 1440, `scrollWidth` equals the viewport width, so there's no sideways scrolling.
 - **Fixed:** the GitHub CLI (`gh`) wasn't installed, and the GitHub plugin failed to connect ("Authorization header is badly formatted"). Installed `gh` 2.103.3 with winget and logged in as `gitpushfrances`. PRs opened: #2 (docs) and #3 (Phase 1, stacked on #2).
 - **Fixed:** the first CI run on #3 passed but warned that `actions/checkout@v4` and `actions/setup-node@v4` run on Node.js 20, which GitHub has deprecated. Bumped both to `@v7` (Node 24).
+- **Fixed:** the Cloudflare "Workers Builds: bulig" deploy failed. The build passed, but `npx wrangler deploy` was rejected with "Invalid _redirects configuration: Line 1: Infinite loop detected in this rule [code: 100324]". Cause: `public/_redirects` (`/* /index.html 200`) was written for Cloudflare Pages, and Workers static assets treat that rule as an infinite loop. Fix: deleted `public/_redirects`. `wrangler.jsonc`'s `not_found_handling: "single-page-application"` already does the same job. Dashboard settings were confirmed: root `app`, build `npm run build`, deploy `npx wrangler deploy`. The runtime Variables, Bindings and Observability sections are greyed out because this Worker only serves static assets, which is expected.
+- **Fixed:** branch (preview) builds for PR #4 failed with "Your Wrangler configuration is missing a `previews` block". Cloudflare runs `npx wrangler preview` for non-production branches, and that command needs a `previews` block in the config, even an empty one. Added `"previews": {}` to `app/wrangler.jsonc`. The same log showed no install or build step running before the preview command, so if branch builds still fail on a missing `dist/`, check the non-production branch build settings in the dashboard.
+- **Note:** the failing build log showed `wrangler` being installed on the fly and auto-generating its own `wrangler.jsonc`, which means that build ran on `main`, where this PR's config isn't merged yet. `main` keeps failing to deploy until PR #4 is merged.
+- **Open (dev machine, not an app bug):** the `security-guidance` Claude Code plugin hook failed on every prompt and edit in `app/` (20 times in 9 days) with "no working Python 3 interpreter found". `Python312` is on PATH but that folder has no `python.exe`, so `python` falls through to the Microsoft Store stub. Fix: install Python from python.org or with `winget install -e --id Python.Python.3.13`. Until then, the plugin's security checks don't run.
+- **Note (dev machine):** the Claude Code plugins are enabled in `app/.claude/settings.json` (git-excluded), so they only load when Claude is started from `app/`, not from the repo root. Re-enable them at the root with `/plugin` if they're wanted there.
 
 ### Big changes
 
+- **Deploy target changed from Cloudflare Pages to a Cloudflare Worker with static assets** (branch `chore/cloudflare-deploy`). When the repo was connected, Cloudflare created a Worker. Its settings page only has build command and root directory, with no "Build output directory" field. Added `app/wrangler.jsonc`:
+  - It serves `./dist`, with `not_found_handling: "single-page-application"` for refresh-safe routes. This replaces the job `public/_redirects` did on Pages, so that file was removed (see **Errors**).
+  - Added `wrangler` 4.154 as a dev dependency. `npx wrangler deploy --dry-run` reads all 6 build files.
+  - Still free. README "Deploy" section updated. ROADMAP and ARCHITECTURE still say "Pages"; the behaviour is the same, including preview URLs per branch.
+- **Required CI check on `main`:** after #2 and #3 were merged, `app` was added as a required status check, with "branch must be up to date" on. The first API call (`PATCH .../required_status_checks`) returned 404 "Required status checks not enabled". A full `PUT .../protection` worked.
 - **Branch protection on `main`** (2026-10-28):
   - Changes must come through a pull request, with 0 approvals required because this is a solo repo.
   - Force pushes and branch deletion are blocked, and open conversations must be resolved before merging.
@@ -63,8 +73,8 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Still to do in Phase 1
 
-- Connect Cloudflare Pages: root `app`, build `npm run build`, output `dist` (step 4).
-- Add the required `app` status check to `main`'s branch protection, after #2 and #3 are merged.
+- Finish the Cloudflare deploy (step 4): get the "Workers Builds: bulig" check on PR #4 green (see **Errors** above), then merge PR #4 (`chore/cloudflare-deploy`) on GitHub.
+- Update `docs/ROADMAP.md` and `docs/ARCHITECTURE.md`, which still say "Cloudflare Pages", and the README "Stack" list ("Hosting: Cloudflare Pages") to say Worker with static assets.
 - Test on a real Android phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
 
 ---

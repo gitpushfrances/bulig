@@ -68,7 +68,16 @@ npm run preview    # serve the production build
 
 ## Deploy
 
-Cloudflare Pages builds from `main`: root `app`, build command `npm run build`, output `dist`. Every pull request gets a preview URL.
+Cloudflare builds from `main` as a **Worker with static assets**. It works like Pages, but the output folder is set in [`app/wrangler.jsonc`](app/wrangler.jsonc) instead of the dashboard.
+
+| Dashboard setting | Value |
+| --- | --- |
+| Root directory (Path) | `app` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Build variable | `NODE_VERSION` = `24` |
+
+`wrangler.jsonc` serves `dist/` and sends unknown paths to `index.html`, so refreshing `/services` never 404s. To check the config locally, run `npx wrangler deploy --dry-run` after a build.
 
 ## Working rules
 

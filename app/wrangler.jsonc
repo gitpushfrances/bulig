@@ -1,0 +1,14 @@
+// Cloudflare Workers static assets: serves the Vite build, no server code.
+// Dashboard settings: root directory `app`, build `npm run build`, deploy `npx wrangler deploy`.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "bulig",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // Any unknown path gets index.html, so refreshing /services or /about never 404s.
+    "not_found_handling": "single-page-application"
+  },
+  // Empty on purpose: branch builds run `wrangler preview`, which needs this block to exist.
+  "previews": {}
+}
