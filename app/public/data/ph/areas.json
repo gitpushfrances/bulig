@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-29T00:00:00Z",
+  "items": [
+    {
+      "id": "ph-eastern-samar-guiuan",
+      "country": "PH",
+      "name": "Guiuan",
+      "region": "Eastern Samar",
+      "languages": ["en", "war"]
+    },
+    {
+      "id": "ph-eastern-samar-mercedes",
+      "country": "PH",
+      "name": "Mercedes",
+      "region": "Eastern Samar",
+      "languages": ["en", "war"]
+    }
+  ]
+}

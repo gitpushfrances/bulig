@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-29T00:00:00Z",
+  "items": [
+    {
+      "id": "ph-national-911",
+      "country": "PH",
+      "area": null,
+      "name": "National Emergency Hotline",
+      "kind": "national",
+      "phones": [
+        "911"
+      ],
+      "verifiedAt": "2026-10-29",
+      "source": "Emergency 911 national hotline (Executive Order No. 56, 2016)"
+    },
+    {
+      "id": "ph-eastern-samar-guiuan-police",
+      "country": "PH",
+      "area": "ph-eastern-samar-guiuan",
+      "name": "Guiuan Police Station (SAMPLE)",
+      "kind": "police",
+      "phones": [
+        "+63 55 000 0001"
+      ],
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-eastern-samar-guiuan-mdrrmo",
+      "country": "PH",
+      "area": "ph-eastern-samar-guiuan",
+      "name": "Guiuan MDRRMO (SAMPLE)",
+      "kind": "disaster",
+      "phones": [
+        "+63 55 000 0002",
+        "+63 900 000 0002"
+      ],
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-eastern-samar-mercedes-fire",
+      "country": "PH",
+      "area": "ph-eastern-samar-mercedes",
+      "name": "Mercedes Fire Station (SAMPLE)",
+      "kind": "fire",
+      "phones": [
+        "+63 55 000 0003"
+      ],
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-eastern-samar-mercedes-rescue-expired",
+      "country": "PH",
+      "area": "ph-eastern-samar-mercedes",
+      "name": "Mercedes Rescue (SAMPLE, expired on purpose)",
+      "kind": "rescue",
+      "phones": [
+        "+63 55 000 0004"
+      ],
+      "verifiedAt": "2025-01-15",
+      "source": "Sample data: last checked over 180 days ago, so the app must hide it",
+      "sample": true
+    }
+  ]
+}
