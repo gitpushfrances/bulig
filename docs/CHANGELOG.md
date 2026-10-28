@@ -19,6 +19,33 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 Phase 2: Emergency + Services PWA (target `v0.2`). Tickets SCRUM-24 to SCRUM-27.
 
+### Added
+
+- **SCRUM-24 data** (branch `feat/phase-2-offline-pwa`):
+  - Contract v1 lives in `src/types.ts`: `Area`, `EmergencyContact`, `Service`, `Category`, `Envelope` and `Labels`.
+  - Philippine data is in `public/data/ph/`: 2 areas, the real 911 line, 4 sample local numbers (one expired on purpose), 5 sample places, and `labels.json` (`tire_repair` → "Vulcanizing").
+  - `validateEnvelope()` checks every file in CI and at runtime.
+  - `DataProvider` and `useAppData()` load one country for the whole app and remember the picked area.
+- **SCRUM-25 Emergency page:**
+  - `visibleContacts()` puts the national number first, never hides it, and hides other numbers last checked more than 180 days ago (boundary tested).
+  - Each number is a 48px `tel:` button with a "Last checked" date.
+  - The built-in fallback `tel:911` shows while data is loading or if it fails to load.
+- **SCRUM-26 Services page:** an area picker, category chips (only categories that exist in the picked area), search by name or landmark, Call and Directions (a Google Maps link) buttons, and `filterServices()`. A tire shop takes 2 taps: Vulcanizing, then Call.
+- **SCRUM-27 offline:**
+  - `vite-plugin-pwa` 2.0 adds a manifest, icons generated from `favicon.svg` (`pwa-assets.config.ts`), and a service worker.
+  - An "Offline, showing saved data" note shows when there's no connection.
+  - Checked in headless Edge with a mobile viewport: after one visit, an offline reload shows 911 first, both tire shops, and `/about` as a deep link, with no console errors.
+- Sample records get a grey SAMPLE badge and a "Sample data, don't call them" note. Sample phone numbers use `000` blocks so they aren't real lines.
+
+### Big changes
+
+- **These differ from ARCHITECTURE.md (the doc is updated to match):**
+  - Data files are **precached** instead of `NetworkFirst`, so offline works from the first visit. They are static files that only change on a deploy, and a deploy ships a new service worker. `NetworkFirst` comes back with the API in Phase 4.
+  - The list of live countries is `LIVE_COUNTRIES` in `src/data/countries.ts`, not a `countries.json` file. One fewer request.
+  - JSON Schema files and `ajv` are left out for now. The TypeScript `validateEnvelope()` covers Phase 2, and the schema files come when Phase 4 needs to share them with Laravel.
+  - There's no country picker while only PH is live.
+- **Note:** sample local numbers were last checked 2026-10-20, so the app will hide them after 2027-04-18. Phase 3 replaces them with real, verified data before then.
+
 ---
 
 ## [v0.1] - 2026-10-29

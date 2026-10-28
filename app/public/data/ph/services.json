@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-29T00:00:00Z",
+  "items": [
+    {
+      "id": "ph-eastern-samar-guiuan-sample-vulcanizing",
+      "country": "PH",
+      "area": "ph-eastern-samar-guiuan",
+      "category": "tire_repair",
+      "name": "Sample Vulcanizing Shop",
+      "phone": "+63 900 000 0101",
+      "landmark": "Sample landmark: near the public market",
+      "lat": 11.0337,
+      "lng": 125.7243,
+      "hours": "7am to 6pm",
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real shop",
+      "sample": true
+    },
+    {
+      "id": "ph-eastern-samar-mercedes-sample-vulcanizing",
+      "country": "PH",
+      "area": "ph-eastern-samar-mercedes",
+      "category": "tire_repair",
+      "name": "Sample Tire and Vulcanizing",
+      "phone": "+63 900 000 0102",
+      "landmark": "Sample landmark: along the national highway",
+      "lat": 11.1036,
+      "lng": 125.7175,
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real shop",
+      "sample": true
+    },
+    {
+      "id": "ph-eastern-samar-guiuan-sample-mechanic",
+      "country": "PH",
+      "area": "ph-eastern-samar-guiuan",
+      "category": "mechanic",
+      "name": "Sample Motor Repair",
+      "phone": "+63 900 000 0103",
+      "landmark": "Sample landmark: beside the terminal",
+      "hours": "8am to 5pm, closed Sunday",
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real shop",
+      "sample": true
+    },
+    {
+      "id": "ph-eastern-samar-guiuan-sample-fuel",
+      "country": "PH",
+      "area": "ph-eastern-samar-guiuan",
+      "category": "fuel",
+      "name": "Sample Gas Station",
+      "landmark": "Sample landmark: town entrance",
+      "lat": 11.0402,
+      "lng": 125.7198,
+      "hours": "24 hours",
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real station",
+      "sample": true
+    },
+    {
+      "id": "ph-eastern-samar-mercedes-sample-food",
+      "country": "PH",
+      "area": "ph-eastern-samar-mercedes",
+      "category": "food",
+      "name": "Sample Carinderia",
+      "phone": "+63 900 000 0105",
+      "landmark": "Sample landmark: across the plaza",
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real place",
+      "sample": true
+    }
+  ]
+}

@@ -8,6 +8,8 @@
   --accent-text: #ffffff;
   --accent-soft: #ffedd5;
   --focus: #2563eb;
+  --sample-bg: #e7e5e4;
+  --sample-text: #292524;
 
   --font: system-ui, 'Segoe UI', Roboto, sans-serif;
   --radius: 12px;
@@ -35,6 +37,8 @@
     --accent-text: #1c1917;
     --accent-soft: #431407;
     --focus: #93c5fd;
+    --sample-bg: #44403c;
+    --sample-text: #fafaf9;
   }
 }
 

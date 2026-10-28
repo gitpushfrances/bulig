@@ -21,10 +21,15 @@ To try it on your phone, run `npm run dev -- --host` and open the Network URL on
 ```text
 src/
 ├── main.tsx              BrowserRouter + App
-├── App.tsx               Routes: / (Emergency), /services, /about
-├── components/Layout.*   Header and tab bar (bottom on phones, top from 48rem)
+├── App.tsx               DataProvider + routes: / (Emergency), /services, /about
+├── types.ts              Data contract v1 (Area, EmergencyContact, Service, ...)
+├── data/                 Loading (JsonSource, DataProvider, useAppData), validation, countries, labels
+├── rules/                Pure, unit-tested rules: visibleContacts(), filterServices()
+├── components/           Layout (header, tab bar), AreaPicker, DataNotice
 ├── pages/                One component per route, shared Page.module.css
-└── test/setup.ts         jest-dom matchers for Vitest
+└── test/setup.ts         jest-dom matchers; fetch() serves public/data in tests
+public/data/<cc>/         Per-country data: areas, emergency-contacts, services, labels
+pwa-assets.config.ts      Regenerates the app icons from favicon.svg (npx pwa-assets-generator)
 wrangler.jsonc            Cloudflare Worker static assets, SPA fallback so refreshing any route works
 ```
 

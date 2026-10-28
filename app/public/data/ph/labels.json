@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "categories": {
+    "tire_repair": { "en": "Vulcanizing", "war": "Vulcanizing" },
+    "fuel": { "en": "Gas station" },
+    "food": { "en": "Carinderia" }
+  }
+}
