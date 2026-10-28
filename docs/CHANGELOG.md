@@ -75,6 +75,7 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
   - Admins are not forced through these rules, so you can't get locked out.
   - The required `app` CI check is **not on yet**, because #2 has no CI file and would never pass it. Add it once #2 and #3 are merged.
 - PR #3 now targets `main` directly instead of being stacked on #2.
+- **CI proven to block bad code** (2026-10-29, Phase 1 "Done when"): draft PR #6 added `const shouldFail: number = 'this is not a number'`. The `app` check failed at `npm run build` with `TS2322: Type 'string' is not assignable to type 'number'`, the Cloudflare build failed too, and GitHub showed the merge as `BLOCKED`. Closed without merging and the branch was deleted.
 
 ### Conflicts
 
@@ -82,7 +83,6 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Still to do in Phase 1
 
-- Prove CI blocks bad code: open a throwaway PR with a deliberate type error, confirm the `app` check fails and merging is blocked, then close it.
 - Test on a real phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
 - Tag `v0.1` and move these entries under it.
 
