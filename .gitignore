@@ -1,0 +1,22 @@
+# Dependencies and builds
+node_modules/
+dist/
+dist-ssr/
+coverage/
+
+# Env files (keep secrets out of git)
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

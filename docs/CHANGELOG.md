@@ -21,21 +21,51 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Added
 
-- Root `README.md` with the project summary, stack, repo layout, getting started, deploy settings and working rules.
-- `docs/CHANGELOG.md` (this file), as asked for by Roadmap ground rule 5.
+- Root `README.md` with the project summary, stack, repo layout, getting started, deploy settings and working rules. (branch `docs/readme-changelog`)
+- `docs/CHANGELOG.md` (this file), as asked for by Roadmap ground rule 5. (branch `docs/readme-changelog`)
+- **SCRUM-23 app shell** (branch `feat/phase-1-skeleton`):
+  - Routes `/` (Emergency), `/services` and `/about` inside `<Layout>`, plus a "Page not found" route for anything else.
+  - Responsive, mobile-first layout in CSS Modules. Phones get a bottom tab bar in thumb reach with 64px touch targets. Short landscape phones get a slimmer bar. From 48rem (tablets and desktops) the tabs move into the top header. Content is capped at 48rem wide. Safe-area insets are handled for notched phones, the tagline is hidden below 22rem (320px phones), and there's a light and dark theme, a skip link, visible focus rings and reduced-motion support.
+  - Placeholder text on each page, with a "Coming in v0.2" badge.
+  - `public/_redirects` with `/* /index.html 200`, so refreshing any route works on Cloudflare Pages.
+  - New Bulig favicon, `theme-color`, page title and description in `index.html`.
+- Vitest 5 + jsdom + Testing Library. `src/App.test.tsx` checks each route shows its page and marks its tab active, the three tabs stay in order, and unknown paths show "Page not found". Scripts: `npm test`, `npm run test:watch`.
+- `.github/workflows/ci.yml`: `npm ci`, `npm run lint`, `npx vitest run`, `npm run build` in `app/`, on every PR and on pushes to `main` (Roadmap step 5).
+- Root `.gitignore` (Roadmap step 3), also ignoring `.env` files.
+
+### Changed
+
+- `app/README.md` replaced: the Vite template text is now app-specific scripts and folder layout.
+
+### Removed
+
+- Vite demo content: counter, logos, `App.css`, `src/assets/*` and `public/icons.svg` (Roadmap step 7).
 
 ### Errors
 
 - **Open:** `docs/ROADMAP.md` Phase 1 step 1 says to follow `local-setup.md`, but that file isn't in the repo.
+- **Fixed (testing only, not an app bug):** the first headless Edge screenshots at 320px and 390px looked cut off on the right. Cause: headless Edge won't use a viewport narrower than 496px and crops the image. Fix: checked with `playwright-core` and real mobile emulation instead. At 320, 390, landscape 844x390, tablet 820 and desktop 1440, `scrollWidth` equals the viewport width, so there's no sideways scrolling.
+- **Fixed:** the GitHub CLI (`gh`) wasn't installed, and the GitHub plugin failed to connect ("Authorization header is badly formatted"). Installed `gh` 2.103.3 with winget and logged in as `gitpushfrances`. PRs opened: #2 (docs) and #3 (Phase 1, stacked on #2).
+- **Fixed:** the first CI run on #3 passed but warned that `actions/checkout@v4` and `actions/setup-node@v4` run on Node.js 20, which GitHub has deprecated. Bumped both to `@v7` (Node 24).
+
+### Big changes
+
+- **Branch protection on `main`** (2026-10-28):
+  - Changes must come through a pull request, with 0 approvals required because this is a solo repo.
+  - Force pushes and branch deletion are blocked, and open conversations must be resolved before merging.
+  - Admins are not forced through these rules, so you can't get locked out.
+  - The required `app` CI check is **not on yet**, because #2 has no CI file and would never pass it. Add it once #2 and #3 are merged.
+- PR #3 now targets `main` directly instead of being stacked on #2.
+
+### Conflicts
+
+- Claude Code's auto-mode classifier blocked Claude from merging #2 ("Merge Without Review"). PRs are merged by John on GitHub, or Claude merges them only after an explicit permission rule.
 
 ### Still to do in Phase 1
 
-- Root `.gitignore`. Only `app/.gitignore` exists (Roadmap step 3).
 - Connect Cloudflare Pages: root `app`, build `npm run build`, output `dist` (step 4).
-- `.github/workflows/ci.yml` running `npm ci`, `npm run lint`, `npx vitest run` and `npm run build`. Vitest isn't installed yet (step 5).
-- SCRUM-23: `<Layout>` with a bottom tab bar, routes `/`, `/services` and `/about`, and `public/_redirects` with `/* /index.html 200` (step 6).
-- Remove the Vite demo: the counter, the logos, `App.css` and `src/assets/hero.png` (step 7).
-- Replace `app/README.md`, which is still the Vite template text.
+- Add the required `app` status check to `main`'s branch protection, after #2 and #3 are merged.
+- Test on a real Android phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
 
 ---
 
