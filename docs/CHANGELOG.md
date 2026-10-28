@@ -48,10 +48,23 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 - **Fixed:** the GitHub CLI (`gh`) wasn't installed, and the GitHub plugin failed to connect ("Authorization header is badly formatted"). Installed `gh` 2.103.3 with winget and logged in as `gitpushfrances`. PRs opened: #2 (docs) and #3 (Phase 1, stacked on #2).
 - **Fixed:** the first CI run on #3 passed but warned that `actions/checkout@v4` and `actions/setup-node@v4` run on Node.js 20, which GitHub has deprecated. Bumped both to `@v7` (Node 24).
 
+### Big changes
+
+- **Branch protection on `main`** (2026-10-28):
+  - Changes must come through a pull request, with 0 approvals required because this is a solo repo.
+  - Force pushes and branch deletion are blocked, and open conversations must be resolved before merging.
+  - Admins are not forced through these rules, so you can't get locked out.
+  - The required `app` CI check is **not on yet**, because #2 has no CI file and would never pass it. Add it once #2 and #3 are merged.
+- PR #3 now targets `main` directly instead of being stacked on #2.
+
+### Conflicts
+
+- Claude Code's auto-mode classifier blocked Claude from merging #2 ("Merge Without Review"). PRs are merged by John on GitHub, or Claude merges them only after an explicit permission rule.
+
 ### Still to do in Phase 1
 
 - Connect Cloudflare Pages: root `app`, build `npm run build`, output `dist` (step 4).
-- Turn on branch protection for `main`, requiring the CI check.
+- Add the required `app` status check to `main`'s branch protection, after #2 and #3 are merged.
 - Test on a real Android phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
 
 ---
