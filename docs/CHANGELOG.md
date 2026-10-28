@@ -50,6 +50,11 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Big changes
 
+- **Deploy target changed from Cloudflare Pages to a Cloudflare Worker with static assets** (branch `chore/cloudflare-deploy`). When the repo was connected, Cloudflare created a Worker. Its settings page only has build command and root directory, with no "Build output directory" field. Added `app/wrangler.jsonc`:
+  - It serves `./dist`, with `not_found_handling: "single-page-application"` for refresh-safe routes. This replaces the job `public/_redirects` does on Pages; that file stays as a fallback.
+  - Added `wrangler` 4.154 as a dev dependency. `npx wrangler deploy --dry-run` reads all 6 build files.
+  - Still free. README "Deploy" section updated. ROADMAP and ARCHITECTURE still say "Pages"; the behaviour is the same, including preview URLs per branch.
+- **Required CI check on `main`:** after #2 and #3 were merged, `app` was added as a required status check, with "branch must be up to date" on. The first API call (`PATCH .../required_status_checks`) returned 404 "Required status checks not enabled". A full `PUT .../protection` worked.
 - **Branch protection on `main`** (2026-10-28):
   - Changes must come through a pull request, with 0 approvals required because this is a solo repo.
   - Force pushes and branch deletion are blocked, and open conversations must be resolved before merging.
@@ -63,8 +68,7 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Still to do in Phase 1
 
-- Connect Cloudflare Pages: root `app`, build `npm run build`, output `dist` (step 4).
-- Add the required `app` status check to `main`'s branch protection, after #2 and #3 are merged.
+- Finish the Cloudflare deploy: dashboard settings in the README "Deploy" section, then merge `chore/cloudflare-deploy` (step 4).
 - Test on a real Android phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
 
 ---
