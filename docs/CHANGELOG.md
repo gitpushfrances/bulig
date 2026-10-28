@@ -19,6 +19,16 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 Phase 3: First pilot in Guiuan + Mercedes, Philippines (target `v0.3`).
 
+### Big changes
+
+- **New UI and UX spec, [docs/UI-UX.md](UI-UX.md).** The app is now built around "What's wrong?": four tabs (Home, Map, Saved, Profile) replace Emergency, Services and About. Home has a hotlines card (911 one tap, plus MDRRMO, PNP, BFP), six problem buttons (Flat tire, Out of gas, Breakdown, Hospital, Food, Store) and a mini map. Each button opens a Nearby results screen with the nearest place as a big card (Call, Directions) and the rest as a list. `/services` and `/about` keep working. Decided by John on 2026-10-29 after reviewing the Figma Make prototype.
+- **Roadmap and Architecture updated** for the new screens in Phase 3: needs, location, ranking (`rankNearby()`, `isUsuallyOpen()`), Home, Map, Saved and Profile. The Phase 7 "roadside help" feature now ships on the phone in Phase 3; Phase 7 only moves the ranking to the server.
+- **Contract v1 gets optional fields** for Phase 3: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype`.
+
+### Conflicts
+
+- The Figma Make prototype ("Design-Ropa-Roadside-Assistance") had login, ratings, an owner portal and an admin dashboard, and was still named Ropa. Those were left out of the spec: login and the portals belong to Phases 4 and 5, and ratings wait for John's decision (Phase 5 at the earliest). It also had no 911 button. The spec keeps 911 one tap from Home.
+
 ---
 
 ## [v0.2] - 2026-10-29

@@ -6,7 +6,7 @@ Help Along the Way. Road help and local services for travellers anywhere, added 
 
 Last updated: 2026-10-29 · Owner: John · Stack doc: https://claude.ai/artifact/Y5jJVoa3DaWnfe6SkoNptU
 
-How each phase is built and how the parts connect: see [ARCHITECTURE.md](ARCHITECTURE.md).
+How each phase is built and how the parts connect: see [ARCHITECTURE.md](ARCHITECTURE.md). What every screen looks like and how people move through the app: see [UI-UX.md](UI-UX.md).
 
 ## How to read this
 
@@ -18,7 +18,7 @@ Validation (SCRUM-8 to 19) keeps running in the background. It doesn't block any
 | --- | --- | --- | --- | --- |
 | 1 | Setup and skeleton | 1 week | v0.1 | Free |
 | 2 | Emergency + Services PWA | 2 to 3 weeks | v0.2 | Free |
-| 3 | First pilot (Guiuan + Mercedes, PH) | 3 to 4 weeks | v0.3 | Free (use the `bulig.<subdomain>.workers.dev` link) |
+| 3 | First pilot (Guiuan + Mercedes, PH) | 5 to 7 weeks (includes the new screens from UI-UX.md) | v0.3 | Free (use the `bulig.<subdomain>.workers.dev` link) |
 | 4 | Backend and admin (Laravel) | 4 to 6 weeks | v0.4 | Free tier (see risks) |
 | 5 | Community features | 4 to 6 weeks | v0.5 | Free |
 | 6 | Android app (Capacitor), optional | 2 weeks | v1.0 | Free APK; Play Store only once funded |
@@ -111,22 +111,29 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - *(new)* Keep the Worker named `bulig` so the free link is `bulig.<subdomain>.workers.dev`. (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
 - *(new)* Add Cloudflare Web Analytics (free, no cookies) to count visits and installs
 - *(new)* Add a "Report wrong info" link that opens a short Google Form
-- *(new)* Optional Map tab with MapLibre and OpenFreeMap, lazy-loaded, with a list fallback
+- *(new)* **New navigation from [UI-UX.md](UI-UX.md):** four tabs (Home, Map, Saved, Profile) replace Emergency, Services and About. `/services` and `/about` keep working.
+- *(new)* Home: town header from GPS with a picker fallback, hotlines card (911 one tap, plus MDRRMO, PNP, BFP), six "What's wrong?" buttons, mini map
+- *(new)* Nearby results screen (`/nearby/:need`): nearest place as a big card with Call and Directions, "Nearest usually open" when it's closed, then the rest as a list
+- *(new)* Map tab with MapLibre and OpenFreeMap, lazy-loaded, category pins, bottom sheet, list fallback
+- *(new)* Place details, Saved (hearts stored on the phone) and Profile (language, location, offline data, About)
+- *(new)* Data: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional, contract v1 stays)
 - *(new)* Write a Privacy and About page in plain English plus the pilot area's local language (Waray), set up so more languages can be added per area
 - *(new)* Write `docs/OPEN-AN-AREA.md`: the checklist for opening a new area or country (verify emergency numbers, collect services, local category names, language, privacy notice), based on what this pilot taught
 
 **Steps**
 
-1. Replace sample data with verified records only. Each record needs a source and a check date.
-2. SCRUM-28: test on 2 to 3 different Android phones, run Lighthouse (aim for Performance 90+ and Accessibility 90+), and do a sunlight readability check.
-3. Hand it to 5 people who aren't you (riders, tricycle drivers, a vulcanizing shop owner). Watch them use it without helping, and write down where they get stuck.
-4. Fix the top 3 problems.
-5. Set up analytics and an Open Graph preview image (so the link looks trustworthy when shared on Facebook), then share it: local Facebook groups, terminals, gas stations, and the shops that are listed.
-6. Run a weekly loop. Every week, process "wrong info" reports, re-check anything flagged, and look at analytics.
+1. Replace sample data with verified records only. Each record needs a source and a check date, plus features (tubeless, air pump and so on) and usual hours per day, because the new screens show them.
+2. Build the new navigation and screens from [UI-UX.md](UI-UX.md), in this order: Home and Hotlines, Nearby results, Place details, Saved and Profile, then Map. Each one is usable on its own, so stop after Nearby results if data collection falls behind.
+3. SCRUM-28: test on 2 to 3 different Android phones, run Lighthouse (aim for Performance 90+ and Accessibility 90+), and do a sunlight readability check.
+4. Hand it to 5 people who aren't you (riders, tricycle drivers, a vulcanizing shop owner). Give each one a task ("you have a flat tire, find help") and watch without helping. Write down where they get stuck and how many taps it took.
+5. Fix the top 3 problems.
+6. Set up analytics and an Open Graph preview image (so the link looks trustworthy when shared on Facebook), then share it: local Facebook groups, terminals, gas stations, and the shops that are listed.
+7. Run a weekly loop. Every week, process "wrong info" reports, re-check anything flagged, and look at analytics.
 
 **Done when**
 
 - [ ] The `workers.dev` link is live with only verified data for the pilot area
+- [ ] From Home, 911 takes 1 tap, and calling the nearest tire shop takes 2 (Flat tire, Call), on a real phone
 - [ ] At least 30 people outside your circle have opened it (from analytics)
 - [ ] At least 3 "wrong info" reports have been received and fixed, which shows the feedback loop works
 - [ ] The usage numbers are written into the SCRUM-15 validation results
