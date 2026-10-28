@@ -7,8 +7,9 @@ export default function AboutPage() {
         About Bulig
       </h1>
       <p className={styles.lead}>
-        Help Along the Way. Road help and local services, starting in Guiuan
-        and Mercedes, Eastern Samar.
+        Help Along the Way. Road help and local services wherever you travel,
+        one checked area at a time. First stop: Guiuan and Mercedes, Eastern
+        Samar, Philippines.
       </p>
       <p className={styles.card}>
         Bulig is free to use. It never dispatches anyone and never sends your

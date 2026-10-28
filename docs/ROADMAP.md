@@ -1,8 +1,10 @@
 # Bulig Roadmap
 
-Help Along the Way. Road help and local services, starting in Guiuan and Mercedes, Eastern Samar.
+Help Along the Way. Road help and local services for travellers anywhere, added one checked area at a time. The first pilot area is Guiuan and Mercedes, Eastern Samar, Philippines.
 
-Last updated: 2026-10-28 · Owner: John · Stack doc: https://claude.ai/artifact/Y5jJVoa3DaWnfe6SkoNptU
+**Scope:** Bulig is built to work in any country from day one (the data has a country and an area on every record, see [ARCHITECTURE.md](ARCHITECTURE.md#1-data-contract)). It *launches* in one small area because a small, accurate directory beats a large, stale one. New areas and countries open in Phase 7, each only after its emergency numbers are verified.
+
+Last updated: 2026-10-29 · Owner: John · Stack doc: https://claude.ai/artifact/Y5jJVoa3DaWnfe6SkoNptU
 
 How each phase is built and how the parts connect: see [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -16,11 +18,11 @@ Validation (SCRUM-8 to 19) keeps running in the background. It doesn't block any
 | --- | --- | --- | --- | --- |
 | 1 | Setup and skeleton | 1 week | v0.1 | Free |
 | 2 | Emergency + Services PWA | 2 to 3 weeks | v0.2 | Free |
-| 3 | Pilot launch in Guiuan + Mercedes | 3 to 4 weeks | v0.3 | Free (use the `bulig.pages.dev` link) |
+| 3 | First pilot (Guiuan + Mercedes, PH) | 3 to 4 weeks | v0.3 | Free (use the `bulig.<subdomain>.workers.dev` link) |
 | 4 | Backend and admin (Laravel) | 4 to 6 weeks | v0.4 | Free tier (see risks) |
 | 5 | Community features | 4 to 6 weeks | v0.5 | Free |
 | 6 | Android app (Capacitor), optional | 2 weeks | v1.0 | Free APK; Play Store only once funded |
-| 7 | Grow beyond the pilot | ongoing | v1.x | Free until traffic or funding says otherwise |
+| 7 | More areas and countries | ongoing | v1.x | Free until traffic or funding says otherwise |
 
 **Budget rule: PHP 0.** Every phase has a free path. Paid items (domain, Play Store, paid server) are listed as upgrades for when Bulig earns money or wins a grant, never as blockers.
 
@@ -29,19 +31,20 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 ## Stack at a glance
 
 - **Frontend:** Vite 8.3, React 19.3, TypeScript 6.0.x (not 7, because typescript-eslint 8 needs TypeScript below 6.1), ESLint, React Router 8, plain CSS Modules, vite-plugin-pwa 2.0, Vitest 5
-- **Data (Phases 1 to 3):** JSON files in `app/public/data/`
-- **Hosting:** Cloudflare Pages, free plan
+- **Data (Phases 1 to 3):** JSON files in `app/public/data/<country>/`, one folder per country (`ph/` first)
+- **Hosting:** Cloudflare Worker with static assets, free plan (`app/wrangler.jsonc`)
 - **Map (optional):** MapLibre GL JS 6.16 + OpenFreeMap tiles
 - **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5, Pest 5
 - **Native (Phase 6):** Capacitor 8
 
 ## Ground rules for every phase
 
-1. **Emergency Help** never needs a login and never shows ads. It never says help was dispatched or a location was sent, and it only lists numbers someone has checked. Numbers last checked more than 180 days ago are hidden.
+1. **Emergency Help** never needs a login and never shows ads. It never says help was dispatched or a location was sent, and it only lists numbers someone has checked. Numbers last checked more than 180 days ago are hidden. An area only goes live once its country's main emergency number and its local numbers are verified.
 2. **`main` is always deployable.** Work on `feat/...` or `fix/...` branches, merge by pull request, and wait for green CI before merging.
-3. **Test on a real Android phone** before closing any UI ticket.
-4. **One phase at a time.** New ideas go into the Jira backlog, not into the current phase.
-5. **At the end of each phase:** tag a release (`git tag v0.x`), write 3 lines in `docs/CHANGELOG.md`, and spend 15 minutes updating this file.
+3. **Test on a real phone** (a low-cost Android with Chrome is the main target) before closing any UI ticket. Resizing a desktop browser checks layout only; touch, speed, the address bar, install and offline need a real device.
+4. **Nothing country-specific is hard-coded.** Emergency numbers, categories' local names, languages and privacy notices come from data or per-country config, never from the code.
+5. **One phase at a time.** New ideas go into the Jira backlog, not into the current phase.
+6. **At the end of each phase:** tag a release (`git tag v0.x`), write 3 lines in `docs/CHANGELOG.md`, and spend 15 minutes updating this file.
 
 ---
 
@@ -53,17 +56,17 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Steps**
 
-1. SCRUM-21: install Node 24 with fnm, Git and VS Code with its extensions. Clone `gitpushfrances/bulig`. (Follow `local-setup.md`.)
+1. SCRUM-21: install Node 24 with fnm, Git and VS Code with its extensions. Clone `gitpushfrances/bulig`. (`local-setup.md` is not written yet; see the README "Getting started".)
 2. SCRUM-22: `npm create vite@latest app -- --template react-ts`, pick ESLint, then `npm install -D typescript@~6.0.3`, `npm install` and `npm install react-router`.
 3. Add the root `.gitignore` and `README.md`, then make the first commit and push to `main`.
-4. Connect Cloudflare Pages with root `app`, build `npm run build`, output `dist`.
+4. Connect the repo to Cloudflare (it creates a Worker with static assets): root `app`, build `npm run build`, deploy `npx wrangler deploy`. The output folder and SPA fallback live in `app/wrangler.jsonc`.
 5. Add `.github/workflows/ci.yml`, which runs `npm ci`, `npm run lint`, `npx vitest run` and `npm run build` on every pull request.
 6. SCRUM-23: write the tab bar and the routes `/` (Emergency), `/services` and `/about`, with placeholder text.
 7. Remove the Vite demo content: the counter, the logos and `App.css`.
 
 **Done when**
 
-- [ ] The `*.pages.dev` link opens on your phone and shows three tabs
+- [ ] The `*.workers.dev` link opens on your phone and shows three tabs
 - [ ] Refreshing on `/services` doesn't give a 404
 - [ ] A pull request with a deliberate type error fails CI
 - [ ] SCRUM-21, 22 and 23 are moved to Done
@@ -80,36 +83,37 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Steps**
 
-1. SCRUM-24: create `src/types.ts` with `EmergencyContact` and `Service`, plus `public/data/emergency-contacts.json` and `services.json` holding 3 to 5 records each, marked `"sample": true`. Write a Vitest test that fails if any record is missing `verifiedAt` or `source`.
-2. Write a `useData()` hook that fetches both files and handles loading and error states.
-3. SCRUM-25: build the Emergency page. Show 911 first, then the local numbers as `tel:` links with "Last checked" dates, and apply the 180-day hide rule. Write tests for the expiry rule and for 911 always coming first.
-4. SCRUM-26: build the Services page with a town picker, category chips, search, and call and directions buttons. Save the chosen town in `localStorage`.
+1. SCRUM-24: create `src/types.ts` with `Area`, `EmergencyContact` and `Service` (every record has a `country` and an `area`), plus `public/data/ph/areas.json`, `emergency-contacts.json` and `services.json` holding 3 to 5 records each, marked `"sample": true`. Write a Vitest test that fails if any record is missing `verifiedAt` or `source`.
+2. Write a `useData(country)` hook that fetches that country's files and handles loading and error states.
+3. SCRUM-25: build the Emergency page. Show the country's main emergency number first (911 for PH sample data), then the local numbers as `tel:` links with "Last checked" dates, and apply the 180-day hide rule. Write tests for the expiry rule and for the national number always coming first.
+4. SCRUM-26: build the Services page with an area picker (country, then town), category chips, search, and call and directions buttons. Save the chosen area in `localStorage`. Category labels come from data, so "Tire repair" can show as "Vulcanizing" in the Philippines.
 5. SCRUM-27: add vite-plugin-pwa with a manifest, icons and theme colour. Precache the app shell and use NetworkFirst for `/data/*.json`. Show an "Offline, showing saved data" note when offline.
 6. Make sample records visibly different (for example, a grey "SAMPLE" badge) so they can never be mistaken for real data.
 
 **Done when**
 
-- [ ] With the phone in airplane mode, the installed app opens, Emergency shows 911, and Services lists the sample shops
+- [ ] With the phone in airplane mode, the installed app opens, Emergency shows the national number (911 in the PH sample), and Services lists the sample shops
 - [ ] An expired test contact is hidden
-- [ ] A vulcanizing shop in Mercedes can be reached in 3 taps or fewer
+- [ ] A tire repair shop in a sample area can be reached in 3 taps or fewer
 - [ ] CI is green and test coverage includes the emergency rules
 
 **Move on when:** the app works offline on your phone AND you have at least some real, verified data from SCRUM-17 and SCRUM-18. Without real data there is nothing to launch, so if data collection is slow, collect data before writing more code.
 
 ---
 
-## Phase 3: Pilot launch in Guiuan + Mercedes (v0.3)
+## Phase 3: First pilot in Guiuan + Mercedes, Philippines (v0.3)
 
-**Goal:** real people in the two towns use it, and you learn from them.
+**Goal:** real people in the first pilot area use it, and you learn from them. Guiuan and Mercedes are the first area, not the only one: everything learned here becomes the checklist for opening the next area anywhere.
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
 - *(new)* Load verified real data and remove all sample records
-- *(new)* Rename the Cloudflare Pages project so the free link is `bulig.pages.dev`. (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
+- *(new)* Keep the Worker named `bulig` so the free link is `bulig.<subdomain>.workers.dev`. (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
 - *(new)* Add Cloudflare Web Analytics (free, no cookies) to count visits and installs
 - *(new)* Add a "Report wrong info" link that opens a short Google Form
 - *(new)* Optional Map tab with MapLibre and OpenFreeMap, lazy-loaded, with a list fallback
-- *(new)* Write a Privacy and About page in plain English and Waray
+- *(new)* Write a Privacy and About page in plain English plus the pilot area's local language (Waray), set up so more languages can be added per area
+- *(new)* Write `docs/OPEN-AN-AREA.md`: the checklist for opening a new area or country (verify emergency numbers, collect services, local category names, language, privacy notice), based on what this pilot taught
 
 **Steps**
 
@@ -122,7 +126,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Done when**
 
-- [ ] `bulig.pages.dev` is live with only verified data
+- [ ] The `workers.dev` link is live with only verified data for the pilot area
 - [ ] At least 30 people outside your circle have opened it (from analytics)
 - [ ] At least 3 "wrong info" reports have been received and fixed, which shows the feedback loop works
 - [ ] The usage numbers are written into the SCRUM-15 validation results
@@ -144,9 +148,9 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 **Tickets (all new):**
 
 - Set up the Laravel 13 project in `api/` with PostgreSQL + PostGIS (Docker locally)
-- Database schema: towns, categories, services, emergency_contacts, with `geography(Point,4326)` and audit timestamps
+- Database schema: countries, areas, categories, services, emergency_contacts, with `geography(Point,4326)` and audit timestamps
 - Import script that loads the current JSON into the database
-- Read API: `GET /api/v1/services?town=&category=&near=lat,lng` and `GET /api/v1/emergency-contacts?town=`
+- Read API: `GET /api/v1/services?country=&area=&category=&near=lat,lng` and `GET /api/v1/emergency-contacts?country=&area=`
 - Filament admin, with only you as the user, for full editing and a "verified" workflow
 - Switch the frontend from JSON files to the API, while keeping the service worker cache as the offline fallback
 - Deploy the API and set up nightly backups
@@ -187,7 +191,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 1. "Suggest a correction" form in the app, stored as pending and reviewed in Filament
 2. Road hazard reports (flood, landslide, road closed) with location, an expiry time, and admin approval before they appear publicly
 3. Business owner accounts using Sanctum, with email or Google sign-in (no SMS OTP, because it costs money for every message), so owners can claim a listing and edit hours and phone; edits are reviewed
-4. Rate limiting, abuse reporting, and data retention rules under the Data Privacy Act (RA 10173)
+4. Rate limiting, abuse reporting, and data retention rules that meet the privacy law of every country served (Data Privacy Act RA 10173 in the Philippines first; GDPR before any EU area)
 
 **Rules**
 
@@ -211,7 +215,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 
 **Free path:** build an APK with Capacitor and share it directly (website download link or Facebook). Downside: people must allow "install unknown apps", which many won't trust. Good for testers, weak for the public.
 
-**Paid path, once funded:** Google Play needs a one-time USD 25 developer account. Look for that money from a local sponsor, a startup grant (for example DICT or DOST programs), or the first paying business.
+**Paid path, once funded:** Google Play needs a one-time USD 25 developer account. Look for that money from a local sponsor, a startup grant (for example DICT or DOST programs in the Philippines), or the first paying business.
 
 **Goal:** Bulig as an Android app, built from the same code.
 
@@ -231,17 +235,17 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 
 ---
 
-## Phase 7: Grow beyond the pilot (v1.x)
+## Phase 7: More areas and countries (v1.x)
 
 Pick features based on what pilot users actually asked for, not on this list. Candidates:
 
-- More towns in Eastern Samar, then other provinces. Each new town needs verified data first.
+- More areas: nearby towns first, then other provinces, then other countries. Each new area needs verified data first, and each new country also needs its main emergency number(s), local category names, a privacy notice for its law, and at least one local language.
 - Route planning with useful stops along the way
 - Roadside help requests that connect a user to a listed mechanic (Bulig itself does not dispatch anyone)
 - Business model, tested one at a time: verified-business badges, featured listings that are clearly labelled, or LGU and tourism office partnerships. Never ads or paywalls on Emergency Help.
 - iOS through Capacitor (Apple developer account, USD 99/year, only when funded; iPhone users can already add the PWA to their home screen from Safari)
 
-**Rule:** a new town or feature goes in only if the current ones are kept accurate. A large, stale directory is worse than a small, accurate one.
+**Rule:** a new area, country or feature goes in only if the current ones are kept accurate. A large, stale directory is worse than a small, accurate one.
 
 ---
 
