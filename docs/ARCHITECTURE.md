@@ -123,9 +123,9 @@ export interface DataSource {
 
 - Phase 2: `JsonSource` fetches `/data/<cc>/areas.json`, `/data/<cc>/emergency-contacts.json` and `/data/<cc>/services.json`.
 - Phase 4: `ApiSource` fetches `GET /api/v1/areas?country=`, `GET /api/v1/emergency-contacts?country=` and `GET /api/v1/services?country=`.
-- `/data/countries.json` lists the countries that are live, for the country picker. The first visit guesses the country from the browser language and lets the user change it; the choice is saved in `localStorage`. No location permission is needed.
+- `LIVE_COUNTRIES` in `app/src/data/countries.ts` lists the countries that are live (a country picker appears once there are two). The first visit guesses the country from the browser language and lets the user change it; the choice is saved in `localStorage`. No location permission is needed.
 - `VITE_DATA_SOURCE=json|api` picks one at build time. If the API breaks, flip it back to `json` and redeploy. That takes about 2 minutes.
-- The service worker (vite-plugin-pwa, `NetworkFirst`, 3 second timeout) caches whichever source is active. So offline behaviour is the same in every phase.
+- Phase 2 and 3: the service worker (vite-plugin-pwa) **precaches** the JSON files with the app shell, so offline works from the first visit and each deploy ships fresh data. Phase 4: the API responses use `NetworkFirst` with a 3 second timeout. Offline behaviour is the same in every phase.
 
 **The emergency rules always run on the phone**, in `visibleContacts(contacts, now)`. Cached data gets older while the phone is offline, so only the phone knows how stale it really is. The server also refuses to serve unverified contacts, but the phone is the last line of defence.
 
@@ -176,15 +176,15 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 
 | Feature | How |
 | --- | --- |
-| Data contract | `types.ts`, the two schema files, and sample JSON with 3 to 5 records each, all marked `"sample": true`. A Vitest test validates every file against its schema. |
-| Data access | `JsonSource` plus `useData(country)`, which returns `{ status: 'loading' \| 'ready' \| 'error', emergency, services }`. |
+| Data contract | `types.ts`, `validateEnvelope()` (JSON Schema files wait for Phase 4), and sample JSON with 3 to 5 records each, all marked `"sample": true`. A Vitest test validates every file against its schema. |
+| Data access | `JsonSource` behind `<DataProvider>`, which loads one country once for the whole app. Pages call `useAppData()` → `{ country, data: { status: 'loading' | 'ready' | 'error', ... }, area, setArea, online, retry }`. |\| 'ready' \| 'error', emergency, services }`. |
 | Emergency rules | `visibleContacts(contacts, now)` in `app/src/rules/emergency.ts`: the country's `kind: 'national'` number(s) always first and never hidden, then the picked area's numbers sorted by kind, and anything with `verifiedAt` older than 180 days removed. Unit-tested, including the 180-day boundary and a missing date. |
 | Emergency page | Calls `visibleContacts()`. Each number is a `tel:` link with a "Last checked" date. The copy never says help was sent or a location was shared. |
 | Service rules | `filterServices(services, { area, category, query })` in `app/src/rules/services.ts`. Unit-tested. |
 | Services page | Area picker (country, then area, saved in `localStorage`), category chips, search, then call and directions buttons. Directions open `https://www.google.com/maps/dir/?api=1&destination=lat,lng`, so there's no maps SDK. |
-| Offline | vite-plugin-pwa: precache the app shell, `NetworkFirst` for `/data/*.json`, and a web manifest so it can be installed. |
+| Offline | vite-plugin-pwa: precache the app shell **and** `data/**/*.json`, plus a web manifest and icons so it can be installed. "Offline, showing saved data" note from `navigator.onLine`. |
 
-**Connects to:** Phase 1's routes and pipeline. This phase creates spines 1 and 2, which everything later depends on. Pages only call `useData(country)`, `visibleContacts()` and `filterServices()`.
+**Connects to:** Phase 1's routes and pipeline. This phase creates spines 1 and 2, which everything later depends on. Pages only call `useAppData()`, `visibleContacts()` and `filterServices()`.
 
 **Contract changes:** contract v1 is created.
 
