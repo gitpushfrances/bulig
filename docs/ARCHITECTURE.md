@@ -162,7 +162,7 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 | Deploy | Cloudflare Worker with static assets: root `app`, build `npm run build`, deploy `npx wrangler deploy`. `app/wrangler.jsonc` serves `dist` and has an empty `previews` block so every PR branch gets a preview URL. |
 | App shell | React Router 8 declarative routes `/`, `/services` and `/about` inside a `<Layout>` with a bottom tab bar. `wrangler.jsonc` sets `not_found_handling: "single-page-application"` so refreshing any route works. |
 
-**Connects to:** nothing before it. Every later phase ships through this pipeline (pull request, CI, `main`, live), and the three routes never change, so links shared on Facebook keep working.
+**Connects to:** nothing before it. Every later phase ships through this pipeline (pull request, CI, `main`, live), and the three routes never break, so links shared on Facebook keep working. (Phase 3 adds new routes; `/services` and `/about` stay.)
 
 **Contract changes:** none.
 
@@ -201,13 +201,19 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 | Real data | Replace the sample files with verified records from SCRUM-17 and SCRUM-18. A CI test fails if any record still has `"sample": true`. |
 | Report wrong info | `<ReportButton recordId>` opens the Google Form with the record ID pre-filled through the form's `entry.<id>=` URL parameter, so every report says exactly which record it's about. |
 | Analytics | Cloudflare Web Analytics script tag. No cookies, no consent banner needed. |
-| Map (optional) | `MapPage` is lazy-loaded with `React.lazy`, so MapLibre only downloads when the tab is opened. It renders the **same** `filterServices()` output as the list. If WebGL2 isn't available, show the list instead. |
-| Privacy and About | A static page in English and the pilot area's language (Waray), through the same `t(key)` lookup so more languages drop in per area: what's collected (nothing personal), the analytics, and how to report wrong info. |
+| Navigation | Screens and flows are specified in [UI-UX.md](UI-UX.md). Tabs: `/` Home, `/map`, `/saved`, `/profile`. Pushed screens: `/hotlines`, `/nearby/:need`, `/place/:id`, `/about`. `/services` renders Nearby results with every category, so v0.2 links still work. |
+| Needs | `app/src/rules/needs.ts` maps each need (`flat-tire`, `out-of-gas`, `breakdown`, `hospital`, `food`, `store`) to a category and its filter chips. Data, not page code, so a new need is one entry. |
+| Location | `useLocation()` wraps `navigator.geolocation.getCurrentPosition` (no `watchPosition`, to save battery). It's asked for on first use of a need button or the Map, never on open. `nearestArea(position, areas)` picks the town from `Area.lat/lng`; the picked town in `localStorage` is the fallback. |
+| Ranking | `rankNearby(services, { need, chips, position, now })` in `app/src/rules/nearby.ts`: filter, then `emergency_room` first for hospitals, then haversine distance (no coordinates go last), or by name without a position. Returns `{ nearest, nearestOpen, rest }`. `isUsuallyOpen(service, now)` reads `weeklyHours`/`open24h` in Philippine time. Both unit-tested, including midnight-spanning hours and missing data. |
+| Home | Hotlines card from `visibleContacts()` (911 plus the town's `disaster`, `police` and `fire` lines), six need buttons, and `<MiniMap>`, which mounts after the first paint via `requestIdleCallback`, only when online with WebGL2. Otherwise it's a plain "Open map" link. |
+| Map | `MapPage` is lazy-loaded with `React.lazy`, so MapLibre only downloads when the Map tab or the mini map needs it. It renders the **same** `rankNearby()` output as the list. If WebGL2 isn't available or tiles fail, show the list instead. |
+| Saved | `useSaved()` keeps place IDs in `localStorage` (`bulig.saved`), wrapped in try/catch. No account and no server. |
+| Privacy, About and Profile | Profile holds language, location status, offline data age and report wrong info. About is a static page in English and the pilot area's language (Waray), through the same `t(key)` lookup so more languages drop in per area: what's collected (nothing personal), the analytics, and how to report wrong info. |
 | Share preview | Open Graph tags and a 1200x630 image in `index.html`. |
 
-**Connects to:** spine 1 (real data, same contract), spine 2 (the map is another view, not a second data path), and spine 3 (the report button starts the feedback pipeline).
+**Connects to:** spine 1 (real data, same contract plus optional fields), spine 2 (the map, Home and Nearby results are views of the same data, not a second data path), and spine 3 (the report button starts the feedback pipeline).
 
-**Contract changes:** none.
+**Contract changes:** optional fields only, so `version` stays 1: `Area.lat`, `Area.lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype`. See [UI-UX.md section 9](UI-UX.md#9-data-the-ui-needs).
 
 **Expected outcome:** 30+ real users, 3+ reports received and fixed, and usage numbers for SCRUM-15. You'll also know whether the trigger for Phase 4 (more than about 1 hour a week of manual editing, or owners asking to edit their own listings) has actually happened.
 
@@ -280,7 +286,7 @@ Build only what the pilot proved people want. If they're built, these are the de
 | Feature | How | Connects to |
 | --- | --- | --- |
 | More areas and countries | Add rows to `areas` (and `countries` for a new country), following `docs/OPEN-AN-AREA.md`. A new country needs its `national` emergency number(s), category labels, a privacy notice and at least one language before it goes live. Each area needs its own verified emergency list before it's allowed to show. | Spine 1 (data only; no code or contract change). `?country=` and `?area=` already exist, so the app downloads only the country a user picks. |
-| Roadside help ("I need help") | The user picks a problem: flat tyre leads to `tire_repair`, won't start leads to `mechanic`, and accident or injury goes **straight to the Emergency page**. The app then lists the nearest listed providers, sorted by distance (`GET /api/v1/services?near=lat,lng&category=` using PostGIS `ST_DWithin` and `ORDER BY` distance), each with a call button. Bulig never dispatches anyone. It logs an anonymous `help_requests(category, country, area, created_at)` count, which becomes demand data you can show businesses. | Spine 2 (one new `DataSource` method) and `filterServices()`. Offline, it falls back to the cached area list. |
+| Roadside help on the server | The problem buttons and nearest-first lists already ship in Phase 3, ranked on the phone. Once an area has too many places to send them all, move ranking to the server: `GET /api/v1/services?near=lat,lng&category=` using PostGIS `ST_DWithin` and `ORDER BY` distance, with `rankNearby()` kept as the offline fallback. Bulig never dispatches anyone. It logs an anonymous `help_requests(category, country, area, created_at)` count, which becomes demand data you can show businesses. | Spine 2 (one new `DataSource` method) and `filterServices()`. Offline, it falls back to the cached area list. |
 | Stops along a route | The user picks a destination. Laravel calls a free routing API (for example OpenRouteService, with the key kept server-side and the results cached), then finds services within 2 km of the route line (`ST_DWithin` on the line, ordered by `ST_LineLocatePoint`). Endpoint: `GET /api/v1/route-stops?from=&to=&categories=`. This needs a connection. Offline, the app says so and shows the area list. | Same `services` table and the same contract. Results reuse the Services list component. |
 | Business model | `ownerVerified` badge (Phase 5), and a `featured` flag that's always labelled "Featured" and never shown on Emergency Help. Local government and tourism office partnerships (LGUs in the Philippines) pay for data upkeep, not for placement. | Additive contract fields. No new system. |
 | iOS | The same Capacitor project, once the USD 99 per year is funded. | Phase 6. |
@@ -294,6 +300,7 @@ Build only what the pilot proved people want. If they're built, these are the de
 | Phase | Change | Version |
 | --- | --- | --- |
 | 2 | `Area`, `EmergencyContact`, `Service`, `Category` and `Envelope` created, with `country` and `area` on every record | 1 |
+| 3 | `Area.lat`, `Area.lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional) | 1 |
 | 5 | `hazards.schema.json` added; `Service.ownerVerified` (optional) | 1 |
 | 7 | New areas and countries (data only); `Service.featured` (optional) | 1 |
 
