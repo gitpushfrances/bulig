@@ -1,11 +1,11 @@
 # Bulig
 
-**Help Along the Way.** Road help and local services, starting in Guiuan and Mercedes, Eastern Samar.
+**Help Along the Way.** Road help and local services for travellers anywhere, added one checked area at a time. The first pilot area is Guiuan and Mercedes, Eastern Samar, Philippines.
 
 Bulig is a free, offline-first web app (PWA) for people on the road. It has two main parts:
 
-- **Emergency Help**: 911 first, then checked local numbers (MDRRMO, police, fire, rescue, coast guard). No login, no ads, ever.
-- **Services**: vulcanizing shops, mechanics, hospitals, gas stations, carinderias and stores, by town and category, with call and directions buttons.
+- **Emergency Help**: the country's main emergency number first (911 in the Philippines and US, 112 in the EU, and so on), then checked local numbers (police, fire, medical, rescue, coast guard, local disaster office). No login, no ads, ever.
+- **Services**: tire repair (vulcanizing), mechanics, hospitals, fuel, food and stores, by area and category, with call and directions buttons.
 
 ## Status
 
@@ -15,11 +15,11 @@ Bulig is a free, offline-first web app (PWA) for people on the road. It has two 
 | --- | --- | --- |
 | 1 | Setup and skeleton | v0.1 |
 | 2 | Emergency + Services PWA (offline, sample data) | v0.2 |
-| 3 | Pilot launch in Guiuan + Mercedes | v0.3 |
+| 3 | First pilot (Guiuan + Mercedes, PH) | v0.3 |
 | 4 | Backend and admin (Laravel) | v0.4 |
 | 5 | Community features | v0.5 |
 | 6 | Android app (Capacitor), optional | v1.0 |
-| 7 | Grow beyond the pilot | v1.x |
+| 7 | More areas and countries | v1.x |
 
 ## Docs
 
@@ -34,7 +34,7 @@ Bulig is a free, offline-first web app (PWA) for people on the road. It has two 
 - **Frontend:** Vite 8.3, React 19.3, TypeScript 6.0.x, React Router 8, ESLint, plain CSS Modules
 - **Coming in Phase 2:** vite-plugin-pwa 2.0, Vitest 5, `ajv` for schema checks
 - **Data (Phases 1 to 3):** JSON files in `app/public/data/`
-- **Hosting:** Cloudflare Pages, free plan
+- **Hosting:** Cloudflare Worker with static assets, free plan (see [Deploy](#deploy))
 - **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5, Pest 5
 - **Native (Phase 6):** Capacitor 8
 
@@ -85,7 +85,7 @@ These come from the [Roadmap](docs/ROADMAP.md#ground-rules-for-every-phase).
 
 1. **Emergency Help** never needs a login and never shows ads. It never says help was dispatched or a location was sent. It only lists checked numbers, and hides any not checked in the last 180 days.
 2. **`main` is always deployable.** Work on `feat/...` or `fix/...` branches, merge by pull request, and wait for green CI.
-3. **Test on a real Android phone** before closing any UI ticket.
+3. **Test on a real phone** (a low-cost Android with Chrome) before closing any UI ticket. Resizing a desktop browser only checks layout, not touch, speed or install.
 4. **One phase at a time.** New ideas go into the Jira backlog.
 5. **Update [docs/CHANGELOG.md](docs/CHANGELOG.md) with every change**, and especially with errors, conflicts and big changes. At the end of each phase, tag a release (`git tag v0.x`) and move the `Unreleased` entries under that version.
 

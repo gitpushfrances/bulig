@@ -36,6 +36,8 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 ### Changed
 
 - `app/README.md` replaced: the Vite template text is now app-specific scripts and folder layout.
+- Placeholder copy on Emergency, Services and About, plus the `index.html` description, no longer names only Guiuan and Mercedes. Emergency says "your country's main emergency number (like 911 or 112)"; Services says "tire repair" and "area" instead of "vulcanizing" and "town". (branch `docs/global-scope`)
+- Ground rule 3 now says "test on a real phone (low-cost Android with Chrome)" and explains why a resized desktop browser isn't enough. (branch `docs/global-scope`)
 
 ### Removed
 
@@ -43,7 +45,7 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Errors
 
-- **Open:** `docs/ROADMAP.md` Phase 1 step 1 says to follow `local-setup.md`, but that file isn't in the repo.
+- **Open:** `docs/ROADMAP.md` Phase 1 step 1 said to follow `local-setup.md`, but that file isn't in the repo. The step now points to the README "Getting started" until it's written.
 - **Fixed (testing only, not an app bug):** the first headless Edge screenshots at 320px and 390px looked cut off on the right. Cause: headless Edge won't use a viewport narrower than 496px and crops the image. Fix: checked with `playwright-core` and real mobile emulation instead. At 320, 390, landscape 844x390, tablet 820 and desktop 1440, `scrollWidth` equals the viewport width, so there's no sideways scrolling.
 - **Fixed:** the GitHub CLI (`gh`) wasn't installed, and the GitHub plugin failed to connect ("Authorization header is badly formatted"). Installed `gh` 2.103.3 with winget and logged in as `gitpushfrances`. PRs opened: #2 (docs) and #3 (Phase 1, stacked on #2).
 - **Fixed:** the first CI run on #3 passed but warned that `actions/checkout@v4` and `actions/setup-node@v4` run on Node.js 20, which GitHub has deprecated. Bumped both to `@v7` (Node 24).
@@ -58,7 +60,14 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 - **Deploy target changed from Cloudflare Pages to a Cloudflare Worker with static assets** (branch `chore/cloudflare-deploy`). When the repo was connected, Cloudflare created a Worker. Its settings page only has build command and root directory, with no "Build output directory" field. Added `app/wrangler.jsonc`:
   - It serves `./dist`, with `not_found_handling: "single-page-application"` for refresh-safe routes. This replaces the job `public/_redirects` did on Pages, so that file was removed (see **Errors**).
   - Added `wrangler` 4.154 as a dev dependency. `npx wrangler deploy --dry-run` reads all 6 build files.
-  - Still free. README "Deploy" section updated. ROADMAP and ARCHITECTURE still say "Pages"; the behaviour is the same, including preview URLs per branch.
+  - Still free. README "Deploy" section updated. ROADMAP, ARCHITECTURE and the README "Stack" list were updated to "Worker with static assets" and `*.workers.dev` on branch `docs/global-scope`; the behaviour is the same, including preview URLs per branch.
+  - PR #4 merged 2026-10-28. CI and "Workers Builds: bulig" are both green on `main` (`de57088`).
+- **Scope changed from two towns to global** (2026-10-29, branch `docs/global-scope`). Bulig is for travellers in any country. Guiuan and Mercedes stay as the **first pilot area**, not the only one. Updated [ROADMAP.md](ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md):
+  - Data contract (not built yet, so nothing breaks): every record has `country` (ISO 3166-1 code) and `area` (a slug, or `null` for nationwide lines). `TownId` is gone, and a new `Area` type and `areas.json` replace it. Categories have global keys (`tire_repair`, `fuel`, `food`, ...) with local labels from `labels.json` (`tire_repair` shows as "Vulcanizing" in the Philippines).
+  - Data is split per country: `public/data/<cc>/...`. The `DataSource` methods take a `country`, and the API takes `?country=&area=`.
+  - The national emergency number is data (`kind: 'national'`, `area: null`), never "911" in code. New ground rule 4: nothing country-specific is hard-coded.
+  - Languages: English plus each area's languages through one `t(key)` lookup. Privacy: a notice per country (RA 10173 for the Philippines first, GDPR before any EU area).
+  - Phase 3 is renamed "First pilot", and it adds a ticket for `docs/OPEN-AN-AREA.md`, the checklist for opening the next area. Phase 7 is renamed "More areas and countries".
 - **Required CI check on `main`:** after #2 and #3 were merged, `app` was added as a required status check, with "branch must be up to date" on. The first API call (`PATCH .../required_status_checks`) returned 404 "Required status checks not enabled". A full `PUT .../protection` worked.
 - **Branch protection on `main`** (2026-10-28):
   - Changes must come through a pull request, with 0 approvals required because this is a solo repo.
@@ -66,6 +75,7 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
   - Admins are not forced through these rules, so you can't get locked out.
   - The required `app` CI check is **not on yet**, because #2 has no CI file and would never pass it. Add it once #2 and #3 are merged.
 - PR #3 now targets `main` directly instead of being stacked on #2.
+- **CI proven to block bad code** (2026-10-29, Phase 1 "Done when"): draft PR #6 added `const shouldFail: number = 'this is not a number'`. The `app` check failed at `npm run build` with `TS2322: Type 'string' is not assignable to type 'number'`, the Cloudflare build failed too, and GitHub showed the merge as `BLOCKED`. Closed without merging and the branch was deleted.
 
 ### Conflicts
 
@@ -73,9 +83,8 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Still to do in Phase 1
 
-- Finish the Cloudflare deploy (step 4): get the "Workers Builds: bulig" check on PR #4 green (see **Errors** above), then merge PR #4 (`chore/cloudflare-deploy`) on GitHub.
-- Update `docs/ROADMAP.md` and `docs/ARCHITECTURE.md`, which still say "Cloudflare Pages", and the README "Stack" list ("Hosting: Cloudflare Pages") to say Worker with static assets.
-- Test on a real Android phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
+- Test on a real phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
+- Tag `v0.1` and move these entries under it.
 
 ---
 

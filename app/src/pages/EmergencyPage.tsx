@@ -7,12 +7,13 @@ export default function EmergencyPage() {
         Emergency Help
       </h1>
       <p className={styles.lead}>
-        Checked emergency numbers for Guiuan and Mercedes. No login needed.
+        Checked emergency numbers for where you are. No login needed.
       </p>
       <span className={styles.badge}>Coming in v0.2</span>
       <p className={styles.card}>
-        This page will list 911 first, then local MDRRMO, police, fire and
-        rescue numbers, each with the date it was last checked.
+        This page will list your country&apos;s main emergency number first
+        (like 911 or 112), then local police, fire, medical and rescue numbers,
+        each with the date it was last checked.
       </p>
     </section>
   )
