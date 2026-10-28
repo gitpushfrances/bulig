@@ -47,6 +47,9 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 - **Fixed (testing only, not an app bug):** the first headless Edge screenshots at 320px and 390px looked cut off on the right. Cause: headless Edge won't use a viewport narrower than 496px and crops the image. Fix: checked with `playwright-core` and real mobile emulation instead. At 320, 390, landscape 844x390, tablet 820 and desktop 1440, `scrollWidth` equals the viewport width, so there's no sideways scrolling.
 - **Fixed:** the GitHub CLI (`gh`) wasn't installed, and the GitHub plugin failed to connect ("Authorization header is badly formatted"). Installed `gh` 2.103.3 with winget and logged in as `gitpushfrances`. PRs opened: #2 (docs) and #3 (Phase 1, stacked on #2).
 - **Fixed:** the first CI run on #3 passed but warned that `actions/checkout@v4` and `actions/setup-node@v4` run on Node.js 20, which GitHub has deprecated. Bumped both to `@v7` (Node 24).
+- **Open:** on PR #4, the Cloudflare check "Workers Builds: bulig" fails after 0 seconds, while GitHub CI (`app`) passes. A 0-second failure means Cloudflare stopped before running `npm run build`, so the likely cause is the dashboard build settings (most likely Root directory not set to `app`), not the code. Next: read the Cloudflare build log, fix the settings to match the README "Deploy" table, and retry the build.
+- **Open (dev machine, not an app bug):** the `security-guidance` Claude Code plugin hook failed on every prompt and edit in `app/` (20 times in 9 days) with "no working Python 3 interpreter found". `Python312` is on PATH but that folder has no `python.exe`, so `python` falls through to the Microsoft Store stub. Fix: install Python from python.org or with `winget install -e --id Python.Python.3.13`. Until then, the plugin's security checks don't run.
+- **Note (dev machine):** the Claude Code plugins are enabled in `app/.claude/settings.json` (git-excluded), so they only load when Claude is started from `app/`, not from the repo root. Re-enable them at the root with `/plugin` if they're wanted there.
 
 ### Big changes
 
@@ -68,7 +71,8 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 ### Still to do in Phase 1
 
-- Finish the Cloudflare deploy: dashboard settings in the README "Deploy" section, then merge `chore/cloudflare-deploy` (step 4).
+- Finish the Cloudflare deploy (step 4): get the "Workers Builds: bulig" check on PR #4 green (see **Errors** above), then merge PR #4 (`chore/cloudflare-deploy`) on GitHub.
+- Update `docs/ROADMAP.md` and `docs/ARCHITECTURE.md`, which still say "Cloudflare Pages", and the README "Stack" list ("Hosting: Cloudflare Pages") to say Worker with static assets.
 - Test on a real Android phone (ground rule 3), then check the "Done when" list and move SCRUM-21, 22 and 23 to Done.
 
 ---
