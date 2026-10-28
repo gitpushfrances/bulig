@@ -17,7 +17,17 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 ## [Unreleased]
 
-Phase 2: Emergency + Services PWA (target `v0.2`). Tickets SCRUM-24 to SCRUM-27.
+Phase 3: First pilot in Guiuan + Mercedes, Philippines (target `v0.3`).
+
+---
+
+## [v0.2] - 2026-10-29
+
+Phase 2: Emergency + Services PWA. Tickets SCRUM-24 to SCRUM-27.
+
+- Emergency shows the national number first (never hidden) and hides numbers not checked in 180 days.
+- Services finds a tire shop in 2 taps, with Call and Directions, using per-country labels.
+- Installable PWA that works offline after one visit; all local records are SAMPLE until Phase 3.
 
 ### Added
 

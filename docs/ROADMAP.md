@@ -92,10 +92,10 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Done when**
 
-- [ ] With the phone in airplane mode, the installed app opens, Emergency shows the national number (911 in the PH sample), and Services lists the sample shops
-- [ ] An expired test contact is hidden
-- [ ] A tire repair shop in a sample area can be reached in 3 taps or fewer
-- [ ] CI is green and test coverage includes the emergency rules
+- [ ] With the phone in airplane mode, the installed app opens, Emergency shows the national number (911 in the PH sample), and Services lists the sample shops (checked in headless Edge offline mode; still to do on a real phone)
+- [x] An expired test contact is hidden (test + sample record)
+- [x] A tire repair shop in a sample area can be reached in 3 taps or fewer (2: Vulcanizing, Call)
+- [x] CI is green and test coverage includes the emergency rules
 
 **Move on when:** the app works offline on your phone AND you have at least some real, verified data from SCRUM-17 and SCRUM-18. Without real data there is nothing to launch, so if data collection is slow, collect data before writing more code.
 
