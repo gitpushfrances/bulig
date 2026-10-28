@@ -9,7 +9,7 @@ Bulig is a free, offline-first web app (PWA) for people on the road. It has two 
 
 ## Status
 
-**v0.1 (Phase 1: Setup and skeleton) released 2026-10-29.** Next: **Phase 2: Emergency + Services PWA (v0.2)**. See [docs/CHANGELOG.md](docs/CHANGELOG.md) for what has changed and [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
+**v0.2 (Phase 2: Emergency + Services offline PWA) released 2026-10-29.** Next: **Phase 3: First pilot in Guiuan + Mercedes (v0.3)**, which needs real, verified data first. See [docs/CHANGELOG.md](docs/CHANGELOG.md) for what has changed and [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
 
 | Phase | Name | Release |
 | --- | --- | --- |
