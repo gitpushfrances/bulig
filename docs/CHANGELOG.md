@@ -45,7 +45,7 @@ Phase 1: Setup and skeleton (target `v0.1`). Tickets SCRUM-21, SCRUM-22, SCRUM-2
 
 - **Open:** `docs/ROADMAP.md` Phase 1 step 1 says to follow `local-setup.md`, but that file isn't in the repo.
 - **Fixed (testing only, not an app bug):** the first headless Edge screenshots at 320px and 390px looked cut off on the right. Cause: headless Edge won't use a viewport narrower than 496px and crops the image. Fix: checked with `playwright-core` and real mobile emulation instead. At 320, 390, landscape 844x390, tablet 820 and desktop 1440, `scrollWidth` equals the viewport width, so there's no sideways scrolling.
-- **Note:** the GitHub CLI (`gh`) isn't installed on the dev machine, so PRs are opened from the GitHub link printed by `git push`.
+- **Fixed:** the GitHub CLI (`gh`) wasn't installed, and the GitHub plugin failed to connect ("Authorization header is badly formatted"). Installed `gh` 2.103.3 with winget and logged in as `gitpushfrances`. PRs opened: #2 (docs) and #3 (Phase 1, stacked on #2).
 
 ### Still to do in Phase 1
 
