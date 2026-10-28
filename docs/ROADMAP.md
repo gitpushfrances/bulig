@@ -68,7 +68,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 - [ ] The `*.workers.dev` link opens on your phone and shows three tabs
 - [ ] Refreshing on `/services` doesn't give a 404
-- [ ] A pull request with a deliberate type error fails CI
+- [x] A pull request with a deliberate type error fails CI (PR #6)
 - [ ] SCRUM-21, 22 and 23 are moved to Done
 
 **Move on when:** all of the above are checked. Nothing else blocks Phase 2.
