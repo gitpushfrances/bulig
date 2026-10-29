@@ -192,7 +192,7 @@ Filter presets:
 ### Saved (`/saved`)
 
 - Hearted places and numbers, kept with the signed-in account on this phone, shown as "More nearby" rows sorted by distance. Signed out, the heart opens Profile to sign in, then comes back.
-- Empty state: "Tap the heart on any place to save it here."
+- Empty state: Ropi `friendly` (see [Mascot](#mascot-ropi)) above "Tap the heart on any place to save it here."
 
 ### Profile (`/profile`)
 
@@ -246,8 +246,8 @@ The tab holds:
 | --- | --- |
 | First open, no location yet | The picked town (default: all areas). The prompt appears only on first use of a button or the Map. |
 | Location denied | The town picker stays the source of truth, sorted by name, with a one-line hint. |
-| Offline | The banner. Cached data everywhere, and the mini map swaps to the plain panel. |
-| No results for a filter | "No places with <filter> near <town> yet." plus a "Clear filters" button and "Know one? Tell us" (opens the Form). |
+| Offline | The banner. Cached data everywhere, and the mini map swaps to the plain panel. A screen that has nothing cached shows Ropi `thinking` with "No signal, and nothing saved here yet." |
+| No results for a filter | Ropi `thinking`, then "No places with <filter> near <town> yet." plus a "Clear filters" button and "Know one? Tell us" (opens the Form). |
 | Nearest is usually closed | A neutral closed status plus the amber "Nearest usually open at this time" line. |
 | Data older than 30 days on the phone | Profile's offline row turns amber: "Updated 34 days ago, connect to refresh." |
 | Expired emergency number | Hidden. The national number is never hidden. |
@@ -459,7 +459,38 @@ Use the following as the fixed category mapping. The set is a deliberate visual 
 - **Verified data:** compact green icon/label with date and method. SAMPLE data always has a separate neutral SAMPLE badge.
 - **Warnings:** amber text on a pale amber surface in light mode. Explain the issue in words and state the next action.
 - **Offline:** one subtle header banner/pill saying “Offline: showing saved info”. Do not let the banner push Call 911 off-screen.
-- **Empty state:** one clear explanation and one useful next action; no illustration required.
+- **Empty state:** one clear explanation and one useful next action. The only illustration allowed is Ropi, the mascot, under the rules in [Mascot](#mascot-ropi).
+
+### Mascot: Ropi
+
+Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet with blue goggles pushed up, a teal scarf (`#0E7490`) and a dark-green backpack. Ropi makes the quiet screens friendlier. Ropi is not the logo, not an icon, and never part of getting help.
+
+**Where Ropi goes, and where never**
+
+| Pose | File | Used on |
+| --- | --- | --- |
+| Ready (sitting, waving) | `ropi-ready.webp` | Welcome / first-run tip, About |
+| Friendly (standing, tail up) | `ropi-friendly.webp` | Saved empty state |
+| Thinking (paw on chin) | `ropi-thinking.webp` | No results, offline with nothing cached |
+| Head (round crop) | `ropi-head.webp` | Profile, only inside a circular frame |
+
+- **Never** on Home, Hotlines, the Call 911 card, the "What's wrong?" grid, Nearby results lists, Place details, or the Map. Those screens are for getting help fast.
+- **Never** as a reaction to tapping a card, a Call button, or any other control. A tap on a control does its job at once.
+- One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text, never beside or over a button.
+- Add a new pose only when a real screen needs it. Every pose must keep the same face, colours, outfit and art style.
+
+**Files**
+- Stored in [`app/public/assets/mascot/`](../app/public/assets/mascot/), served from `/assets/mascot/<name>.webp`. Naming and export rules are in that folder's README.
+- Transparent WebP, trimmed to the character, longest side 480px, about 30–40 KB each. No text, props, shadows or backgrounds baked into the image.
+- WebP is in the service worker's precache list, so Ropi shows offline after the first visit.
+- Rendered as `<img width height alt="" loading="lazy" decoding="async">`. Ropi is decorative: `alt=""`, and the screen's text carries the message.
+
+**Motion: only when tapped**
+- Ropi stands still by default. This follows the rule below of no decorative entrance animation and no continuous movement.
+- Tapping Ropi plays one short reaction, under 600ms, then stops: a wiggle or hop, plus small floating icons drawn in code (not in the image). Thinking gets a "?" and a lightbulb, friendly gets hearts, ready gets sparkles. The icons come from the app's icon set.
+- Only `transform` and `opacity` are animated, so it stays smooth on a low-cost phone.
+- With `prefers-reduced-motion`, there is no movement; a tap may show the icons without motion.
+- Ropi is not a button for assistive technology. The tap reaction is a small extra, never the only way to reach something.
 
 ### Motion, touch, forms, and browser chrome
 
