@@ -104,21 +104,22 @@ describe('Create account', () => {
 })
 
 describe('Welcome', () => {
-  it('greets a first-time visitor on /, with 911 one tap away', () => {
+  it('greets a first-time visitor on / with Ropi, and no emergency button', () => {
     localStorage.removeItem('bulig.welcomed')
     renderAt('/')
 
     expect(screen.getByRole('heading', { name: 'Welcome to Bulig' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Call 911/ })).toHaveAttribute('href', 'tel:911')
     expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'ready')
+    expect(screen.queryByRole('link', { name: /911/ })).not.toBeInTheDocument()
   })
 
-  it('goes to Home after skipping, and does not come back', async () => {
+  it('skips to Home, where 911 is first, and does not come back', async () => {
     localStorage.removeItem('bulig.welcomed')
     renderAt('/')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Continue without an account' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }))
     expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
     expect(localStorage.getItem('bulig.welcomed')).toBe('1')
   })
 

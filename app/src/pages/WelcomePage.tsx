@@ -1,4 +1,3 @@
-import { Phone } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { safeNext } from '../auth/next.ts'
@@ -7,8 +6,8 @@ import Mascot from '../components/Mascot.tsx'
 import styles from './Welcome.module.css'
 
 // First open on this phone: Ropi says hello, then sign in, create an account, or skip.
-// 911 stays one tap away in the top bar, so the Welcome screen never stands between a
-// traveller and help. Shared links (/services/..., /emergency) never land here.
+// "Skip for now" sits top right, one tap to Home, where 911 is first on screen.
+// Shared links (/services/..., /emergency) never land here.
 export default function WelcomePage() {
   const { markWelcomed } = useAuth()
   const navigate = useNavigate()
@@ -34,29 +33,21 @@ export default function WelcomePage() {
           </span>
           Bulig
         </span>
-        <a className={styles.sos} href="tel:911">
-          <Phone size={16} strokeWidth={2.25} aria-hidden="true" />
-          Emergency? Call 911
-        </a>
+        <button type="button" className={styles.skip} onClick={done}>
+          Skip for now
+        </button>
       </header>
 
       <main className={styles.body} aria-labelledby="welcome-title">
         <div className={styles.hello}>
-          <Mascot variant="ready" height={150} />
+          <Mascot variant="ready" height={120} />
           <h1 id="welcome-title" className={styles.title}>
             Welcome to Bulig
           </h1>
-          <p className={styles.lead}>
-            Road help and local services wherever you travel. Sign in to save places, or look around
-            first.
-          </p>
+          <p className={styles.lead}>Sign in to keep the places you trust one tap away.</p>
         </div>
 
         <AuthPanel onDone={done} />
-
-        <button type="button" className={styles.skip} onClick={done}>
-          Continue without an account
-        </button>
       </main>
     </div>
   )

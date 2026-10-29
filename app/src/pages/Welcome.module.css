@@ -1,4 +1,4 @@
-/* Welcome: one narrow column, no tab bar. The 911 link stays in the top bar the whole time. */
+/* Welcome: one narrow column, no tab bar. Skip for now sits top right. */
 
 .screen {
   min-height: 100vh;
@@ -16,7 +16,7 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  max-width: 28rem;
+  max-width: 26rem;
   min-height: 64px;
   margin: 0 auto;
 }
@@ -41,34 +41,14 @@
   color: var(--color-on-primary);
 }
 
-/* Red, like every emergency action, and a full 44px target. */
-.sos {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: var(--color-emergency);
-  color: var(--color-on-emergency);
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: transform var(--press-ms) var(--ease-out);
-}
-
-.sos:active {
-  transform: scale(0.97);
-}
-
 .body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
-  max-width: 28rem;
+  max-width: 26rem;
   margin: 0 auto;
-  padding: 8px 0 32px;
+  padding: 4px 0 32px;
 }
 
 .hello {
@@ -92,25 +72,29 @@
   color: var(--color-text-muted);
 }
 
+/* Quiet text action, top right, a full 44px target. */
 .skip {
-  align-self: center;
-  min-height: 48px;
-  padding: 0 16px;
+  min-height: 44px;
+  margin-right: -10px;
+  padding: 0 10px;
   border: 0;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--color-text);
+  color: var(--color-text-muted);
   font: inherit;
+  font-size: 0.9375rem;
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: var(--color-border-strong);
   cursor: pointer;
+  transition: color 160ms var(--ease-out);
+}
+
+.skip:active {
+  color: var(--color-text);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .skip:hover {
-    text-decoration-color: currentColor;
+    color: var(--color-text);
   }
 }
 

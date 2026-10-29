@@ -137,30 +137,6 @@ function SignInForm({ onDone, email, setEmail }: { onDone: () => void; email: st
 
   return (
     <>
-      <div className={`${styles.notice} ${styles.warn}`}>
-        <p>
-          <strong>Test logins.</strong> Each uses the password <strong>{TEST_PASSWORD}</strong>.
-        </p>
-        <div className={styles.fillRow}>
-          {ROLES.map((role) => (
-            <button
-              key={role}
-              type="button"
-              className={styles.chip}
-              aria-label={`Fill in test login: ${ROLE_LABELS[role]}`}
-              onClick={() => {
-                setEmail(TEST_ACCOUNTS[role].email)
-                setPassword(TEST_PASSWORD)
-                setEmailError('')
-                setFormError('')
-              }}
-            >
-              {ROLE_LABELS[role]}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <form className={styles.form} onSubmit={submit} noValidate>
         <TextField
           label="Email"
@@ -193,6 +169,31 @@ function SignInForm({ onDone, email, setEmail }: { onDone: () => void; email: st
           Sign in
         </button>
       </form>
+
+      {/* Testers only: one tap fills a role's login. Quiet, under the form, so it never leads. */}
+      <div className={styles.testLogins}>
+        <p className={styles.hint}>
+          Test logins · password <strong>{TEST_PASSWORD}</strong>
+        </p>
+        <div className={styles.fillRow}>
+          {ROLES.map((role) => (
+            <button
+              key={role}
+              type="button"
+              className={styles.chip}
+              aria-label={`Fill in test login: ${ROLE_LABELS[role]}`}
+              onClick={() => {
+                setEmail(TEST_ACCOUNTS[role].email)
+                setPassword(TEST_PASSWORD)
+                setEmailError('')
+                setFormError('')
+              }}
+            >
+              {ROLE_LABELS[role]}
+            </button>
+          ))}
+        </div>
+      </div>
     </>
   )
 }
