@@ -95,7 +95,7 @@ export default function HomePage() {
               {!account ? (
                 <div className={styles.panelEmpty}>
                   <p>Sign in to keep the places you trust one tap away.</p>
-                  <Link className={styles.secondary} to="/profile?next=/">
+                  <Link className={styles.secondary} to="/login">
                     Sign in
                   </Link>
                 </div>

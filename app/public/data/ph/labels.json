@@ -4,6 +4,7 @@
     "tire_repair": { "en": "Vulcanizing", "war": "Vulcanizing" },
     "fuel": { "en": "Gas station" },
     "food": { "en": "Resto and carinderia" },
-    "lodging": { "en": "Hotel and inn" }
+    "lodging": { "en": "Hotel and inn" },
+    "other": { "en": "Others" }
   }
 }

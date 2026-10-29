@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { ContactCard, SectionHead, ServiceCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
-import Mascot from '../components/Mascot.tsx'
+import RopiSays from '../components/RopiSays.tsx'
 import { useAppData } from '../data/context.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { byDistance } from '../rules/nearby.ts'
@@ -31,7 +31,7 @@ export default function SavedPage() {
       {!account ? (
         <div className={`${styles.card} ${styles.empty}`}>
           <p>Sign in to save places and numbers, so they're here when you need them again.</p>
-          <Link className={styles.primaryButton} to="/profile?next=/saved">
+          <Link className={styles.primaryButton} to="/login?next=%2Fsaved">
             Sign in
           </Link>
         </div>
@@ -40,8 +40,9 @@ export default function SavedPage() {
           <DataNotice hasSamples={[...places.map((p) => p.item), ...numbers].some((r) => r.sample)} ropi />
           {ready && places.length + numbers.length === 0 && (
             <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>
-              <Mascot variant="friendly" />
-              <p>Tap the heart on any place to save it here.</p>
+              <RopiSays variant="friendly">
+                <strong>Let&apos;s get started!</strong> Tap the heart on any place to save it here.
+              </RopiSays>
               <Link className={styles.secondary} to="/services">
                 Find a place
               </Link>

@@ -9,6 +9,7 @@ import {
   LifeBuoy,
   Shield,
   Siren,
+  Sparkles,
   Store,
   TriangleAlert,
   Utensils,
@@ -28,6 +29,7 @@ export const CATEGORY_ICONS: Record<Category, LucideIcon> = {
   food: Utensils,
   lodging: BedDouble,
   store: Store,
+  other: Sparkles,
 }
 
 export const KIND_ICONS: Record<ContactKind, LucideIcon> = {

@@ -1,4 +1,4 @@
-import { CircleUser, CloudOff, Heart, House, LayoutGrid, Siren, type LucideIcon } from 'lucide-react'
+import { CircleUser, CloudOff, Heart, House, LayoutGrid, Map as MapIcon, TriangleAlert, type LucideIcon } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import { ICON_STROKE } from './icons.ts'
@@ -16,14 +16,25 @@ interface Tab {
 const tabs: Tab[] = [
   { to: '/', label: 'Home', icon: House },
   { to: '/services', label: 'Services', icon: LayoutGrid },
-  { to: '/emergency', label: 'Emergency', icon: Siren },
+  { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/saved', label: 'Saved', icon: Heart },
-  { to: '/profile', label: 'Profile', icon: CircleUser, also: ['/about'] },
+  { to: '/profile', label: 'Profile', icon: CircleUser, also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
 ]
 
 function isActive({ to, also }: Tab, pathname: string): boolean {
   if (to === '/') return pathname === '/'
   return pathname === to || pathname.startsWith(`${to}/`) || !!also?.includes(pathname)
+}
+
+// Emergency is not a tab: a red button floats on every screen and opens it; Back returns here.
+// The Map draws its own (in its control stack), and Emergency needs none.
+function EmergencyButton({ pathname }: { pathname: string }) {
+  if (pathname === '/emergency' || pathname === '/map') return null
+  return (
+    <Link to="/emergency" className={styles.fab} aria-label="Emergency numbers">
+      <TriangleAlert size={24} strokeWidth={2.25} aria-hidden="true" />
+    </Link>
+  )
 }
 
 function Mark() {
@@ -93,13 +104,14 @@ export default function Layout() {
             <LocationBar />
           </div>
         </header>
-        <main id="main" className={styles.main}>
+        <main id="main" className={pathname === '/map' ? `${styles.main} ${styles.flush}` : styles.main}>
           {/* Keyed by path: each tab change mounts fresh and fades in (index.css respects reduced motion). */}
           <div key={pathname} className={styles.view}>
             <Outlet />
           </div>
         </main>
       </div>
+      <EmergencyButton pathname={pathname} />
     </div>
   )
 }

@@ -89,13 +89,7 @@ describe('Where Ropi appears', () => {
     expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'ready')
   })
 
-  it('not on Profile while signed out, beside the sign-in form', () => {
-    renderAt('/profile')
-    expect(screen.queryByTestId('mascot')).not.toBeInTheDocument()
-  })
-
-  it('the head, in its circle, on Profile once signed in', () => {
-    localStorage.setItem('bulig.session', 'test@bulig.com')
+  it('the head, in its circle, on Profile', () => {
     renderAt('/profile')
     const ropi = screen.getByTestId('mascot')
     expect(ropi).toHaveAttribute('data-variant', 'head')

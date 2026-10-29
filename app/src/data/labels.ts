@@ -8,6 +8,7 @@ const CATEGORY_DEFAULTS: Record<Category, string> = {
   food: 'Food',
   lodging: 'Hotel',
   store: 'Store',
+  other: 'Others',
 }
 
 // One line under each card on What we offer. Plain words that work in any country.
@@ -19,6 +20,7 @@ const CATEGORY_BLURBS: Record<Category, string> = {
   food: 'Hot meals along the road',
   lodging: 'A room for the night',
   store: 'Water, snacks and supplies',
+  other: 'New stalls and local finds',
 }
 
 const KIND_LABELS: Record<ContactKind, string> = {

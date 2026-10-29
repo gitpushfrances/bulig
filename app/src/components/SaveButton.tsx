@@ -12,7 +12,7 @@ export default function SaveButton({ id, name }: { id: string; name: string }) {
     return (
       <Link
         className={styles.save}
-        to={`/profile?next=${encodeURIComponent(pathname)}`}
+        to={`/login?next=${encodeURIComponent(pathname)}`}
         aria-label={`Sign in to save ${name}`}
       >
         <Heart size={22} strokeWidth={1.75} aria-hidden="true" />

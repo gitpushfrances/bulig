@@ -65,7 +65,7 @@ describe('What we offer', () => {
     renderAt('/services')
 
     const offers = await screen.findByRole('navigation', { name: 'Services' })
-    expect(within(offers).getAllByRole('link')).toHaveLength(7)
+    expect(within(offers).getAllByRole('link')).toHaveLength(8)
     expect(within(offers).getByRole('link', { name: /^Hotel and inn/ })).toHaveTextContent('9 places')
   })
 

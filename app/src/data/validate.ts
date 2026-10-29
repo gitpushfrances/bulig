@@ -45,6 +45,8 @@ function checkItem(kind: FileKind, item: Rec): string[] {
     need(isText(item.landmark), 'landmark')
     need(item.phone === undefined || isText(item.phone), 'phone')
     need((item.lat === undefined) === (item.lng === undefined), 'lat/lng')
+    need(item.subtype === undefined || isText(item.subtype), 'subtype')
+    need(item.addedAt === undefined || isDate(item.addedAt), 'addedAt')
   }
   return problems
 }

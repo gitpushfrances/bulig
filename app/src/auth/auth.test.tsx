@@ -11,143 +11,221 @@ function renderAt(path: string) {
   )
 }
 
+function signedOut() {
+  localStorage.removeItem('bulig.session')
+}
+
 function submitSignIn(email: string, password: string) {
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
   fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 }
 
-function fillRegister(name: string, email: string, password: string) {
-  fireEvent.click(screen.getByRole('tab', { name: 'Create account' }))
+// Walks the onboarding to the account form: four Ropi steps, or "Skip intro".
+function toSignupForm(skip = true) {
+  if (skip) fireEvent.click(screen.getByRole('button', { name: 'Skip intro' }))
+  else {
+    for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    fireEvent.click(screen.getByRole('button', { name: "Let's get started" }))
+  }
+}
+
+function fillSignup(name: string, email: string, password: string, agree = true) {
   fireEvent.change(screen.getByLabelText('Name'), { target: { value: name } })
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
+  if (agree) fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 }
 
-describe('Test sign-in', () => {
-  it('signs in with the test login and shows the role', async () => {
-    renderAt('/profile')
+describe('Login', () => {
+  it('opens on the first visit to /, with no test shortcuts or emergency button', () => {
+    signedOut()
+    renderAt('/')
 
-    submitSignIn(' Test@Bulig.com ', 'password')
-    expect(await screen.findByRole('heading', { name: 'Test traveller' })).toBeInTheDocument()
-    expect(screen.getByText(/Role: User/)).toBeInTheDocument()
-    expect(localStorage.getItem('bulig.session')).toBe('test@bulig.com')
+    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Fill in test login/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /911/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/forgot-password')
+    expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '/signup')
+  })
+
+  it.each([
+    ['test@bulig.com', 'Test traveller', 'User'],
+    ['moderator@bulig.com', 'Test moderator', 'Moderator'],
+    ['admin@bulig.com', 'Test admin', 'Admin'],
+  ])('signs in %s and opens Home', async (email, name, role) => {
+    signedOut()
+    renderAt('/login')
+
+    submitSignIn(` ${email.toUpperCase()} `, 'password')
+    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Profile' }))
+    expect(screen.getByRole('heading', { name })).toBeInTheDocument()
+    expect(screen.getByText(role)).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.session')).toBe(email)
   })
 
   it('says what went wrong for a bad password and stays signed out', async () => {
-    renderAt('/profile')
+    signedOut()
+    renderAt('/login')
 
     submitSignIn('test@bulig.com', 'wrong')
     expect(await screen.findByRole('alert')).toHaveTextContent("don't match")
     expect(localStorage.getItem('bulig.session')).toBeNull()
   })
 
-  it.each([
-    ['User', 'Test traveller'],
-    ['Moderator', 'Test moderator'],
-    ['Admin', 'Test admin'],
-  ])('fills in the %s test login', async (role, name) => {
-    renderAt('/profile')
+  it('returns to the page that asked for sign-in', async () => {
+    signedOut()
+    renderAt('/services/mechanic')
 
-    fireEvent.click(screen.getByRole('button', { name: `Fill in test login: ${role}` }))
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
-    expect(await screen.findByRole('heading', { name })).toBeInTheDocument()
-    expect(screen.getByText(new RegExp(`Role: ${role}`))).toBeInTheDocument()
+    submitSignIn('test@bulig.com', 'password')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mechanic' })).toBeInTheDocument()
   })
 
-  it('signs out and forgets the session', () => {
-    localStorage.setItem('bulig.session', 'test@bulig.com')
+  it('signs out from Profile, back to the login', () => {
     renderAt('/profile')
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
-    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     expect(localStorage.getItem('bulig.session')).toBeNull()
+  })
+
+  it('shows the reset confirmation without saying whether the email has an account', () => {
+    signedOut()
+    renderAt('/forgot-password')
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'nobody@example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send reset link' }))
+    expect(screen.getByText(/If nobody@example.com has an account/)).toBeInTheDocument()
   })
 })
 
-describe('Create account', () => {
-  it('creates a user on this phone, signs in, and never stores the password', async () => {
-    renderAt('/profile')
+describe('Continue without an account', () => {
+  it('opens Emergency only, with 911 and local authorities', async () => {
+    signedOut()
+    renderAt('/login')
 
-    fillRegister('Ana Reyes', 'Ana@Example.com', 'long enough')
-    expect(await screen.findByRole('heading', { name: 'Ana Reyes' })).toBeInTheDocument()
-    expect(screen.getByText(/Role: User/)).toBeInTheDocument()
-    expect(localStorage.getItem('bulig.session')).toBe('ana@example.com')
-    expect(localStorage.getItem('bulig.accounts')).not.toContain('long enough')
-
-    // Signs back in with the same password after signing out.
-    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
-    submitSignIn('ana@example.com', 'long enough')
-    expect(await screen.findByRole('heading', { name: 'Ana Reyes' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue without an account' }))
+    const hotline = await screen.findByRole('region', { name: 'National Emergency Hotline' })
+    expect(within(hotline).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
+    expect(await screen.findByRole('list', { name: 'Local emergency numbers' })).toBeInTheDocument()
   })
 
-  it('checks each field and blocks a short password', () => {
-    renderAt('/profile')
+  it('asks a guest to sign in or sign up anywhere else', () => {
+    signedOut()
+    localStorage.setItem('bulig.guest', '1')
+    renderAt('/services')
 
-    fillRegister('', 'not-an-email', 'short')
+    expect(screen.getByRole('heading', { name: "Sign in to see what's near you" })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login?next=%2Fservices')
+    expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '/signup?next=%2Fservices')
+    expect(screen.queryByRole('navigation', { name: 'Services' })).not.toBeInTheDocument()
+  })
+
+  it('never blocks a shared Emergency link, even signed out', async () => {
+    signedOut()
+    renderAt('/emergency')
+
+    expect(await screen.findByRole('region', { name: 'National Emergency Hotline' })).toBeInTheDocument()
+  })
+})
+
+describe('Sign up (onboarding)', () => {
+  it('walks through four Ropi steps before the account form', () => {
+    signedOut()
+    renderAt('/signup')
+
+    expect(screen.getByText(/Hi, I'm Ropi!/)).toBeInTheDocument()
+    expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'ready')
+    toSignupForm(false)
+    expect(screen.getByRole('heading', { name: 'Create your account' })).toBeInTheDocument()
+  })
+
+  it('creates a user on this phone, signs in, and never stores the password', async () => {
+    signedOut()
+    renderAt('/signup')
+
+    toSignupForm()
+    fillSignup('Ana Reyes', 'Ana@Example.com', 'long enough')
+    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.session')).toBe('ana@example.com')
+    expect(localStorage.getItem('bulig.accounts')).not.toContain('long enough')
+  })
+
+  it('checks each field and the terms box', () => {
+    signedOut()
+    renderAt('/signup')
+
+    toSignupForm()
+    fillSignup('', 'not-an-email', 'short', false)
     expect(screen.getByText('Enter your name.')).toBeInTheDocument()
     expect(screen.getByText('Enter an email like name@example.com.')).toBeInTheDocument()
     expect(screen.getByText('Use at least 8 characters.')).toBeInTheDocument()
+    expect(screen.getByText(/Agree to the Terms/)).toBeInTheDocument()
     expect(localStorage.getItem('bulig.accounts')).toBeNull()
   })
 
   it('refuses an email that already has an account, and offers sign in', async () => {
-    renderAt('/profile')
+    signedOut()
+    renderAt('/signup')
 
-    fillRegister('Someone', 'test@bulig.com', 'long enough')
+    toSignupForm()
+    fillSignup('Someone', 'test@bulig.com', 'long enough')
     expect(await screen.findByRole('alert')).toHaveTextContent('already has an account')
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in instead' }))
-    expect(screen.getByRole('tab', { name: 'Sign in' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByLabelText('Email')).toHaveValue('test@bulig.com')
+    expect(screen.getByRole('link', { name: 'Sign in instead' })).toHaveAttribute('href', '/login')
   })
 })
 
-describe('Welcome', () => {
-  it('greets a first-time visitor on / with Ropi, and no emergency button', () => {
-    localStorage.removeItem('bulig.welcomed')
-    renderAt('/')
+describe('Profile', () => {
+  it('shows the account, the version and the legal pages', () => {
+    renderAt('/profile')
 
-    expect(screen.getByRole('heading', { name: 'Welcome to Bulig' })).toBeInTheDocument()
-    expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'ready')
-    expect(screen.queryByRole('link', { name: /911/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Test traveller' })).toBeInTheDocument()
+    expect(screen.getByText('Member since October 2026')).toBeInTheDocument()
+    expect(screen.getByText(/Bulig v\d+\.\d+\.\d+ · build/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Terms of Use/ })).toHaveAttribute('href', '/terms')
+    expect(screen.getByRole('link', { name: /Privacy Policy/ })).toHaveAttribute('href', '/privacy')
   })
 
-  it('skips to Home, where 911 is first, and does not come back', async () => {
-    localStorage.removeItem('bulig.welcomed')
-    renderAt('/')
+  it('saves edited details on this phone', () => {
+    renderAt('/profile/edit')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }))
-    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
-    expect(localStorage.getItem('bulig.welcomed')).toBe('1')
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Juan Dela Cruz' } })
+    fireEvent.change(screen.getByLabelText('Mobile number (optional)'), { target: { value: '0917 123 4567' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(screen.getByRole('heading', { name: 'Juan Dela Cruz' })).toBeInTheDocument()
   })
 
-  it('goes to Home after signing in', async () => {
-    localStorage.removeItem('bulig.welcomed')
-    renderAt('/')
+  it('switches the theme and remembers it', () => {
+    renderAt('/profile')
 
-    submitSignIn('admin@bulig.com', 'password')
-    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Dark' }))
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+    expect(localStorage.getItem('bulig.theme')).toBe('dark')
+    fireEvent.click(screen.getByRole('button', { name: 'System' }))
+    expect(document.documentElement).not.toHaveAttribute('data-theme')
   })
 
-  it('never stops a shared link', async () => {
-    localStorage.removeItem('bulig.welcomed')
-    renderAt('/emergency')
+  it('deletes an account made on this phone only after typing "delete"', async () => {
+    signedOut()
+    renderAt('/signup')
+    toSignupForm()
+    fillSignup('Temp', 'temp@example.com', 'long enough')
+    await screen.findByRole('heading', { name: 'What do you need?' })
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Profile' }))
 
-    expect(await screen.findByRole('region', { name: 'National Emergency Hotline' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Welcome to Bulig' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
+    const confirm = screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!
+    expect(confirm).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Type "delete" to confirm'), { target: { value: 'delete' } })
+    fireEvent.click(confirm)
+    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.accounts')).toBe('[]')
   })
 })
 
 describe('Saving', () => {
-  it('asks a signed-out traveller to sign in first', async () => {
-    renderAt('/services/mechanic')
-
-    const link = await screen.findByRole('link', { name: 'Sign in to save Sample Motor Repair' })
-    expect(link).toHaveAttribute('href', '/profile?next=%2Fservices%2Fmechanic')
-  })
-
   it('saves a place and shows it on Saved', async () => {
     localStorage.setItem('bulig.session', 'test@bulig.com')
     renderAt('/services/mechanic')

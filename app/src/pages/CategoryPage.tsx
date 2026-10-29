@@ -2,7 +2,7 @@ import { ChevronLeft } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { ServiceCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
-import Mascot from '../components/Mascot.tsx'
+import RopiSays from '../components/RopiSays.tsx'
 import { categoryBlurb, categoryFromSlug, categoryLabel } from '../data/labels.ts'
 import { useNearby } from '../data/useNearby.ts'
 import NotFoundPage from './NotFoundPage.tsx'
@@ -39,8 +39,9 @@ export default function CategoryPage() {
       {ready &&
         (places.length === 0 ? (
           <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>
-            <Mascot variant="thinking" />
-            <p>No {label.toLowerCase()} listed {where} yet.</p>
+            <RopiSays variant="thinking">
+              No {label.toLowerCase()} listed {where} yet.
+            </RopiSays>
             <Link className={styles.secondary} to="/services">
               See other services
             </Link>

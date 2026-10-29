@@ -18,8 +18,9 @@ function fakeFetch(input: RequestInfo | URL): Promise<Response> {
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(fakeFetch))
   localStorage.clear()
-  // A returning visitor by default, so `/` opens Home. Welcome tests remove this.
-  localStorage.setItem('bulig.welcomed', '1')
+  // Signed in as the test user by default, since every screen but Emergency needs an account.
+  // Tests about signing in, guests and the login wall remove this first.
+  localStorage.setItem('bulig.session', 'test@bulig.com')
 })
 
 afterEach(() => {
