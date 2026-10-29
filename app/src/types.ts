@@ -4,7 +4,7 @@
 export type CountryCode = string // ISO 3166-1 alpha-2, upper case: "PH"
 export type AreaId = string // slug, unique worldwide: "ph-eastern-samar-guiuan"
 
-export const CATEGORIES = ['tire_repair', 'mechanic', 'hospital', 'fuel', 'food', 'store'] as const
+export const CATEGORIES = ['tire_repair', 'mechanic', 'fuel', 'hospital', 'food', 'lodging', 'store'] as const
 export type Category = (typeof CATEGORIES)[number]
 
 export const CONTACT_KINDS = [
@@ -27,6 +27,9 @@ export interface Area {
   level?: string
   // The area this one sits inside (a barangay's municipality). null or missing = top level.
   parent?: AreaId | null
+  // The town centre. Used to find the area from GPS. Both or neither.
+  lat?: number
+  lng?: number
   languages: string[] // BCP 47, first is the default UI language
 }
 

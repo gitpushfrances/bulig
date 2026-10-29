@@ -132,7 +132,7 @@ export default function ProfilePage() {
   const { account, signOut, saved } = useAuth()
 
   return (
-    <section className={styles.page} aria-labelledby="profile-title">
+    <section className={`${styles.page} ${styles.narrow}`} aria-labelledby="profile-title">
       <div className={styles.intro}>
         <h1 id="profile-title" className={styles.title}>
           Profile
@@ -162,6 +162,11 @@ export default function ProfilePage() {
       ) : (
         <SignInForm />
       )}
+
+      <p className={styles.footnote}>
+        Bulig uses your location only on this phone, to find your area and sort places by distance. It
+        never sends it anywhere.
+      </p>
 
       <ul className={`${styles.card} ${styles.linkList}`}>
         <li>

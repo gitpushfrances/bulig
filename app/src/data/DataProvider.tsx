@@ -4,6 +4,8 @@ import { AppDataContext, type DataState } from './context.ts'
 import { pickCountry } from './countries.ts'
 import type { DataSource } from './DataSource.ts'
 import { jsonSource } from './JsonSource.ts'
+import { usePhoneLocation } from '../location/context.ts'
+import { nearestArea } from '../rules/nearby.ts'
 import { readSaved, writeSaved } from './storage.ts'
 
 const AREA_KEY = 'bulig.area'
@@ -31,6 +33,7 @@ export default function DataProvider({
   const [attempt, setAttempt] = useState(0)
   const [loaded, setLoaded] = useState<{ key: string; data: DataState } | null>(null)
   const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine)
+  const { position } = usePhoneLocation()
 
   const key = `${country}#${attempt}`
   useEffect(() => {
@@ -58,8 +61,19 @@ export default function DataProvider({
   }, [country, source, key])
 
   const data: DataState = loaded?.key === key ? loaded.data : { status: 'loading' }
-  // A saved area that no longer exists (renamed, removed) falls back to "all areas".
-  const area = data.status === 'ready' && data.areas.some((a) => a.id === savedArea) ? savedArea : null
+  // GPS wins. Without a fix, a saved area that no longer exists (renamed, removed) falls back to "all areas".
+  const nearest = data.status === 'ready' && position ? nearestArea(position, data.areas) : null
+  const area = nearest
+    ? nearest.area.id
+    : data.status === 'ready' && data.areas.some((a) => a.id === savedArea)
+      ? savedArea
+      : null
+
+  // Remember the last area GPS found, so the next offline open starts there.
+  const nearestId = nearest?.area.id
+  useEffect(() => {
+    if (nearestId) writeSaved(AREA_KEY, nearestId)
+  }, [nearestId])
 
   const setArea = (next: AreaId | null) => {
     setSavedArea(next)
@@ -68,7 +82,15 @@ export default function DataProvider({
 
   return (
     <AppDataContext.Provider
-      value={{ country, data, area, setArea, online, retry: () => setAttempt((n) => n + 1) }}
+      value={{
+        country,
+        data,
+        area,
+        areaKm: nearest?.km ?? null,
+        setArea,
+        online,
+        retry: () => setAttempt((n) => n + 1),
+      }}
     >
       {children}
     </AppDataContext.Provider>

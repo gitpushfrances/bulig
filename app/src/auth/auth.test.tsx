@@ -55,15 +55,15 @@ describe('Test sign-in', () => {
 
 describe('Saving', () => {
   it('asks a signed-out traveller to sign in first', async () => {
-    renderAt('/services')
+    renderAt('/services/mechanic')
 
     const link = await screen.findByRole('link', { name: 'Sign in to save Sample Motor Repair' })
-    expect(link).toHaveAttribute('href', '/profile?next=%2Fservices')
+    expect(link).toHaveAttribute('href', '/profile?next=%2Fservices%2Fmechanic')
   })
 
   it('saves a place and shows it on Saved', async () => {
     localStorage.setItem('bulig.session', 'test@bulig.com')
-    renderAt('/services')
+    renderAt('/services/mechanic')
 
     const save = await screen.findByRole('button', { name: 'Save Sample Motor Repair' })
     fireEvent.click(save)
@@ -78,7 +78,7 @@ describe('Saving', () => {
   })
 
   it('keeps Emergency Help open without an account', async () => {
-    renderAt('/')
+    renderAt('/emergency')
 
     const hotline = await screen.findByRole('region', { name: 'National Emergency Hotline' })
     expect(within(hotline).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')

@@ -1,6 +1,7 @@
 import {
   Ambulance,
   Anchor,
+  BedDouble,
   Disc,
   Flame,
   Fuel,
@@ -25,6 +26,7 @@ export const CATEGORY_ICONS: Record<Category, LucideIcon> = {
   hospital: Hospital,
   fuel: Fuel,
   food: Utensils,
+  lodging: BedDouble,
   store: Store,
 }
 

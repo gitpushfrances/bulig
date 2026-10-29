@@ -21,6 +21,14 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Added
 
+- **Home, What we offer and GPS** (branch `feat/home-gps-offers`):
+  - **Home** (`/`): the national hotline with Call 911, local numbers, the nearest places, What we offer cards and Saved, each linking to its tab.
+  - **What we offer** (`/services`): one card per kind of service with its count and nearest distance; a card opens `/services/<category>`, nearest first. The category chips and search are gone.
+  - **Emergency** moves to `/emergency`.
+  - **Location from GPS:** `LocationProvider` follows the phone (`watchPosition`) and a refresh button asks for a fresh fix; the nearest listed area is used automatically. A plain area picker shows only when GPS is off. `nearestArea()`, `byDistance()` and `formatDistance()` in `src/rules/nearby.ts`, with tests.
+  - **Hotels:** a new `lodging` category ("Hotel and inn"), and `Area.lat/lng` filled in for every area.
+  - **Responsive layout:** bottom bar on phones, an 88px rail on tablets, a 240px sidebar on desktops; two-column Home and lists on wide screens. Tabs fade in over 200ms; scrollbars are hidden.
+  - Sample data now has every kind of service in every area (69 places), except hotels in one area so the empty state can be tested.
 - **Ocean Depths theme** (branch `feat/ocean-theme-demo-login`, PR #11): deep sea blue, teal and one bright aqua for Call 911, in light and dark. Tokens in three layers (primitive, semantic, component) in `src/index.css`. Documented in [UI-UX.md section 10](UI-UX.md#10-visual-design-ocean-depths).
 - **Cleaner UI:** a light header, a 4-tab bar (Emergency, Services, Saved, Profile) with a neutral active pill, a hotline card with the national number at display size and the country name from `Intl.DisplayNames`, cards with one Lucide icon per category and contact kind, an area picker grouped by province, category chips with icons, a results count, and an empty state with "Clear search and category".
 - **Fonts and icons:** Lexend and Source Sans 3 self-hosted through Fontsource (Latin files precached, so they work offline), and `lucide-react` icons.
@@ -45,6 +53,8 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Conflicts
 
+- **Location is asked for on open.** UI-UX.md said to ask only on first use of a need button or the Map. John asked for the area to come from GPS by itself and follow the driver, so the app now asks on open and keeps watching while it is open. UI-UX.md section 6 and ARCHITECTURE.md are updated.
+- **`/` is now Home, not Emergency.** v0.2 links to `/` still land one tap from 911 (the hotline card is the first thing on Home). Emergency Help moved to `/emergency`.
 - The Figma Make prototype ("Design-Ropa-Roadside-Assistance") had login, ratings, an owner portal and an admin dashboard, and was still named Ropa. Those were left out of the spec: login and the portals belong to Phases 4 and 5, and ratings wait for John's decision (Phase 5 at the earliest). It also had no 911 button. The spec keeps 911 one tap from Home.
 - **Sign-in arrives before Phase 4.** The spec said Profile has no sign-in, ARCHITECTURE.md said no user accounts until Phase 4, and Roadmap ground rule 5 says one phase at a time. John then asked for a test sign-in, saving behind it and the three roles, so the newer request won. It's kept small on purpose: one test login, role rules as pure functions, no backend. UI-UX.md and [ARCHITECTURE.md](ARCHITECTURE.md#4-identity) are updated.
 - **Theme and fonts.** The spec said one green brand colour and system fonts only. John asked for the Ocean Depths theme and for the design skills to be followed, so the spec now uses Ocean Depths and two self-hosted fonts. They add about 130 KB to the first visit and are precached, so offline still works.
