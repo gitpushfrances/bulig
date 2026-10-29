@@ -720,6 +720,22 @@
   gap: 12px;
 }
 
+/* An empty state with Ropi: Ropi on top, the text and one action centred under it. */
+.emptyMascot {
+  align-items: center;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.emptyMascot p {
+  max-width: 34ch;
+}
+
+/* Lined up with the heading under it. */
+.aboutMascot {
+  align-self: flex-start;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -796,6 +812,13 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+}
+
+.profileHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .linkList {

@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { ContactCard, SectionHead, ServiceCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
+import Mascot from '../components/Mascot.tsx'
 import { useAppData } from '../data/context.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { byDistance } from '../rules/nearby.ts'
@@ -36,10 +37,11 @@ export default function SavedPage() {
         </div>
       ) : (
         <>
-          <DataNotice hasSamples={[...places.map((p) => p.item), ...numbers].some((r) => r.sample)} />
+          <DataNotice hasSamples={[...places.map((p) => p.item), ...numbers].some((r) => r.sample)} ropi />
           {ready && places.length + numbers.length === 0 && (
-            <div className={`${styles.card} ${styles.empty}`}>
-              <p>Nothing saved yet. Tap the heart on a place or a local number to keep it here.</p>
+            <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>
+              <Mascot variant="friendly" />
+              <p>Tap the heart on any place to save it here.</p>
               <Link className={styles.secondary} to="/services">
                 Find a place
               </Link>

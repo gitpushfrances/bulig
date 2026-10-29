@@ -1,8 +1,12 @@
+import Mascot from '../components/Mascot.tsx'
 import styles from './Page.module.css'
 
 export default function AboutPage() {
   return (
     <section className={styles.page} aria-labelledby="about-title">
+      <span className={styles.aboutMascot}>
+        <Mascot variant="ready" height={160} />
+      </span>
       <div className={styles.intro}>
         <h1 id="about-title" className={styles.title}>
           About Bulig

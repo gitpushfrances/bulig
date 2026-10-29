@@ -21,7 +21,7 @@ export default function ServicesPage() {
         </p>
       </div>
 
-      <DataNotice hasSamples={ranked.some((r) => r.item.sample)} />
+      <DataNotice hasSamples={ranked.some((r) => r.item.sample)} ropi />
 
       {ready && (
         <nav className={styles.offerGrid} aria-label="Services">

@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { TEST_LOGIN } from '../auth/testAccount.ts'
 import { ROLE_LABELS, type Role } from '../auth/types.ts'
+import Mascot from '../components/Mascot.tsx'
 import styles from './Page.module.css'
 
 const ROLE_HELP: Record<Role, string> = {
@@ -144,9 +145,12 @@ export default function ProfilePage() {
 
       {account ? (
         <div className={`${styles.card} ${styles.form}`}>
-          <div className={styles.profile}>
-            <h2 className={styles.sectionTitle}>{account.name}</h2>
-            <p className={styles.count}>{account.email}</p>
+          <div className={styles.profileHead}>
+            <Mascot variant="head" height={56} />
+            <div className={styles.profile}>
+              <h2 className={styles.sectionTitle}>{account.name}</h2>
+              <p className={styles.count}>{account.email}</p>
+            </div>
           </div>
           <p>
             <strong>Role: {ROLE_LABELS[account.role]}.</strong> {ROLE_HELP[account.role]}

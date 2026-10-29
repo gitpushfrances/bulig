@@ -479,7 +479,7 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 - One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text, never beside or over a button.
 - Add a new pose only when a real screen needs it. Every pose must keep the same face, colours, outfit and art style.
 
-**Status (2026-10-29):** rules and folder are in place; John is adding the four WebP files. Still to build: `app/src/components/Mascot.tsx` (a `variant` prop of `ready | friendly | thinking | head`, the tap reaction, reduced-motion support, tests) and its use in the Saved, no-results and offline empty states.
+**Status (2026-10-29):** built. `app/src/components/Mascot.tsx` (`variant` of `ready | friendly | thinking | head`, optional `height`, default 128px) is used on the Saved empty state, an empty category, offline with nothing cached (Services, a category, Saved; via `DataNotice`'s `ropi` prop, which Home and Emergency never pass), About (160px) and the signed-in Profile (56px circle). The welcome / first-run tip does not exist yet; use `ready` there when it is built.
 
 **Files**
 - Stored in [`app/public/assets/mascot/`](../app/public/assets/mascot/), served from `/assets/mascot/<name>.webp`. Naming and export rules are in that folder's README.
