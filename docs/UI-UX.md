@@ -4,7 +4,11 @@ How the app looks, how people move through it, and why. This is the source of tr
 
 Last updated: 2026-10-29 · Owner: John · Replaces the three-tab layout (Emergency, Services, About) shipped in v0.2. The new layout ships in Phase 3 (v0.3).
 
-Visual references (private, John's account): [System Map](https://claude.ai/artifact/3CX8HnRHESS9DT4oyuycKS) (flow and wireframes) and [Nearby Results mockup](https://claude.ai/artifact/UH8x588qpo7yyHW9NM5VPr) (high-fidelity results screen).
+Visual references (private, John's account): [System Map](https://claude.ai/artifact/3CX8HnRHESS9DT4oyuycKS) (flow and wireframes), [Nearby Results mockup](https://claude.ai/artifact/UH8x588qpo7yyHW9NM5VPr) (high-fidelity results screen) and [Bulig App Design](https://claude.ai/artifact/Pvr4j7BMVZZB4WfMmmKSiR) (the Ocean Depths theme, section 10).
+
+Bulig covers the whole Philippines, then any country. Town names in the wireframes below are placeholders, not a pilot list.
+
+**Built so far (v0.3 in progress):** the Ocean Depths look (section 10), and four tabs Emergency, Services, Saved and Profile. Emergency and Services become Home and Map when those screens land; Saved and Profile already match this spec.
 
 ---
 
@@ -37,8 +41,8 @@ Four bottom tabs, each with an icon and a label:
 | --- | --- | --- |
 | Home | `/` | Hotlines card, "What's wrong?" buttons, mini map |
 | Map | `/map` | Every place as a pin around you, with filters |
-| Saved | `/saved` | Places the person hearted, stored on the phone |
-| Profile | `/profile` | Language, location, offline data, report wrong info, About. No sign-in |
+| Saved | `/saved` | Places and numbers the person hearted, kept with their sign-in on the phone |
+| Profile | `/profile` | Sign-in (a test login for now), language, location, offline data, report wrong info, About |
 
 Screens opened from a tab (no tab of their own):
 
@@ -84,7 +88,7 @@ Must fit one 360x740 screen without scrolling.
 
 ```
 ┌──────────────────────────────┐
-│ ◉ Near Guiuan ▾          ● │  header: town, online dot
+│ ◉ Near <town> ▾          ● │  header: town, online dot
 ├──────────────────────────────┤
 │ Emergency hotlines     All › │  red border, light red fill
 │ ┌──────────────────────────┐ │
@@ -107,7 +111,7 @@ Must fit one 360x740 screen without scrolling.
 └──────────────────────────────┘
 ```
 
-- **Header:** no logo. The town is the title ("Near Guiuan ▾"), from GPS when allowed, otherwise the last picked town. Tapping it opens the town picker (Guiuan, Mercedes). The brand lives on the app icon and install name.
+- **Header:** no logo. The town is the title ("Near <town> ▾"), from GPS when allowed, otherwise the last picked town. Tapping it opens the town picker, grouped by province, with every area in the country. The brand lives on the app icon and install name.
 - **Hotlines card:** 911 is always one tap, never behind a second screen. The three quick-call buttons are the picked town's MDRRMO, PNP and BFP; a missing or expired one is left out, not shown as broken. "All ›" opens Hotlines.
 - **What's wrong?:** six buttons, each opening Nearby results with the matching filter preset. There's no Accident button, because the hotlines card is the accident path, and two routes to the same thing is clutter.
 - **Mini map:** loads last and never delays the rest of Home. Offline, or on a phone without WebGL2, it shows a plain "Open map ›" panel instead. If the screen is too short to fit everything, drop the Store button before shrinking anything below 48px.
@@ -119,7 +123,7 @@ The same layout for every need, so people learn it once.
 ```
 ┌──────────────────────────────┐
 │ ‹  Flat tire          [Map] │
-│    Near Guiuan · 5 places    │
+│    Near <town> · 5 places    │
 │ (Vulcanizing)(Air pump)(...) │  filter chips, preset by need
 ├──────────────────────────────┤
 │ NEAREST TO YOU               │
@@ -182,13 +186,14 @@ Filter presets:
 
 ### Saved (`/saved`)
 
-- Hearted places, stored on the phone only, shown as "More nearby" rows sorted by distance.
+- Hearted places and numbers, kept with the signed-in account on this phone, shown as "More nearby" rows sorted by distance. Signed out, the heart opens Profile to sign in, then comes back.
 - Empty state: "Tap the heart on any place to save it here."
 
 ### Profile (`/profile`)
 
-There's no sign-in. The tab holds:
-- Language: English, Waray.
+The tab holds:
+- Sign-in. For now one hardcoded test login, `test@bulig.com` / `password`, with a "Fill in test login" button. Signed in, it shows the name, email and role, and Sign out. Roles and the real sign-in phases are in [WORKFLOW.md](WORKFLOW.md#sign-in). Emergency Help never needs it.
+- Language: English, plus the area's own languages from `Area.languages`.
 - Location: whether it's allowed, and how to change it in phone settings.
 - Offline data: "Updated <date> · 32 places on this phone".
 - Report wrong info.
@@ -207,8 +212,8 @@ There's no sign-in. The tab holds:
 **Built for a cheap phone in sunlight**
 - Body text 16px or more, and nothing smaller than 13px.
 - Every tap target is at least 48px. The main actions (911, Call) are the biggest things on screen.
-- WCAG AA contrast (4.5:1 for text). Light theme. System fonts, with no web fonts to download.
-- One green brand colour, red only for emergency and hospital, amber for food and for warnings, grey for closed or unconfirmed.
+- WCAG AA contrast (4.5:1 for text). Light and dark, following the phone. Two self-hosted fonts, precached for offline (section 10); no font request ever leaves the app.
+- The Ocean Depths palette (section 10): deep sea blue and teal, one bright aqua for Call 911. Red only for errors and the hospital accent, amber for warnings, grey for closed or unconfirmed.
 
 **Fast and offline**
 - Home, Hotlines and Nearby results work with no signal after one visit. The map is the only part that needs a connection for new areas.
@@ -230,7 +235,7 @@ There's no sign-in. The tab holds:
 
 | State | What shows |
 | --- | --- |
-| First open, no location yet | The picked town (default: first pilot town). The prompt appears only on first use of a button or the Map. |
+| First open, no location yet | The picked town (default: all areas). The prompt appears only on first use of a button or the Map. |
 | Location denied | The town picker stays the source of truth, sorted by name, with a one-line hint. |
 | Offline | The banner. Cached data everywhere, and the mini map swaps to the plain panel. |
 | No results for a filter | "No places with <filter> near <town> yet." plus a "Clear filters" button and "Know one? Tell us" (opens the Form). |
@@ -245,7 +250,7 @@ There's no sign-in. The tab holds:
 | Ratings and reviews | Phase 5, if John decides so | Needs accounts, a backend and enough users to mean anything. The check date is the trust signal until then. |
 | Alert when near a saved place | Phase 6 (Android app) | Browsers can't track location in the background. |
 | Places along my route | Phase 7 | Needs a routing engine and a connection. |
-| Sign-in, owner portal, admin screens | Phases 4 and 5 | The admin panel is Filament, which brings its own UI. |
+| Real sign-in, owner portal, moderator and admin screens | Phases 4 and 5 | The admin panel is Filament, which brings its own UI. A test sign-in ships now, only so saving can be tried. |
 | Live "Open now" | Only if owners update their status | Reported hours can only say "usually". |
 | Dispatching help, live tracking | Never | It would be a false safety promise. |
 
@@ -254,8 +259,58 @@ There's no sign-in. The tab holds:
 All additive and optional, so contract v1 stays (see [ARCHITECTURE.md](ARCHITECTURE.md#1-data-contract)):
 
 - `Area.lat`, `Area.lng`: the town centre, used to detect the town from GPS (nearest centre) and to centre the map when location is off.
+- `Area.level` and `Area.parent`: the country's word for the area (`city`, `municipality`, later `barangay`) and the area it sits inside, so barangays can be added as data and moderators can look after an area and everything in it ([WORKFLOW.md](WORKFLOW.md#areas)). Already in the data.
 - `Service.features`: confirmed features as `Partial<Record<Feature, boolean>>`. `true` means confirmed, `false` means confirmed not offered, and a missing key means not confirmed.
 - `Service.weeklyHours`: per-day open and close times, for example `{ "mon": [["07:00", "18:00"]] }`. `Service.open24h` is for hospitals. The old free-text `hours` stays for display until every record is converted.
 - `Service.subtype` (optional): for chips like Carinderia vs Restaurant, Clinic vs Pharmacy.
 
 Features: `tubeless`, `tube_type`, `air_pump`, `comes_to_you`, `motorcycle`, `car_truck`, `bottled_fuel`, `emergency_room`.
+
+## 10. Visual design: Ocean Depths
+
+Calm and clear, so a stressed person can read it. One deep sea colour carries trust, one bright aqua marks the action that matters most. Colour is for data, status and actions, not decoration. The tokens live in [`app/src/index.css`](../app/src/index.css).
+
+| Role | Light | Dark | Used for |
+| --- | --- | --- | --- |
+| Deep | `#0B3B4F` | `#0E7490` | The national hotline card |
+| Primary | `#0E7490` | `#22D3EE` | Call buttons, active chip, logo |
+| Primary text | `#0B5A70` | `#67E8F9` | Links, icons beside text |
+| Flare | `#2DD4BF` | `#2DD4BF` | Call 911 only |
+| Ground | `#F1F6F8` | `#061A22` | Page background and header |
+| Surface | `#FFFFFF` | `#0C2733` | Cards, inputs, tab bar |
+| Ink | `#0B2530` | `#E6F4F7` | Body text |
+| Muted | `#48616C` | `#A6C1CA` | Secondary text |
+| Checked | `#047857` | `#34D399` | "Last checked" line |
+| Error | `#B42318` | `#FDA29B` | Form errors |
+
+Every text pair meets WCAG AA. **Forest Canopy** (greens) is drawn on the design canvas as an alternate; switching means changing only the primitives in `index.css`.
+
+**Type.** Lexend for headings, numbers and buttons (designed for reading ease; phone numbers use tabular figures). Source Sans 3 for body text. Both are self-hosted through Fontsource and precached, Latin files only (about 130 KB), so they work offline. Scale: hotline number 72 to 96px, page title 26 to 34px, section 19px, card title 17px, body 16px, small 13px. Inputs are never under 16px, so iOS doesn't zoom.
+
+**Icons.** One outline set, [Lucide](https://lucide.dev) (`lucide-react`), at stroke 1.75. Each category and contact kind has its own icon in [`components/icons.ts`](../app/src/components/icons.ts). Icons sit inline beside text, never in tinted squares. Decorative icons are `aria-hidden`; icon-only buttons have an `aria-label`.
+
+**Tokens.** Three layers. Components use only layers 2 and 3, never a raw hex.
+
+1. Primitives, raw values: `--ocean-700: #0e7490`.
+2. Semantic, a job: `--color-primary: var(--ocean-700)`. Dark mode only redefines this layer.
+3. Component, a part: `--button-call-bg: var(--color-primary)`.
+
+**Shape.** Cards 16px, buttons and inputs 12px, chips and the active tab pill fully round. Elevation is a 1px border, never a shadow. Gutter 16px, content up to 48rem.
+
+**Components built so far** (all in [`Cards.tsx`](../app/src/components/Cards.tsx), shared by every list):
+
+- Hotline card: deep background, the country name from `Intl.DisplayNames` (no names in code), the number at display size, one aqua Call button, the check date. It shows while data loads too, from the built-in fallback.
+- Contact and service cards: name, SAMPLE badge, heart, kind or category icon with label and landmark, hours and area, Call (filled) and Directions (outlined), then "Last checked".
+- Area picker: native `<select>`, areas grouped by province or region.
+- Chips: only the categories that exist in the picked area, each with its icon.
+- Notices: loading, error with "Try again", the sample-data warning. Offline shows once, as a pill in the header.
+
+**Motion and touch.** Press feedback on touch-down, `scale(0.97)` over 160ms with a strong ease-out. Hover styles only on devices that hover. Nothing animates on entry or loops, and reduced motion turns all of it off. No tap flash, no pull-to-refresh fight, safe-area padding for notches, `theme-color` per scheme, and buttons don't select their label on long-press.
+
+**Forms.** Every input has a visible label. Errors show on blur or submit, clear as soon as the person types, say what went wrong and how to fix it, and are announced. Inputs set `type`, `autocomplete`, `inputmode` and `enterkeyhint`. Buttons start with a verb.
+
+**Browser surfaces.** Selection colour, caret, accent colour, scrollbar and a 3px focus ring are themed from the palette.
+
+**Skills followed** (installed in `app/.agents/skills` and `app/.claude/skills`): ui-ux-pro-max (palette direction, font pairing, accessibility and touch checklist), design-system and brand (the token layers), impeccable (the craft floor; its detector reports nothing on `src/`), design-taste-frontend (colour on data not chrome, no icons in tinted squares, a neutral active pill, honest empty states), emil-design-eng and mobile-native (press feedback and the phone fixes).
+
+**Checking a UI change.** `npm run lint`, `npx vitest run` and `npm run build` in `app/`; screenshots at 390px and 1280px, light and dark; `./.agents/skills/impeccable/scripts/impeccable detect --json src/` prints `[]`; then a real low-cost Android phone outdoors (Roadmap ground rule 3).

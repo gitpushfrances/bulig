@@ -15,16 +15,14 @@ describe('Emergency page', () => {
   it('shows the national number first as a call link', async () => {
     renderAt('/')
 
-    const list = await screen.findByRole('list', { name: 'Emergency numbers' })
-    const first = within(list).getAllByRole('listitem')[0]
-    expect(first).toHaveTextContent('National Emergency Hotline')
-    expect(within(first).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
+    const hotline = await screen.findByRole('region', { name: 'National Emergency Hotline' })
+    expect(within(hotline).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
   })
 
   it('hides the sample contact that is older than 180 days', async () => {
     renderAt('/')
 
-    await screen.findByRole('list', { name: 'Emergency numbers' })
+    await screen.findByRole('list', { name: 'Local emergency numbers' })
     expect(screen.queryByText(/expired on purpose/)).not.toBeInTheDocument()
     expect(screen.getByText('Mercedes Fire Station (SAMPLE)')).toBeInTheDocument()
   })
@@ -55,7 +53,7 @@ describe('Services page', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Vulcanizing' }))
     const places = screen.getByRole('list', { name: 'Places' })
-    expect(within(places).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(places).getAllByRole('listitem')).toHaveLength(5)
     expect(within(places).getByRole('link', { name: 'Call Sample Vulcanizing Shop' })).toHaveAttribute(
       'href',
       'tel:+639000000101',

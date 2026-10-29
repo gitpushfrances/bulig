@@ -44,3 +44,17 @@ describe('validateEnvelope', () => {
     ])
   })
 })
+
+describe('area hierarchy', () => {
+  const area = { id: 'ph-a', country: 'PH', name: 'A', region: 'R', languages: ['en'] }
+
+  it('accepts an area with a level and a parent', () => {
+    expect(validateEnvelope('areas', envelope([{ ...area, level: 'barangay', parent: 'ph-b' }]))).toEqual([])
+  })
+
+  it('rejects an empty level or a non-text parent', () => {
+    expect(validateEnvelope('areas', envelope([{ ...area, level: '', parent: 3 }]))).toEqual([
+      'items[0] (ph-a): bad level, parent',
+    ])
+  })
+})

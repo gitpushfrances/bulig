@@ -39,6 +39,12 @@ describe.each(LIVE_COUNTRIES.map((c) => c.toLowerCase()))('data for %s', (cc) =>
     expect(new Set(all).size).toBe(all.length)
   })
 
+  it('points every parent at an area that exists', () => {
+    const ids = new Set(areas.items.map((a) => a.id))
+    const bad = areas.items.filter((a) => a.parent != null && !ids.has(a.parent))
+    expect(bad.map((a) => a.id)).toEqual([])
+  })
+
   it('has a national number that matches the offline fallback', () => {
     const national = emergency.items.filter((c) => c.kind === 'national' && c.area === null)
     expect(national.length).toBeGreaterThan(0)

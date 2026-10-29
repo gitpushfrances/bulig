@@ -17,17 +17,42 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 ## [Unreleased]
 
-Phase 3: First pilot in Guiuan + Mercedes, Philippines (target `v0.3`).
+Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pilot areas are only where verified data starts.
+
+### Added
+
+- **Ocean Depths theme** (branch `feat/ocean-theme-demo-login`, PR #11): deep sea blue, teal and one bright aqua for Call 911, in light and dark. Tokens in three layers (primitive, semantic, component) in `src/index.css`. Documented in [UI-UX.md section 10](UI-UX.md#10-visual-design-ocean-depths).
+- **Cleaner UI:** a light header, a 4-tab bar (Emergency, Services, Saved, Profile) with a neutral active pill, a hotline card with the national number at display size and the country name from `Intl.DisplayNames`, cards with one Lucide icon per category and contact kind, an area picker grouped by province, category chips with icons, a results count, and an empty state with "Clear search and category".
+- **Fonts and icons:** Lexend and Source Sans 3 self-hosted through Fontsource (Latin files precached, so they work offline), and `lucide-react` icons.
+- **Test sign-in and saving:** `/profile` signs in with one hardcoded test login, `test@bulig.com` / `password` (role user). Signed in, the heart on any place or local number saves it, and `/saved` lists them. Signed out, the heart links to Profile and comes back afterwards. The session and saved IDs live in `localStorage` on the phone.
+- **Roles in the system:** user, moderator (per area: city, municipality, later barangay, covering the areas inside it) and admin, with `can()` and `isWithin()` in `src/rules/permissions.ts` and tests. No role screens yet. Described in the new [WORKFLOW.md](WORKFLOW.md) with the record, sign-in and code-change flows.
+- **More sample data across the Philippines:** 10 areas (Quezon City, Baguio, Naga, Puerto Princesa, Iloilo City, Cebu City, Tacloban, Guiuan, Mercedes, Davao City), 15 local numbers (one expired on purpose) and 22 places in every category. All still SAMPLE with `000` phone blocks.
+- Tests for sign-in, sign-out, saving, the sign-in redirect, permissions and the area hierarchy (57 in total).
+
+### Changed
+
+- Being offline shows once, as a pill in the header, instead of in each page's notices.
+- The About page no longer names a first stop; it describes Bulig for anywhere. UI-UX.md wireframes use `<town>` instead of pilot town names.
+- PWA `theme_color`, `background_color`, the `theme-color` meta tags, and the favicon and app icons use the new colours.
+- Mobile fixes from the mobile-native skill: no tap flash, no pull-to-refresh fight, hover only on devices that hover, 16px inputs, buttons don't select on long-press.
 
 ### Big changes
 
-- **New UI and UX spec, [docs/UI-UX.md](UI-UX.md).** The app is now built around "What's wrong?": four tabs (Home, Map, Saved, Profile) replace Emergency, Services and About. Home has a hotlines card (911 one tap, plus MDRRMO, PNP, BFP), six problem buttons (Flat tire, Out of gas, Breakdown, Hospital, Food, Store) and a mini map. Each button opens a Nearby results screen with the nearest place as a big card (Call, Directions) and the rest as a list. `/services` and `/about` keep working. Decided by John on 2026-10-29 after reviewing the Figma Make prototype.
+- **New UI and UX spec, [docs/UI-UX.md](UI-UX.md).** The app is now built around "What's wrong?": four tabs (Home, Map, Saved, Profile) replace Emergency, Services and About. Home has a hotlines card (911 one tap, plus MDRRMO, PNP, BFP), six problem buttons (Flat tire, Out of gas, Breakdown, Hospital, Food, Store) and a mini map. Each button opens a Nearby results screen with the nearest place as a big card (Call, Directions) and the rest as a list. `/services` and `/about` keep working. Decided by John on 2026-10-29 after reviewing the Figma Make prototype. Saved and Profile are built; Home and Map are next.
 - **Roadmap and Architecture updated** for the new screens in Phase 3: needs, location, ranking (`rankNearby()`, `isUsuallyOpen()`), Home, Map, Saved and Profile. The Phase 7 "roadside help" feature now ships on the phone in Phase 3; Phase 7 only moves the ranking to the server.
-- **Contract v1 gets optional fields** for Phase 3: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype`.
+- **Contract v1 gets optional fields** for Phase 3: `Area.lat/lng`, `Area.level`, `Area.parent`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype`. `level` and `parent` are already validated and in the data, so barangays can be added later as data.
+- **Routes:** `/saved` and `/profile` are new. `/about` stays, under the Profile tab.
 
 ### Conflicts
 
 - The Figma Make prototype ("Design-Ropa-Roadside-Assistance") had login, ratings, an owner portal and an admin dashboard, and was still named Ropa. Those were left out of the spec: login and the portals belong to Phases 4 and 5, and ratings wait for John's decision (Phase 5 at the earliest). It also had no 911 button. The spec keeps 911 one tap from Home.
+- **Sign-in arrives before Phase 4.** The spec said Profile has no sign-in, ARCHITECTURE.md said no user accounts until Phase 4, and Roadmap ground rule 5 says one phase at a time. John then asked for a test sign-in, saving behind it and the three roles, so the newer request won. It's kept small on purpose: one test login, role rules as pure functions, no backend. UI-UX.md and [ARCHITECTURE.md](ARCHITECTURE.md#4-identity) are updated.
+- **Theme and fonts.** The spec said one green brand colour and system fonts only. John asked for the Ocean Depths theme and for the design skills to be followed, so the spec now uses Ocean Depths and two self-hosted fonts. They add about 130 KB to the first visit and are precached, so offline still works.
+- **Merge with PR #10.** This branch started before PR #10 added UI-UX.md. Both added a UI-UX.md; the PR #10 spec was kept as the base and the Ocean Depths design became its section 10. Both added a Phase 3 row to the contract change log; they are now one row.
+
+### Security
+
+- The test login ships in the app's JavaScript and protects nothing. It only exists so testers can try saving. Remove `src/auth/testAccount.ts` when Phase 4 sign-in lands, and never put a real password in the app.
 
 ---
 

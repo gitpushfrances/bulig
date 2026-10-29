@@ -57,7 +57,9 @@ export interface Area {
   id: AreaId;
   country: CountryCode;
   name: string;              // "Guiuan"
-  region: string;            // "Eastern Samar"
+  region: string;            // province or region: "Eastern Samar"
+  level?: string;            // the country's word for it: "city", "municipality", "barangay"
+  parent?: AreaId | null;    // the area it sits inside (a barangay's city); null = top level
   languages: string[];       // BCP 47, first is the default UI language: ["en", "war"]
 }
 
@@ -145,7 +147,10 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 
 ### 4. Identity
 
-- Phases 1 to 4: no user accounts. Only you log in, and only to Filament.
+Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In short: **user**, **moderator** (scoped to an area and the areas inside it) and **admin**, decided by one function, `can()` in `app/src/rules/permissions.ts`.
+
+- Now (test UI): one hardcoded test login (`test@bulig.com`), role user, kept on the phone, so testers can try saving. It is not security and is removed when Phase 4 sign-in lands. Pages only call `useAuth()`.
+- Phases 1 to 4: no real user accounts. Only you log in, and only to Filament.
 - Phase 5: business owners sign in (Sanctum tokens, Google sign-in through Socialite). Road users still never need an account. They can submit reports without one, with rate limits.
 - Emergency Help never needs an account, in any phase.
 
@@ -207,8 +212,8 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 | Ranking | `rankNearby(services, { need, chips, position, now })` in `app/src/rules/nearby.ts`: filter, then `emergency_room` first for hospitals, then haversine distance (no coordinates go last), or by name without a position. Returns `{ nearest, nearestOpen, rest }`. `isUsuallyOpen(service, now)` reads `weeklyHours`/`open24h` in Philippine time. Both unit-tested, including midnight-spanning hours and missing data. |
 | Home | Hotlines card from `visibleContacts()` (911 plus the town's `disaster`, `police` and `fire` lines), six need buttons, and `<MiniMap>`, which mounts after the first paint via `requestIdleCallback`, only when online with WebGL2. Otherwise it's a plain "Open map" link. |
 | Map | `MapPage` is lazy-loaded with `React.lazy`, so MapLibre only downloads when the Map tab or the mini map needs it. It renders the **same** `rankNearby()` output as the list. If WebGL2 isn't available or tiles fail, show the list instead. |
-| Saved | `useSaved()` keeps place IDs in `localStorage` (`bulig.saved`), wrapped in try/catch. No account and no server. |
-| Privacy, About and Profile | Profile holds language, location status, offline data age and report wrong info. About is a static page in English and the pilot area's language (Waray), through the same `t(key)` lookup so more languages drop in per area: what's collected (nothing personal), the analytics, and how to report wrong info. |
+| Saved | `useAuth()` (`app/src/auth/AuthProvider.tsx`) keeps the signed-in account and its saved record IDs in `localStorage` (`bulig.session`, `bulig.saved.<email>`), wrapped in try/catch. Saving needs the test sign-in; no server. See [WORKFLOW.md](WORKFLOW.md#sign-in). |
+| Privacy, About and Profile | Profile holds the test sign-in, language, location status, offline data age and report wrong info. About is a static page in English and the pilot area's language (Waray), through the same `t(key)` lookup so more languages drop in per area: what's collected (nothing personal), the analytics, and how to report wrong info. |
 | Share preview | Open Graph tags and a 1200x630 image in `index.html`. |
 
 **Connects to:** spine 1 (real data, same contract plus optional fields), spine 2 (the map, Home and Nearby results are views of the same data, not a second data path), and spine 3 (the report button starts the feedback pipeline).
@@ -300,7 +305,7 @@ Build only what the pilot proved people want. If they're built, these are the de
 | Phase | Change | Version |
 | --- | --- | --- |
 | 2 | `Area`, `EmergencyContact`, `Service`, `Category` and `Envelope` created, with `country` and `area` on every record | 1 |
-| 3 | `Area.lat`, `Area.lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional) | 1 |
+| 3 | `Area.lat`, `Area.lng`, `Area.level`, `Area.parent`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional) | 1 |
 | 5 | `hazards.schema.json` added; `Service.ownerVerified` (optional) | 1 |
 | 7 | New areas and countries (data only); `Service.featured` (optional) | 1 |
 

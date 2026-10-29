@@ -23,6 +23,10 @@ export interface Area {
   country: CountryCode
   name: string
   region: string
+  // The country's own word for this kind of area: "city", "municipality", "barangay".
+  level?: string
+  // The area this one sits inside (a barangay's municipality). null or missing = top level.
+  parent?: AreaId | null
   languages: string[] // BCP 47, first is the default UI language
 }
 
