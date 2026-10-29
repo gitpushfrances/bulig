@@ -27,8 +27,8 @@ Bulig is a free, offline-first web app (PWA) for people on the road. It has two 
 | --- | --- |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | **When** to build each part: phases, Jira tickets, steps, "done when" lists |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **How** each part is built and what it plugs into (the four spines) |
+| [docs/UI-UX.md](docs/UI-UX.md) | **What** each screen looks like and how people move through the app |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Every change, error, conflict and big decision, newest first |
-| [docs/UI-UX.md](docs/UI-UX.md) | **How it looks and behaves**: the Ocean Depths theme, tokens, type, icons, screens and UX rules |
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | **Who does what**: areas, roles (user, moderator, admin), sign-in, how records and code changes flow |
 
 ## Stack
@@ -49,7 +49,7 @@ bulig/
 ├── app/         React + Vite PWA (Phase 1+)
 ├── contracts/   JSON Schema for the data contract (Phase 2+)
 ├── api/         Laravel API and Filament admin (Phase 4+)
-└── docs/        Roadmap, architecture, changelog
+└── docs/        Roadmap, architecture, UI/UX, changelog
 ```
 
 One repo, no monorepo tooling. `contracts/` and `api/` don't exist yet.

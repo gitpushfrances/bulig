@@ -16,8 +16,8 @@ describe('App shell', () => {
     ['/', 'Emergency Help', 'Emergency'],
     ['/services', 'Services', 'Services'],
     ['/saved', 'Saved', 'Saved'],
-    ['/account', 'Account', 'Account'],
-    ['/about', 'About Bulig', 'Account'],
+    ['/profile', 'Profile', 'Profile'],
+    ['/about', 'About Bulig', 'Profile'],
   ])('%s shows its page and marks its tab active', (path, heading, tab) => {
     renderAt(path)
 
@@ -30,7 +30,7 @@ describe('App shell', () => {
     renderAt('/services')
 
     const links = within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link')
-    expect(links.map((link) => link.textContent)).toEqual(['Emergency', 'Services', 'Saved', 'Account'])
+    expect(links.map((link) => link.textContent)).toEqual(['Emergency', 'Services', 'Saved', 'Profile'])
   })
 
   it('shows a not found page for unknown paths', () => {

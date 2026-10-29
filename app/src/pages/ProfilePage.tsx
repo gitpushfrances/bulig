@@ -128,14 +128,14 @@ function SignInForm() {
   )
 }
 
-export default function AccountPage() {
+export default function ProfilePage() {
   const { account, signOut, saved } = useAuth()
 
   return (
-    <section className={styles.page} aria-labelledby="account-title">
+    <section className={styles.page} aria-labelledby="profile-title">
       <div className={styles.intro}>
-        <h1 id="account-title" className={styles.title}>
-          Account
+        <h1 id="profile-title" className={styles.title}>
+          Profile
         </h1>
         <p className={styles.lead}>
           Sign in to save places and numbers. Emergency Help always works without an account.

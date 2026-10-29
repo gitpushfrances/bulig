@@ -4,7 +4,7 @@ import Layout from './components/Layout.tsx'
 import EmergencyPage from './pages/EmergencyPage.tsx'
 import ServicesPage from './pages/ServicesPage.tsx'
 import SavedPage from './pages/SavedPage.tsx'
-import AccountPage from './pages/AccountPage.tsx'
+import ProfilePage from './pages/ProfilePage.tsx'
 import AboutPage from './pages/AboutPage.tsx'
 import NotFoundPage from './pages/NotFoundPage.tsx'
 import DataProvider from './data/DataProvider.tsx'
@@ -19,7 +19,7 @@ export default function App() {
             <Route index element={<EmergencyPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="saved" element={<SavedPage />} />
-            <Route path="account" element={<AccountPage />} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="about" element={<AboutPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>

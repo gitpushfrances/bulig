@@ -27,7 +27,7 @@ export default function SavedPage() {
       {!account ? (
         <div className={`${styles.card} ${styles.empty}`}>
           <p>Sign in to save places and numbers, so they're here when you need them again.</p>
-          <Link className={styles.primaryButton} to="/account?next=/saved">
+          <Link className={styles.primaryButton} to="/profile?next=/saved">
             Sign in
           </Link>
         </div>
@@ -36,7 +36,7 @@ export default function SavedPage() {
           <DataNotice hasSamples={[...places, ...numbers].some((r) => r.sample)} />
           {ready && places.length + numbers.length === 0 && (
             <div className={`${styles.card} ${styles.empty}`}>
-              <p>Nothing saved yet. Tap the bookmark on a place or a local number to keep it here.</p>
+              <p>Nothing saved yet. Tap the heart on a place or a local number to keep it here.</p>
               <Link className={styles.secondary} to="/services">
                 Find a place
               </Link>

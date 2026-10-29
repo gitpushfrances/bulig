@@ -1,4 +1,4 @@
-import { Bookmark, CircleUser, CloudOff, MapPin, Siren, type LucideIcon } from 'lucide-react'
+import { CircleUser, CloudOff, Heart, MapPin, Siren, type LucideIcon } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import { ICON_STROKE } from './icons.ts'
@@ -8,15 +8,15 @@ interface Tab {
   to: string
   label: string
   icon: LucideIcon
-  // Other paths that belong to this tab, such as /about under Account.
+  // Other paths that belong to this tab, such as /about under Profile.
   also?: string[]
 }
 
 const tabs: Tab[] = [
   { to: '/', label: 'Emergency', icon: Siren },
   { to: '/services', label: 'Services', icon: MapPin },
-  { to: '/saved', label: 'Saved', icon: Bookmark },
-  { to: '/account', label: 'Account', icon: CircleUser, also: ['/about'] },
+  { to: '/saved', label: 'Saved', icon: Heart },
+  { to: '/profile', label: 'Profile', icon: CircleUser, also: ['/about'] },
 ]
 
 export default function Layout() {

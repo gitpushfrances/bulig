@@ -19,7 +19,7 @@ function signIn(email: string, password: string) {
 
 describe('Test sign-in', () => {
   it('signs in with the test login and shows the role', () => {
-    renderAt('/account')
+    renderAt('/profile')
 
     signIn(' Test@Bulig.com ', 'password')
     expect(screen.getByRole('heading', { name: 'Test traveller' })).toBeInTheDocument()
@@ -28,7 +28,7 @@ describe('Test sign-in', () => {
   })
 
   it('says what went wrong for a bad password and stays signed out', () => {
-    renderAt('/account')
+    renderAt('/profile')
 
     signIn('test@bulig.com', 'wrong')
     expect(screen.getByRole('alert')).toHaveTextContent("don't match")
@@ -36,7 +36,7 @@ describe('Test sign-in', () => {
   })
 
   it('fills in the test login for testers', () => {
-    renderAt('/account')
+    renderAt('/profile')
 
     fireEvent.click(screen.getByRole('button', { name: 'Fill in test login' }))
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
@@ -45,7 +45,7 @@ describe('Test sign-in', () => {
 
   it('signs out and forgets the session', () => {
     localStorage.setItem('bulig.session', 'test@bulig.com')
-    renderAt('/account')
+    renderAt('/profile')
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
@@ -58,7 +58,7 @@ describe('Saving', () => {
     renderAt('/services')
 
     const link = await screen.findByRole('link', { name: 'Sign in to save Sample Motor Repair' })
-    expect(link).toHaveAttribute('href', '/account?next=%2Fservices')
+    expect(link).toHaveAttribute('href', '/profile?next=%2Fservices')
   })
 
   it('saves a place and shows it on Saved', async () => {

@@ -1,9 +1,9 @@
-import { Bookmark, BookmarkCheck } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import styles from '../pages/Page.module.css'
 
-// Saving needs the test sign-in. Signed out, the same spot links to Account and comes back here.
+// Saving needs the test sign-in. Signed out, the same spot links to Profile and comes back here.
 export default function SaveButton({ id, name }: { id: string; name: string }) {
   const { account, saved, toggleSaved } = useAuth()
   const { pathname } = useLocation()
@@ -12,16 +12,15 @@ export default function SaveButton({ id, name }: { id: string; name: string }) {
     return (
       <Link
         className={styles.save}
-        to={`/account?next=${encodeURIComponent(pathname)}`}
+        to={`/profile?next=${encodeURIComponent(pathname)}`}
         aria-label={`Sign in to save ${name}`}
       >
-        <Bookmark size={22} strokeWidth={1.75} aria-hidden="true" />
+        <Heart size={22} strokeWidth={1.75} aria-hidden="true" />
       </Link>
     )
   }
 
   const on = saved.includes(id)
-  const Icon = on ? BookmarkCheck : Bookmark
   return (
     <button
       type="button"
@@ -30,7 +29,7 @@ export default function SaveButton({ id, name }: { id: string; name: string }) {
       aria-label={`Save ${name}`}
       onClick={() => toggleSaved(id)}
     >
-      <Icon size={22} strokeWidth={1.75} aria-hidden="true" />
+      <Heart size={22} strokeWidth={1.75} fill={on ? 'currentColor' : 'none'} aria-hidden="true" />
     </button>
   )
 }

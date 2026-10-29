@@ -47,7 +47,7 @@ flowchart TD
 
 | Phase | How it works |
 | --- | --- |
-| **Now (test UI)** | One hardcoded test login, `test@bulig.com` / `password`, role **user**, in [`app/src/auth/testAccount.ts`](../app/src/auth/testAccount.ts). The session and saved places are kept in `localStorage` on the phone. |
+| **Now (test UI)** | On the Profile tab, one hardcoded test login, `test@bulig.com` / `password`, role **user**, in [`app/src/auth/testAccount.ts`](../app/src/auth/testAccount.ts). The session and saved places are kept in `localStorage` on the phone. |
 | **Phase 4** | Laravel Sanctum accounts. Admins and moderators sign in to Filament; the API checks roles with the same rules as `can()`. |
 | **Phase 5** | Travellers and business owners sign in (Google through Socialite, Sanctum tokens). Saved places sync to the account. |
 
@@ -59,10 +59,10 @@ Saving flow:
 sequenceDiagram
   participant T as Traveller
   participant S as Services page
-  participant A as Account page
-  T->>S: Taps the bookmark on a place
+  participant A as Profile page
+  T->>S: Taps the heart on a place
   alt signed out
-    S->>A: Opens /account?next=/services
+    S->>A: Opens /profile?next=/services
     T->>A: Signs in
     A->>S: Returns to /services
   end
@@ -91,4 +91,4 @@ flowchart LR
 
 - `main` is always deployable. Work on a branch, open a PR, wait for green CI, merge.
 - Every change goes into `docs/CHANGELOG.md` under **Unreleased**.
-- UI changes follow [UI-UX.md](UI-UX.md) and get a screenshot check at phone and desktop widths, light and dark.
+- UI changes follow [UI-UX.md](UI-UX.md) (section 10 for the look) and get a screenshot check at phone and desktop widths, light and dark.
