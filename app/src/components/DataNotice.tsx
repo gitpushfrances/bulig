@@ -1,10 +1,12 @@
 import { useAppData } from '../data/context.ts'
 import styles from '../pages/Page.module.css'
 import Mascot from './Mascot.tsx'
+import RopiLoader from './RopiLoader.tsx'
 
 interface Props {
   hasSamples: boolean
-  // Show Ropi when offline with nothing cached. Off on Home and Emergency: never near getting help.
+  // Show Ropi while loading and when offline with nothing cached. Off on Home and Emergency:
+  // never near getting help.
   ropi?: boolean
 }
 
@@ -15,7 +17,13 @@ export default function DataNotice({ hasSamples, ropi = false }: Props) {
 
   return (
     <>
-      {data.status === 'loading' && (
+      {data.status === 'loading' && ropi && (
+        <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`} role="status">
+          <RopiLoader />
+          <p>Loading…</p>
+        </div>
+      )}
+      {data.status === 'loading' && !ropi && (
         <p className={styles.notice} role="status">
           Loading…
         </p>

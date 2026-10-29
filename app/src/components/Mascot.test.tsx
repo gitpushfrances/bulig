@@ -84,6 +84,25 @@ describe('Where Ropi appears', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 
+  it('walking, while a list loads', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    renderAt('/services')
+
+    const status = screen.getByRole('status')
+    expect(status).toHaveTextContent('Loading…')
+    const loader = screen.getByTestId('ropi-loader')
+    expect(loader).toHaveAttribute('aria-hidden', 'true')
+    expect(loader.querySelector('img')).toHaveAttribute('src', '/assets/mascot/ropi-walk.webp')
+  })
+
+  it.each(['/', '/emergency'])('not walking while %s loads', (path) => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    renderAt(path)
+
+    expect(screen.getAllByText('Loading…').length).toBeGreaterThan(0)
+    expect(screen.queryByTestId('ropi-loader')).not.toBeInTheDocument()
+  })
+
   it('ready, on About', () => {
     renderAt('/about')
     expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'ready')

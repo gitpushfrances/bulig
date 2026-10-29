@@ -451,13 +451,14 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 | Friendly (standing, tail up) | `ropi-friendly.webp` | Saved empty state |
 | Thinking (paw on chin) | `ropi-thinking.webp` | No results, offline with nothing cached |
 | Head (round crop) | `ropi-head.webp` | Profile, only inside a circular frame |
+| Walking (8-frame loop) | `ropi-walk.webp` | Loading, on Services, a category and Saved (later the Map while it loads) |
 
 - **Never** on Home, Hotlines, the Call 911 card, the "What's wrong?" grid, Nearby results lists, Place details, or the Map. Those screens are for getting help fast.
 - **Never** as a reaction to tapping a card, a Call button, or any other control. A tap on a control does its job at once.
 - One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text, never beside or over a button.
 - Add a new pose only when a real screen needs it. Every pose must keep the same face, colours, outfit and art style.
 
-**Status (2026-10-29):** built. `app/src/components/Mascot.tsx` (`variant` of `ready | friendly | thinking | head`, optional `height`, default 128px) is used on the Saved empty state, an empty category, offline with nothing cached (Services, a category, Saved; via `DataNotice`'s `ropi` prop, which Home and Emergency never pass), About (160px) and the signed-in Profile (56px circle). Welcome (120px) uses `ready` too.
+**Status (2026-10-29):** built. `app/src/components/Mascot.tsx` (`variant` of `ready | friendly | thinking | head`, optional `height`, default 128px) is used on the Saved empty state, an empty category, offline with nothing cached (Services, a category, Saved; via `DataNotice`'s `ropi` prop, which Home and Emergency never pass), About (160px) and the signed-in Profile (56px circle). Welcome (120px) uses `ready` too. `RopiLoader.tsx` shows the walking loop (96px) above "Loading…" on the same `ropi` pages; Home and Emergency keep the plain "Loading…" line.
 
 **Files**
 - Stored in [`app/public/assets/mascot/`](../app/public/assets/mascot/), served from `/assets/mascot/<name>.webp`. Naming and export rules are in that folder's README.
@@ -470,6 +471,7 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 - Tapping Ropi plays one short reaction, under 600ms, then stops: a wiggle or hop, plus small floating icons drawn in code (not in the image). Thinking gets a "?" and a lightbulb, friendly gets hearts, ready gets sparkles. The icons come from the app's icon set.
 - Only `transform` and `opacity` are animated, so it stays smooth on a low-cost phone.
 - With `prefers-reduced-motion`, there is no movement; a tap may show the icons without motion.
+- **The one exception is loading.** While a page with Ropi is loading, Ropi walks in a loop: `ropi-walk.webp` is one 1800 × 180 strip of 8 frames (225 × 180 each, about 80 KB), slid one frame at a time with CSS `steps(8)` over 960ms. It appears only after 400ms, so a fast load never flashes a dog, and it stops as soon as the data is there. A wait the person can see is not decoration. Under `prefers-reduced-motion` it shows the first frame, still.
 - Ropi is not a button for assistive technology. The tap reaction is a small extra, never the only way to reach something.
 
 ### Motion, touch, forms, and browser chrome
