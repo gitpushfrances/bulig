@@ -112,7 +112,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - *(new)* Load verified real data and remove all sample records
 - *(new)* Keep the Worker named `bulig` so the free link is `bulig.<subdomain>.workers.dev`. (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
 - *(new)* Add Cloudflare Web Analytics (free, no cookies) to count visits and installs
-- *(new)* Add a "Report wrong info" link that opens a short Google Form
+- ~~Add a "Report wrong info" link that opens a short Google Form~~ Dropped (John, 2026-10-30): Report wrong info moves to Phase 4, in the app (SCRUM-30).
 - ✅ **New navigation:** five tabs (Home, Services, Map, Saved, Profile), Emergency behind a floating red button on every screen. `/services` and `/about` keep working.
 - ✅ Home: "What's wrong?" tiles, the location line from GPS with a picker fallback, hotline card (911 one tap) and local numbers. (No mini map.)
 - ✅ Nearby results (`/nearby/:need`): nearest place as a big card with Call and Route, then the rest as a list. Plus "Nearest usually open", filter chips, status and feature tags.
@@ -130,14 +130,14 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 4. Hand it to 5 people who aren't you (riders, tricycle drivers, a vulcanizing shop owner). Give each one a task ("you have a flat tire, find help") and watch without helping. Write down where they get stuck and how many taps it took.
 5. Fix the top 3 problems.
 6. Set up analytics and an Open Graph preview image (so the link looks trustworthy when shared on Facebook), then share it: local Facebook groups, terminals, gas stations, and the shops that are listed.
-7. Run a weekly loop. Every week, process "wrong info" reports, re-check anything flagged, and look at analytics.
+7. Run a weekly loop. Every week, re-check anything people mention, and look at analytics. (In-app reports start in Phase 4.)
 
 **Done when**
 
 - [ ] The `workers.dev` link is live with only verified data for the pilot area
 - [ ] From Home, 911 takes 1 tap, and calling the nearest tire shop takes 2 (Flat tire, Call), on a real phone
 - [ ] At least 30 people outside your circle have opened it (from analytics)
-- [ ] At least 3 "wrong info" reports have been received and fixed, which shows the feedback loop works
+- [ ] At least 3 corrections from people outside your circle (by message or in person) have been fixed. In-app reports start in Phase 4.
 - [ ] The usage numbers are written into the SCRUM-15 validation results
 
 **Move on when:** at least one of these is true:
