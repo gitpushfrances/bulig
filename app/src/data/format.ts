@@ -22,3 +22,14 @@ export function countryName(country: string): string {
     return country
   }
 }
+
+const ago = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+
+// "just now", "3 minutes ago", "2 hours ago".
+export function timeAgo(ms: number, now = Date.now()): string {
+  const minutes = Math.round((now - ms) / 60_000)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return ago.format(-minutes, 'minute')
+  const hours = Math.round(minutes / 60)
+  return hours < 24 ? ago.format(-hours, 'hour') : ago.format(-Math.round(hours / 24), 'day')
+}

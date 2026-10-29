@@ -71,4 +71,6 @@ export interface Envelope<T> {
 export interface Labels {
   version: 1
   categories: Partial<Record<Category, Record<string, string>>>
+  // The country's words for the parts of an address: { locality: { en: "Barangay" } }.
+  address?: Partial<Record<'locality' | 'municipality' | 'province' | 'postcode', Record<string, string>>>
 }

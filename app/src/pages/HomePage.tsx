@@ -2,12 +2,14 @@ import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { HotlineCard, NumberRow, OfferCard, PlaceRow, SectionHead } from '../components/Cards.tsx'
+import AddressCard from '../components/AddressCard.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import { useAppData } from '../data/context.ts'
 import { FALLBACK_EMERGENCY } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { visibleContacts } from '../rules/emergency.ts'
+import { NEAR_KM, formatDistance } from '../rules/nearby.ts'
 import { CATEGORIES, type EmergencyContact } from '../types.ts'
 import styles from './Page.module.css'
 
@@ -15,7 +17,7 @@ import styles from './Page.module.css'
 const HOME_OFFERS = CATEGORIES.slice(0, 6)
 
 export default function HomePage() {
-  const { country, data, area } = useAppData()
+  const { country, data, area, areaKm } = useAppData()
   const { account, saved } = useAuth()
   const { ready, areaName, where, ranked, labels } = useNearby()
 
@@ -47,14 +49,18 @@ export default function HomePage() {
     <section className={styles.page} aria-labelledby="home-title">
       <div className={styles.intro}>
         <h1 id="home-title" className={styles.title}>
-          {areaName ? `Help near ${areaName}` : 'Help along the way'}
+          {areaKm !== null ? 'Help near you' : areaName ? `Help near ${areaName}` : 'Help along the way'}
         </h1>
         <p className={styles.lead}>
-          {ready
+          {ready && areaName && areaKm !== null && areaKm > NEAR_KM
+            ? `The nearest listed area is ${areaName}, ${formatDistance(areaKm)} away: ${ranked.length} places and ${localAll.length} local numbers there.`
+            : ready
             ? `${ranked.length} ${ranked.length === 1 ? 'place' : 'places'} and ${localAll.length} local ${localAll.length === 1 ? 'number' : 'numbers'} ${where}.`
             : 'Checked numbers and road services, even offline.'}
         </p>
       </div>
+
+      <AddressCard />
 
       <DataNotice hasSamples={ranked.some((r) => r.item.sample)} />
 
