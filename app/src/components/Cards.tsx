@@ -1,7 +1,7 @@
 import { ChevronRight, CircleCheck, Clock, MapPin, Navigation, Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { directionsHref, formatDate, telHref } from '../data/format.ts'
+import { formatDate, telHref } from '../data/format.ts'
 import { categoryBlurb, categoryLabel, categorySlug, kindLabel } from '../data/labels.ts'
 import { formatDistance, type Ranked } from '../rules/nearby.ts'
 import { isNew } from '../rules/services.ts'
@@ -186,17 +186,16 @@ export function ServiceCard({
               Call
             </a>
           )}
+          {/* Directions opens the in-app route on the Map; Google Maps is one tap further for voice. */}
           {hasMap && (
-            <a
+            <Link
               className={styles.secondary}
-              href={directionsHref(service.lat!, service.lng!)}
-              target="_blank"
-              rel="noreferrer"
+              to={`/map?to=${encodeURIComponent(service.id)}`}
               aria-label={`Directions to ${service.name}`}
             >
               <Navigation size={18} strokeWidth={2} aria-hidden="true" />
               Directions
-            </a>
+            </Link>
           )}
         </div>
       )}

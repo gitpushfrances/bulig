@@ -89,6 +89,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       name: details.name.trim() || account.name,
       phone: details.phone?.trim() || undefined,
       homeArea: details.homeArea || null,
+      photo: details.photo || undefined,
     }
     writeSaved(profileKey(account.email), JSON.stringify(clean))
     if (isLocalAccount(account.email)) renameLocalAccount(account.email, clean.name)

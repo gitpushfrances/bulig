@@ -1,0 +1,28 @@
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-selected);
+}
+
+/* The selected tab: a ring in the text colour, so it reads in light and dark. */
+.ring {
+  box-shadow:
+    0 0 0 2px var(--color-bg),
+    0 0 0 4px var(--color-text);
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ropi's head art sits a little high in its square; nudge it down so the face is centred. */
+.ropi {
+  width: 100%;
+  height: auto;
+  margin-top: 8%;
+}

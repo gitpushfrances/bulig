@@ -80,6 +80,8 @@ describe('What we offer', () => {
       'tel:+639000000101',
     )
     expect(screen.getAllByText('SAMPLE').length).toBeGreaterThan(0)
+    // Directions opens the in-app route on the Map, not another app.
+    expect(within(places).getAllByRole('link', { name: /^Directions to / })[0]).toHaveAttribute('href', expect.stringMatching(/^\/map\?to=/))
   })
 
   it('says so when a category has nothing in the area', async () => {

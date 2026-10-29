@@ -10,17 +10,17 @@ Visual references (private, John's account): [System Map](https://claude.ai/arti
 
 Bulig covers the whole Philippines, then any country. Town names in the wireframes below are placeholders, not a pilot list.
 
-**Where the app is now (2026-10-30, read this first in a new conversation):**
+**Where the app is now (2026-10-30, second update; read this first in a new conversation):**
 
 | Area | Built and live on `main` |
 | --- | --- |
 | Theme | **Graphite**: near-black, zinc greys, white; light and dark. Red only for Call 911 and emergency actions, green only for checked. See [§10 Theme: Graphite](#theme-graphite-current-2026-10-29). Ocean Depths is retired. |
-| Navigation | Five tabs: Home `/`, Services `/services`, Map `/map`, Saved `/saved`, Profile `/profile`. **Emergency is not a tab:** a red hazard button floats on every screen and opens `/emergency`; Back returns. Bottom bar on phones, rail on tablets, sidebar on desktop. |
-| Location | GPS finds the area by itself (`watchPosition`) with a refresh button; header line "Near you · <barangay>, <town>" from OpenStreetMap Nominatim. Area picker only when GPS is off. |
+| Navigation | **No top bar** and no logo tile: content starts at the top of the screen. Five tabs: Home `/`, Services `/services`, Map `/map`, Saved `/saved`, **Profile** (shows your photo, or Ropi's head by default). **Emergency is not a tab:** a red hazard button floats on every screen and opens `/emergency`; Back returns. Bottom bar on phones, rail on tablets, sidebar (with the word "Bulig") on desktop. Offline shows a slim strip at the top. |
+| Location | GPS finds the area by itself (`watchPosition`). **Shown on Home between the bento and the 911 card** (and on Emergency) as one plain text line between hairlines: "Lahug · Cebu City · Cebu · 6000" over "Updated 2:41 PM", with a reload button right after it. Address from OpenStreetMap Nominatim. Area picker in the same spot only when GPS is off. |
 | Home | "What do you need?" bento: the seven road services plus **Others** (new and local stalls, wide tile, NEW badge), then the national hotline (Call 911), local numbers, nearest places, Saved. |
-| Map | MapLibre + OpenFreeMap (free, no key), recoloured to Graphite light/dark; category pins, chips, a place sheet with Call and Directions; a list when offline. See [Map](#map-map). |
+| Map | MapLibre + OpenFreeMap (free, no key), recoloured to Graphite light/dark; category pins, chips, a place sheet. **In-app routes** from OSRM on OpenStreetMap roads (FOSSGIS, free, no key): a blue line, distance and time, Car or Walk, rerouting as you move, and a Google Maps button for voice navigation. Card **Directions** open `/map?to=<id>`. See [Map](#map-map). |
 | Accounts | Everything but Emergency needs an account ([Accounts and access](#accounts-and-access-decided-by-john-2026-10-30)). [Login](#login-login), [Sign up = onboarding](#sign-up--onboarding-signup) with Ropi, [Forgot password](#forgot-password-forgot-password). "Continue without an account" = Emergency only. Test logins (typed, no shortcuts): `test@`, `moderator@`, `admin@bulig.com` / `password`. Sign-ups are users kept on the phone (hashed password). |
-| Profile | Production-style settings: avatar, role, member since, edit profile, change password, theme (System/Light/Dark), install, help, Terms, Privacy, licences, sign out, delete account, "Bulig v0.3.0 · build <commit>". |
+| Profile | Production-style settings: your photo (or Ropi), role, member since, edit profile (photo, name, mobile, home area), change password, theme (System/Light/Dark), install, help, Terms, Privacy, licences, sign out, delete account, "Bulig v0.3.0 · build <commit>". |
 | Mascot | Ropi on quiet screens only, now **talking** in speech bubbles (`RopiSays`): login (head mark / side panel), onboarding (all four poses), forgot password, guest gate, Saved empty ("Let's get started!"), empty category, offline, map offline, About, Profile avatar. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
 | Not built yet | The six "What's wrong?" buttons, Nearby results, Place details, real backend sign-in and reset emails (Phase 4). |
 
@@ -129,7 +129,7 @@ Design for the smallest supported viewport first: **360 × 740 CSS px**, with es
 └────────────────────────────────┘
 ```
 
-- **Header:** show the compact Bulig wordmark and location control. The location is one plain line, **Near you · Lahug, Cebu City**, when GPS resolves it; use a refresh affordance while a fresh fix is in progress. Tapping the location opens the area picker only when GPS is off, denied, or unavailable. Do not show a fake online indicator: offline state is explicit and labelled.
+- **No header** (John, 2026-10-30): no top bar, no logo tile. Where you are is the **location line** on Home, between the bento and the national hotline: plain text between two hairlines (a divider, not a card), the full address "Barangay · City or municipality · Province · ZIP" in one size, "Updated <time>" under it in muted text, and a reload button right after the text (clear of the floating emergency button). Without GPS the same spot is the area picker. Emergency shows the same line under its title.
 - **Emergency card:** pale-red surface, red border, dark-red heading, and a full-width red **Call 911** button. The action is visible immediately and uses `tel:911`; it never requires sign-in. Red is reserved for emergency actions, not routine service calls.
 - **Local quick calls:** show the selected area's verified MDRRMO, PNP, and BFP contacts when available. Omit missing or expired local contacts instead of rendering broken buttons. “All” opens Hotlines.
 - **What's wrong?:** six category actions in a consistent **3-column × 2-row** grid: Flat tire, Out of gas, Breakdown, Hospital, Food, Store. Each tile has one Phosphor icon and a visible text label; tapping it opens the matching Nearby Results filter. If the labels wrap at 360px, let them wrap naturally—do not shrink text below the type scale.
@@ -196,7 +196,9 @@ Filter presets:
 - Pins: near-black circles with a white category icon (white with a black icon in dark mode), a small point at the bottom. The selected pin inverts and grows slightly.
 - Filter chips across the top, one per category plus All, in a single scrolling row.
 - Controls on the right under the chips: the red **emergency** button, then **Go to my location** (refreshes GPS and flies there).
-- Tapping a pin opens a sheet at the bottom: name, type and distance, landmark, NEW / SAMPLE badges, heart, **Call** and **Directions**, and a close button. Tapping the map closes it.
+- Tapping a pin opens a sheet at the bottom: name, type and distance, landmark, NEW / SAMPLE badges, heart, **Call** and **Route**, and a close button. Tapping the map closes it.
+- **Route (in the app):** OSRM on OpenStreetMap roads, from the FOSSGIS servers at `routing.openstreetmap.de` (the ones openstreetmap.org uses): free, no key, fair use. A busy Bulig moves to its own OSRM with a Philippines extract. The route is a blue line (the same blue as the you-are-here dot) on a light or dark casing, fitted into view above the route sheet (phones) or beside it (tablets and up). The route sheet shows "Route to <place>", **distance · time** ("1.4 km · 3 min by car or motorbike"), a **Car / Walk** switch (motorbikes use the car route), **Google Maps** (opens Google for voice turn-by-turn) and **Call**, and an × to end the route. The route is asked for again when the phone enters a new ~200 m cell, so it follows a driver. Without a GPS fix: "Turn on location to see the route"; if the router fails: "Couldn't get a route right now. Google Maps can still guide you."
+- **Directions** on any place card opens `/map?to=<id>`: the Map with that place picked and its route on. No live traffic and no spoken directions in Bulig; that is what the Google Maps button is for.
 - The map credit (OpenFreeMap © OpenMapTiles, data from OpenStreetMap) is always shown, as the licence requires.
 - MapLibre (about 270 kB gzipped) loads only when the Map tab opens and is kept out of the offline cache, so Home and Emergency never wait for it.
 - Offline, or without WebGL: Ropi `thinking` says "The map needs a connection" and the tab shows the nearest places as a list.
@@ -262,8 +264,8 @@ After **Create account** the person lands on Home (or the screen that asked for 
 ### Profile (`/profile`)
 
 Built like a production settings screen:
-- **Header card:** Ropi's head as the avatar, name, email, a role badge (User / Moderator / Admin), "Member since <month year>".
-- **Account:** Edit profile (`/profile/edit`: name, email read-only, optional mobile number checked as a PH number, optional home area), Change password (`/profile/password`: current, new, confirm; test logins can't change theirs), Saved places with the count, Home area when set.
+- **Header card:** the person's photo as the avatar (Ropi's head until they add one), name, email, a role badge (User / Moderator / Admin), "Member since <month year>". The **Profile tab** in the nav shows the same avatar (26px, a ring when selected) instead of an icon.
+- **Account:** Edit profile (`/profile/edit`: **photo** (Add a photo / Change photo / Remove; centre-cropped to a 256px WebP, about 15–30 KB, kept on the phone), name, email read-only, optional mobile number checked as a PH number, optional home area), Change password (`/profile/password`: current, new, confirm; test logins can't change theirs), Saved places with the count, Home area when set.
 - **Preferences:** Appearance (System / Light / Dark, remembered and applied before the first paint), Language (English), Location (Allowed / Blocked / Not asked yet, from the phone's permission).
 - **App:** **Install Bulig**: the browser's install prompt on Android/Chrome, or the Share → Add to Home Screen steps on iPhone. Hidden once installed. Offline data: "<n> places · <n> numbers".
 - **Support and legal:** Help and FAQ (`/help`), About Bulig, Terms of Use (`/terms`), Privacy Policy (`/privacy`), Open-source licences (`/licenses`). Help, Terms, Privacy and Licences are open without an account (sign-up links to them).
@@ -311,7 +313,7 @@ Built like a production settings screen:
 - Location is asked for when the app opens and then followed while it stays open (`watchPosition`), so the area updates as the driver moves. A refresh button next to the area asks for a fresh fix. There is no area search. (This replaces "ask on first use": John decided on 2026-10-29 that the area should find itself.)
 - If location is denied, missing or failing, the same spot becomes a plain area picker, and places sort by name.
 - Distances only show when location is known. The exact position never leaves the phone.
-- **Address:** the header shows one plain line, **Near you · <barangay>, <town>** ("Near you · Lahug, Cebu City"), one text size, no card or box, with the refresh button beside it. Province and postcode only appear in its tooltip. The address comes from OpenStreetMap's free Nominatim reverse lookup, sent a position rounded to about 110 m, only when online, and again only after a 250 m move or a refresh; the last one is cached on the phone. Without it, the line shows the nearest listed area.
+- **Address:** the location line on Home (and Emergency) shows the full address, "Lahug · Cebu City · Cebu · 6000", with "Updated <time>" and a reload button. Missing parts are left out (an independent city may have no province). The address comes from OpenStreetMap's free Nominatim reverse lookup, sent a position rounded to about 110 m, only when online, and again only after a 250 m move or a refresh; the last one is cached on the phone. Without it, the line shows the nearest listed area and its region.
 - Profile says plainly what is shared and when.
 
 **Ranking (Nearby results)**

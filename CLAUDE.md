@@ -21,7 +21,7 @@ npm run build
 ## Hard rules
 
 - Emergency (`/emergency`: 911 and local authorities) is open to everyone with no login, and one tap away from every screen (the red hazard button). Everything else needs an account ("Continue without an account" = Emergency only). Nothing heavy loads before 911; no ad or paywall near emergencies.
-- Free services only: no paid APIs or subscriptions (the map is MapLibre + OpenFreeMap, addresses are Nominatim, directions are a Google Maps URL).
+- Free services only: no paid APIs or subscriptions (the map is MapLibre + OpenFreeMap, addresses are Nominatim, routes are OSRM on routing.openstreetmap.de, voice navigation is a Google Maps URL).
 - Never say Bulig dispatches help, sends location, or that a place is "open now".
 - Works offline after one visit. Low-cost Android, 360px, sunlight: 16px body, 48px targets.
 - Mascot Ropi: only on the screens UI-UX.md allows, never near the emergency path, moves only when tapped (the one exception: walking while a page loads).

@@ -1,7 +1,8 @@
-import { ChevronLeft, Save } from 'lucide-react'
+import { Camera, ChevronLeft, Save, Trash2 } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
+import { toAvatar } from '../auth/photo.ts'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { useAppData } from '../data/context.ts'
 import page from './Page.module.css'
@@ -37,6 +38,8 @@ export function EditProfilePage() {
   const [name, setName] = useState(account?.name ?? '')
   const [phone, setPhone] = useState(account?.phone ?? '')
   const [homeArea, setHomeArea] = useState(account?.homeArea ?? '')
+  const [photo, setPhoto] = useState(account?.photo)
+  const [photoError, setPhotoError] = useState('')
   const [nameError, setNameError] = useState('')
   const [phoneError, setPhoneError] = useState('')
 
@@ -53,13 +56,48 @@ export function EditProfilePage() {
     setNameError(n)
     setPhoneError(p)
     if (n || p) return
-    updateProfile({ name, phone, homeArea: homeArea || null })
+    updateProfile({ name, phone, homeArea: homeArea || null, photo })
     navigate('/profile')
   }
 
   return (
     <SubPage title="Edit profile" lead="This stays on this phone until accounts move online.">
       <form className={styles.form} onSubmit={submit} noValidate>
+        <div className={styles.photoRow}>
+          <span className={styles.photoPreview} aria-hidden="true">
+            <img src={photo ?? '/assets/mascot/ropi-head.webp'} alt="" className={photo ? styles.photoImg : styles.photoRopi} />
+          </span>
+          <div className={styles.photoActions}>
+            <label className={page.secondary}>
+              <Camera size={18} strokeWidth={2} aria-hidden="true" />
+              {photo ? 'Change photo' : 'Add a photo'}
+              <input
+                type="file"
+                accept="image/*"
+                className="visually-hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  e.target.value = ''
+                  if (!file) return
+                  try {
+                    setPhoto(await toAvatar(file))
+                    setPhotoError('')
+                  } catch {
+                    setPhotoError("That file couldn't be opened as a picture. Try a JPG or PNG.")
+                  }
+                }}
+              />
+            </label>
+            {photo && (
+              <button type="button" className={page.secondary} onClick={() => setPhoto(undefined)}>
+                <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
+                Remove
+              </button>
+            )}
+            <p className={page.hint}>{photo ? 'Shown on your Profile tab.' : 'Until you add one, Ropi stands in.'}</p>
+            {photoError && <p className={page.error}>{photoError}</p>}
+          </div>
+        </div>
         <TextField
           label="Name"
           autoComplete="name"

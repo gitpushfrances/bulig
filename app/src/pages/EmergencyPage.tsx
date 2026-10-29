@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { ContactCard, HotlineCard, SectionHead } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
+import LocationLine from '../components/LocationLine.tsx'
 import { useAppData } from '../data/context.ts'
 import { FALLBACK_EMERGENCY } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
@@ -72,6 +73,8 @@ export default function EmergencyPage() {
       {hotlines.map((c) => (
         <HotlineCard key={c.id} contact={c} countryName={countryName(country)} />
       ))}
+
+      <LocationLine />
 
       <DataNotice hasSamples={local.some((c) => c.sample)} />
 

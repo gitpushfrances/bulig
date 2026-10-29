@@ -45,8 +45,8 @@ describe('Location from GPS', () => {
     fakeGeo(CEBU)
     renderAt('/')
 
-    expect(await screen.findByText('Near you')).toBeInTheDocument()
-    expect(await screen.findByText('Cebu City')).toBeInTheDocument()
+    // Home's location line, between the services and the emergency numbers.
+    expect(await screen.findByText('Cebu City · Cebu')).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: 'Area' })).not.toBeInTheDocument()
     expect(localStorage.getItem('bulig.area')).toBe('ph-cebu-cebu-city')
   })
@@ -55,7 +55,6 @@ describe('Location from GPS', () => {
     fakeGeo(CEBU)
     renderAt('/services/tire-repair')
 
-    await screen.findByText('Near you')
     const places = await screen.findByRole('list', { name: 'Places' })
     const items = within(places).getAllByRole('listitem')
     expect(items).toHaveLength(1)
@@ -67,7 +66,7 @@ describe('Location from GPS', () => {
     const geo = fakeGeo(CEBU)
     renderAt('/')
 
-    await screen.findByText('Near you')
+    await screen.findByText('Cebu City · Cebu')
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Update my location' })))
     expect(geo.getCurrentPosition).toHaveBeenCalledTimes(1)
   })
@@ -85,10 +84,9 @@ describe('Location from GPS', () => {
     vi.stubGlobal('fetch', lookup)
     renderAt('/')
 
-    expect(await screen.findByText('Lahug, Cebu City')).toBeInTheDocument()
-    // Only the barangay and town show; the rest is in the tooltip. There is no address card.
-    expect(screen.getByText('Lahug, Cebu City').closest('p')).toHaveAttribute('title', 'Lahug, Cebu City, Cebu, 6000')
-    expect(screen.queryByRole('region', { name: 'Your location' })).not.toBeInTheDocument()
+    // The full address as one line of text: barangay, city or municipality, province, ZIP code.
+    expect(await screen.findByText('Lahug · Cebu City · Cebu · 6000')).toBeInTheDocument()
+    expect(screen.getByText(/^Updated /)).toBeInTheDocument()
     // The position is rounded to about 100 m before it leaves the phone.
     const url = String(lookup.mock.calls.find(([u]) => String(u).includes('nominatim'))?.[0])
     expect(url).toContain('lat=10.31&lon=123.89')
@@ -99,8 +97,7 @@ describe('Location from GPS', () => {
     fakeGeo(CEBU)
     renderAt('/')
 
-    expect(await screen.findByText('Near you')).toBeInTheDocument()
-    expect(await screen.findByText('Cebu City')).toBeInTheDocument()
+    expect(await screen.findByText('Cebu City · Cebu')).toBeInTheDocument()
   })
 
   it('falls back to picking an area when location is denied', async () => {

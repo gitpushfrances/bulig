@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { HotlineCard, NumberRow, PlaceRow, SectionHead, ServiceBento } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
+import LocationLine from '../components/LocationLine.tsx'
 import { useAppData } from '../data/context.ts'
 import { FALLBACK_EMERGENCY } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
@@ -11,8 +12,8 @@ import { visibleContacts } from '../rules/emergency.ts'
 import type { EmergencyContact } from '../types.ts'
 import styles from './Page.module.css'
 
-// Where you are lives in the header. Home answers "what do I need?": the services first,
-// then emergency numbers, the nearest places and what you saved.
+// Home answers "what do I need?": the services first, then where you are (a plain line that
+// divides the page), then emergency numbers, the nearest places and what you saved.
 export default function HomePage() {
   const { country, data, area } = useAppData()
   const { account, saved } = useAuth()
@@ -48,6 +49,8 @@ export default function HomePage() {
       </h1>
 
       {ready && <ServiceBento ranked={ranked} labels={labels} />}
+
+      <LocationLine />
 
       <DataNotice hasSamples={ranked.some((r) => r.item.sample)} />
 
