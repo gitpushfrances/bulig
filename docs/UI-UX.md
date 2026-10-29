@@ -1,14 +1,16 @@
 # Bulig UI and UX
 
-How the app looks, how people move through it, and why. This is the source of truth for screens and flows. [ROADMAP.md](ROADMAP.md) says *when* each part ships, and [ARCHITECTURE.md](ARCHITECTURE.md) says *how* it's built.
+How Bulig looks, how people move through it, and why. This is the source of truth for screens and flows. [ROADMAP.md](ROADMAP.md) says *when* each part ships, and [ARCHITECTURE.md](ARCHITECTURE.md) says *how* it is built.
 
-Last updated: 2026-10-29 · Owner: John · Replaces the three-tab layout (Emergency, Services, About) shipped in v0.2. The new layout ships in Phase 3 (v0.3).
+Last updated: 2026-10-29 · Owner: John · Visual direction: **Modern Utility Minimalism**.
 
-Visual references (private, John's account): [System Map](https://claude.ai/artifact/3CX8HnRHESS9DT4oyuycKS) (flow and wireframes), [Nearby Results mockup](https://claude.ai/artifact/UH8x588qpo7yyHW9NM5VPr) (high-fidelity results screen) and [Bulig App Design](https://claude.ai/artifact/Pvr4j7BMVZZB4WfMmmKSiR) (the Ocean Depths theme, section 10).
+This revision keeps the Ocean Depths brand but standardises the interface around a single type family, one icon family, clear surface boundaries, and a dedicated emergency-red action. It describes the target UI to implement; it does not claim that the existing components have already been changed.
+
+Visual references (private, John's account): [System Map](https://claude.ai/artifact/3CX8HnRHESS9DT4oyuycKS) (flow and wireframes), [Nearby Results mockup](https://claude.ai/artifact/UH8x588qpo7yyHW9NM5VPr) (high-fidelity results screen), and [Bulig App Design](https://claude.ai/artifact/Pvr4j7BMVZZB4WfMmmKSiR) (original Ocean Depths theme). The [style board](design/style-board.png) shows the target look. Use this document's tokens and rules where the style board or an older visual reference disagrees.
 
 Bulig covers the whole Philippines, then any country. Town names in the wireframes below are placeholders, not a pilot list.
 
-**Built so far (v0.3 in progress):** the Ocean Depths look (section 10) and five tabs: Home, Services (What we offer), Emergency, Saved and Profile. The location comes from GPS. Home shows previews of the other tabs; the Map tab and the six "What's wrong?" buttons are still to come. See section 11.
+**Current implementation baseline:** the v0.3 work has the earlier Ocean Depths palette and a five-tab navigation (Home, Services, Emergency, Saved, Profile). The **target UI in this document** consolidates navigation to four tabs: Home, Map, Saved, Profile. Emergency actions live on Home and the Hotlines screen; Services remains a supported route and entry point, not a bottom tab. The Map tab and the six “What's wrong?” actions still need implementation. Preserve existing routes and data contracts while moving to the target UI.
 
 ---
 
@@ -35,7 +37,7 @@ Every screen is judged against that sentence. If a feature doesn't make that fas
 
 ## 3. Navigation
 
-Four bottom tabs, each with an icon and a label:
+Four bottom tabs, each with a Phosphor icon and a visible label:
 
 | Tab | Route | Purpose |
 | --- | --- | --- |
@@ -84,37 +86,40 @@ Bulig never sends help and never shares location. Every outcome is the person's 
 
 ### Home
 
-Must fit one 360x740 screen without scrolling.
+Design for the smallest supported viewport first: **360 × 740 CSS px**, with essential actions visible without scrolling on a typical phone. Keep a compact header and avoid a large hero section. If content does not fit on a short device, preserve the 911 and call targets at full size; remove the mini-map preview first, then reduce non-essential previews. Never shrink a touch target below 48px to force a no-scroll layout.
 
-```
-┌──────────────────────────────┐
-│ ◉ Near <town> ▾          ● │  header: town, online dot
-├──────────────────────────────┤
-│ Emergency hotlines     All › │  red border, light red fill
-│ ┌──────────────────────────┐ │
-│ │       CALL 911           │ │  one tap, tel:911
-│ └──────────────────────────┘ │
-│ [MDRRMO]  [ PNP ]  [ BFP  ] │  one tap each
-├──────────────────────────────┤
-│ What's wrong?                │
-│ [Flat tire ] [Out of gas ]  │
-│ [Breakdown ] [Hospital   ]  │  2x3, at least 72px tall
-│ [Food      ] [Store      ]  │
-│ ┌──────────────────────────┐ │
-│ │  · ◉  ·   mini map       │ │  tap opens Map tab
-│ │ 12 places nearby · Open ›│ │
-│ └──────────────────────────┘ │
-│ Pull over safely before      │
-│ using your phone.            │
-├──────────────────────────────┤
-│ Home   Map   Saved  Profile  │
-└──────────────────────────────┘
+```text
+┌────────────────────────────────┐
+│ ≋ Bulig        Near <town>  ⟳  │  compact brand + location control
+├────────────────────────────────┤
+│ Emergency assistance       All › │
+│ For urgent emergencies           │
+│ ┌────────────────────────────┐  │
+│ │           Call 911          │  │  red, one tap: tel:911
+│ └────────────────────────────┘  │
+│ [MDRRMO]      [PNP]      [BFP]  │  only valid local numbers
+├────────────────────────────────┤
+│ What's wrong?                   │
+│ [Flat tire] [Out of gas] [Breakdown] │
+│ [Hospital ] [Food      ] [Store     ]│  3 columns × 2 rows
+├────────────────────────────────┤
+│  Mini-map / Open map →           │  loads last; never blocks Home
+│  12 nearby places               │
+├────────────────────────────────┤
+│ Pull over safely before using   │
+│ your phone.                     │
+├────────────────────────────────┤
+│ Home        Map       Saved  Profile │  four tabs
+└────────────────────────────────┘
 ```
 
-- **Header:** no logo. The town is the title ("Near <town> ▾"), from GPS when allowed, otherwise the last picked town. Tapping it opens the town picker, grouped by province, with every area in the country. The brand lives on the app icon and install name.
-- **Hotlines card:** 911 is always one tap, never behind a second screen. The three quick-call buttons are the picked town's MDRRMO, PNP and BFP; a missing or expired one is left out, not shown as broken. "All ›" opens Hotlines.
-- **What's wrong?:** six buttons, each opening Nearby results with the matching filter preset. There's no Accident button, because the hotlines card is the accident path, and two routes to the same thing is clutter.
-- **Mini map:** loads last and never delays the rest of Home. Offline, or on a phone without WebGL2, it shows a plain "Open map ›" panel instead. If the screen is too short to fit everything, drop the Store button before shrinking anything below 48px.
+- **Header:** show the compact Bulig wordmark and location control. The location says “Near <town>” when GPS resolves the area; use a refresh affordance while a fresh fix is in progress. Tapping the location opens the area picker only when GPS is off, denied, or unavailable. Do not show a fake online indicator: offline state is explicit and labelled.
+- **Emergency card:** pale-red surface, red border, dark-red heading, and a full-width red **Call 911** button. The action is visible immediately and uses `tel:911`; it never requires sign-in. Red is reserved for emergency actions, not routine service calls.
+- **Local quick calls:** show the selected area's verified MDRRMO, PNP, and BFP contacts when available. Omit missing or expired local contacts instead of rendering broken buttons. “All” opens Hotlines.
+- **What's wrong?:** six category actions in a consistent **3-column × 2-row** grid: Flat tire, Out of gas, Breakdown, Hospital, Food, Store. Each tile has one Phosphor icon and a visible text label; tapping it opens the matching Nearby Results filter. If the labels wrap at 360px, let them wrap naturally—do not shrink text below the type scale.
+- **Mini-map preview:** loads after the emergency card and category actions. It never delays the rest of Home. Tap opens Map. Offline, or on a device without WebGL2, replace the map with a plain “Open map” panel and nearby count. The preview is optional when vertical space is tight.
+- **Safety note:** keep “Pull over safely before using your phone” visible near the bottom of Home without competing visually with Call 911.
+- **Navigation:** fixed four-tab bottom navigation: Home, Map, Saved, Profile. Include an icon and a short label for every tab. Leave enough bottom safe-area space for device insets.
 
 ### Nearby results (`/nearby/:need`)
 
@@ -131,9 +136,9 @@ The same layout for every need, so people learn it once.
 │ │ mini map: ◉ → pin  1.2km │ │
 │ │ Sikad Vulcanizing [SAMPLE]│ │
 │ │ Vulcanizing · Brgy 5      │ │
-│ │ ● Usually open · until 6PM│ │
+│ │ ● Usually open at this time│ │
 │ │ ✓Tubeless ✓Air pump ?Comes│ │
-│ │ Checked May 18 · Call first│ │
+│ │ Checked <date> · Call first │ │
 │ │ [   CALL   ] [Directions] │ │
 │ └──────────────────────────┘ │
 │ MORE NEARBY                  │
@@ -142,23 +147,23 @@ The same layout for every need, so people learn it once.
 └──────────────────────────────┘
 ```
 
-- **Nearest card:** the first place after ranking. It shows a mini map strip (you and the pin), distance, name and SAMPLE badge, category and barangay, the open status, feature tags, the check date, and two 52px buttons: **Call** (filled) and **Directions** (outlined, opens Google Maps).
-- **Feature tags:** "✓ Tubeless" when confirmed, a grey "? Comes to you" when not confirmed. A feature that isn't listed isn't shown at all.
-- **Nearest is usually closed now:** the card border goes grey, the status reads "Usually closed now · opens 6 AM", and an amber line points to "Nearest usually open: Seaside Grill, 1.1 km ›". Nobody should drive to a locked door.
+- **Nearest card:** the first place after ranking. It shows a mini map strip (you and the pin), distance, name and SAMPLE badge, category and barangay, the open status, feature tags, the check date, and two 52px buttons: **Call** (filled teal) and **Directions** (outlined, opens Google Maps).
+- **Feature tags:** “Tubeless” with a check when confirmed; “Comes to you · Not confirmed” in a neutral style when unknown. A feature that is not listed is not shown at all.
+- **Nearest is usually closed at this time:** keep the card surface readable and show a neutral closed status, for example “Usually closed at this time · usual hours from 6 AM”. An amber line points to “Nearest usually open at this time: Seaside Grill, 1.1 km ›”. Nobody should drive to a locked door based only on a schedule estimate.
 - **More nearby:** one rounded list. Each row has an icon, name, distance, a short feature note, the status, and a 48px phone button that calls without opening the place.
 - **Map button:** shows the same results as pins on the Map tab.
-- **Hospital:** red accent, the call button reads "Call hospital", places with an emergency room rank first, and the footer reads "Life-threatening? Call 911 from Home."
+- **Hospital:** use the hospital category icon and blue map pin, not the emergency-red token. The call button reads “Call hospital”, places with an emergency room rank first, and the footer reads “Life-threatening? Call 911 from Home.”
 
 Filter presets:
 
 | Need | Category | Chips |
 | --- | --- | --- |
-| `flat-tire` | `tire_repair` | Vulcanizing, Air pump, Tubeless, Usually open |
-| `out-of-gas` | `fuel` | Gas station, Bottled fuel, Usually open |
+| `flat-tire` | `tire_repair` | Vulcanizing, Air pump, Tubeless, Usually open at this time |
+| `out-of-gas` | `fuel` | Gas station, Bottled fuel, Usually open at this time |
 | `breakdown` | `mechanic` | Motorcycle, Car/Truck, Comes to you |
 | `hospital` | `hospital` | All, Emergency room, Clinic, Pharmacy |
-| `food` | `food` | All, Carinderia, Restaurant, Usually open |
-| `store` | `store` | All, Convenience, Hardware, Usually open |
+| `food` | `food` | All, Carinderia, Restaurant, Usually open at this time |
+| `store` | `store` | All, Convenience, Hardware, Usually open at this time |
 
 ### Hotlines (`/hotlines`)
 
@@ -170,15 +175,15 @@ Filter presets:
 ### Map (`/map`)
 
 - A full-screen map centred on the blue location dot, or on the picked town when location is off.
-- Round pins with a category icon and colour. Places usually open now are full colour, and the rest are grey.
-- Filter chips across the top: Vulcanizing, Air pump, Gas, Mechanic, Hospital, Food, Store, Usually open now.
+- Round pins with a category icon and colour. Pins use the fixed category palette below. A place that is usually closed at the selected time is shown with a grey status treatment, but its icon and label remain available; colour is never the only status signal.
+- Filter chips across the top: Vulcanizing, Air pump, Gas, Mechanic, Hospital, Food, Store, Usually open at this time.
 - Tapping a pin opens a bottom sheet with the same content as the Nearest card. A "List" button switches to Nearby results with the same filters.
 - If the map can't load (offline without cached tiles, or no WebGL2), the tab shows the list instead and says why.
 
 ### Place details (`/place/:id`)
 
 - Name, category, barangay, distance, heart (save), SAMPLE badge.
-- A green box: "Checked <date> · <how>", for example "Field visit" or "Phone call".
+- A compact verified row: "Checked <date> · <how>", for example "Field visit" or "Phone call", using a success icon/text rather than a large green panel.
 - Services with Yes or "Not confirmed": tube-type, tubeless, air pump, motorcycle, car/truck, comes to you (whichever apply to the category).
 - Usual hours for each day, with the check date and "Hours can change. Call first."
 - "Report wrong info" opens the Google Form with this place's ID filled in.
@@ -207,13 +212,15 @@ The tab holds:
 - Copy never says "request help", "help is on the way" or "location sent".
 - Every place and contact shows its check date. Sample records show a grey SAMPLE badge until real data replaces them.
 - "Pull over safely before using your phone" appears on Home. Bulig is designed for use when stopped, never in motion (RA 10913, the Anti-Distracted Driving Act).
-- Hours are always "Usually open", never "Open now", because they're reported, not live.
+- Hours are described as "Usually open at this time" or "Usually closed at this time", never as a live "Open now" guarantee, because they are reported schedules.
 
-**Built for a cheap phone in sunlight**
-- Body text 16px or more, and nothing smaller than 13px.
-- Every tap target is at least 48px. The main actions (911, Call) are the biggest things on screen.
-- WCAG AA contrast (4.5:1 for text). Light and dark, following the phone. Two self-hosted fonts, precached for offline (section 10); no font request ever leaves the app.
-- The Ocean Depths palette (section 10): deep sea blue and teal, one bright aqua for Call 911. Red only for errors and the hospital accent, amber for warnings, grey for closed or unconfirmed.
+**Built for a low-cost phone in sunlight**
+- Body text is 16px; metadata is normally 14px, and no essential text is below 13px. Inputs use at least 16px.
+- Interactive targets are at least 48 × 48px. Call 911 and primary Call actions are visually prominent and easy to hit.
+- Verify each actual foreground/background pair against WCAG AA. Normal text needs 4.5:1; large text and necessary control/state visuals have their respective WCAG thresholds. Do not claim the entire palette passes based on a few sampled pairs.
+- Use one self-hosted font family, precached for offline; no runtime font request leaves the app.
+- The brand remains Ocean Depths teal. Emergency actions are red. Amber means caution or stale information. Green means verified/success. Grey means closed or unconfirmed. Never use colour as the sole carrier of meaning.
+- Card edges use a visibly stronger neutral border. Functional controls use a separate control-border token with at least 3:1 contrast against their adjacent surface where WCAG 1.4.11 applies. Test the app outdoors on a real low-cost Android device; a calculated ratio is not a sunlight test.
 
 **Fast and offline**
 - Home, Hotlines and Nearby results work with no signal after one visit. The map is the only part that needs a connection for new areas.
@@ -229,7 +236,7 @@ The tab holds:
 1. Hospital: places with `emergency_room` first.
 2. Then by straight-line distance from the person (places without coordinates go last).
 3. Without location: by name, within the picked town.
-4. Nearest-usually-open is worked out separately, for the "Nearest usually open" line.
+4. Nearest-usually-open is worked out separately, for the "Nearest usually open at this time" line.
 
 ## 7. States to design
 
@@ -239,7 +246,7 @@ The tab holds:
 | Location denied | The town picker stays the source of truth, sorted by name, with a one-line hint. |
 | Offline | The banner. Cached data everywhere, and the mini map swaps to the plain panel. |
 | No results for a filter | "No places with <filter> near <town> yet." plus a "Clear filters" button and "Know one? Tell us" (opens the Form). |
-| Nearest is usually closed | A grey card plus the amber "Nearest usually open" line. |
+| Nearest is usually closed | A neutral closed status plus the amber "Nearest usually open at this time" line. |
 | Data older than 30 days on the phone | Profile's offline row turns amber: "Updated 34 days ago, connect to refresh." |
 | Expired emergency number | Hidden. The national number is never hidden. |
 
@@ -266,68 +273,246 @@ All additive and optional, so contract v1 stays (see [ARCHITECTURE.md](ARCHITECT
 
 Features: `tubeless`, `tube_type`, `air_pump`, `comes_to_you`, `motorcycle`, `car_truck`, `bottled_fuel`, `emergency_room`.
 
-## 10. Visual design: Ocean Depths
+## 10. Visual design: Ocean Depths · Modern Utility Minimalism
 
-Calm and clear, so a stressed person can read it. One deep sea colour carries trust, one bright aqua marks the action that matters most. Colour is for data, status and actions, not decoration. The tokens live in [`app/src/index.css`](../app/src/index.css).
+### Design direction
 
-| Role | Light | Dark | Used for |
+**Style:** modern utility minimalism with restrained flat design. The interface should feel like a dependable roadside tool—not a dashboard template, a marketing landing page, or a visual-effects demo.
+
+- Calm page background, white cards, dark readable text, deliberate colour only for actions and meaningful status.
+- No gradients, glassmorphism, neumorphic inset shadows, clay-like cards, decorative glows, stock illustrations, or oversized hero panels on task screens.
+- Cards are separated mainly by border and spacing, not by piles of shadows. Reserve a subtle shadow for floating UI such as a map bottom sheet when elevation explains layering.
+- The wordmark is compact. Content—not branding—gets the space on Home.
+- Keep Home focused on emergency access, local hotlines, the six roadside needs, and an optional map preview. Do not turn it into a bento dashboard with large unequal cards.
+
+### Typography
+
+Use **IBM Plex Sans** as the single UI family for headings, body, buttons, numbers, status, and navigation. This gives the product one consistent typographic voice and removes the previous Lexend / Source Sans 3 split. Use tabular numerals for phone numbers, distances, and timestamps when supported.
+
+Suggested self-hosted setup for this React app:
+
+```bash
+npm install @fontsource-variable/ibm-plex-sans
+```
+
+Load the bundled local font once in the app entry point:
+
+```ts
+import "@fontsource-variable/ibm-plex-sans";
+```
+
+CSS family name and number styling:
+
+```css
+font-family: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, sans-serif;
+font-variant-numeric: tabular-nums;
+```
+
+Keep the required font files in the build and precache them for offline use. Do not load Google Fonts or any other font CDN at runtime. If local font packaging is changed, verify the emitted family name and the network panel in a production build before removing the fallback.
+
+| Element | Size | Weight | Notes |
+| --- | ---: | ---: | --- |
+| Page heading | 24px | 600 | One clear title; avoid giant hero text |
+| Section heading | 18px | 600 | “What's wrong?”, “Nearby” |
+| Service name | 17–18px | 600 | Wrap rather than clip |
+| Body and instructions | 16px | 400 | Main reading size |
+| Primary button | 16–18px | 600 | Verb first, explicit action |
+| Status / distance | 14px | 500–600 | Label + icon where useful |
+| Secondary metadata | 13–14px | 400–500 | Never use for essential instructions |
+
+Use line-height around 1.4–1.5 for body content. Avoid thin weights, excessive letter spacing, long uppercase labels, and relying on colour alone for text hierarchy.
+
+### Icons
+
+Use one icon family: **Phosphor Icons for React** (`@phosphor-icons/react`), replacing `lucide-react` in the target UI. Official package: [Phosphor Icons React](https://github.com/phosphor-icons/react). Install with:
+
+```bash
+npm install @phosphor-icons/react
+```
+
+Use the `regular` weight for most icons. A matching `fill` variant may indicate the selected bottom tab or a saved/hearted item; don't mix unrelated styles. Prefer named imports so the bundle can be tree-shaken. If development builds become slow from processing the entire icon package, use the package's documented per-icon imports.
+
+- Navigation icons: 20–22px.
+- Category and prominent action icons: 22–24px.
+- Inline metadata icons: 16px, only when they remain legible.
+- Map pins: one recognisable category icon inside the marker.
+- Every icon-only button has an accessible name (`aria-label` or visible equivalent). Decorative icons are hidden from assistive technology. A visible label accompanies every unfamiliar service-category icon.
+- Do not use emojis as UI icons. Do not combine Phosphor, Lucide, Material Symbols, and hand-picked third-party sets in the same interface. A custom SVG is permitted only when the chosen library has no clear symbol for a concept such as a flat tire.
+
+### Light theme tokens
+
+Token source: [`app/src/index.css`](../app/src/index.css). The raw values live in the primitive layer; components consume semantic/component tokens only. Retire `--color-flare`; do not leave it as a future source of conflicting accents. Keep ordinary `--button-call-bg` mapped to teal and use a separate emergency token (for example `--hotline-call-bg`) for Call 911.
+
+| Role | Token | Light value | Intended use |
 | --- | --- | --- | --- |
-| Deep | `#0B3B4F` | `#0E7490` | The national hotline card |
-| Primary | `#0E7490` | `#22D3EE` | Call buttons, active chip, logo |
-| Primary text | `#0B5A70` | `#67E8F9` | Links, icons beside text |
-| Flare | `#2DD4BF` | `#2DD4BF` | Call 911 only |
-| Ground | `#F1F6F8` | `#061A22` | Page background and header |
-| Surface | `#FFFFFF` | `#0C2733` | Cards, inputs, tab bar |
-| Ink | `#0B2530` | `#E6F4F7` | Body text |
-| Muted | `#48616C` | `#A6C1CA` | Secondary text |
-| Checked | `#047857` | `#34D399` | "Last checked" line |
-| Error | `#B42318` | `#FDA29B` | Form errors |
+| Brand action | `--color-primary-action` | `#0E7490` | Normal Call, primary actions, selected nav |
+| On brand action | `--color-on-primary-action` | `#FFFFFF` | Text/icons on teal primary buttons |
+| Link / brand text | `--color-primary-text` | `#0B5A70` | Links and brand icons on light surfaces |
+| Emergency action | `--color-emergency-action` | `#C62828` | Call 911 only and emergency actions |
+| On emergency | `--color-on-emergency-action` | `#FFFFFF` | Emergency button label/icon |
+| Emergency surface | `--color-emergency-surface` | `#FEF2F2` | Hotline card background |
+| Emergency title | `--color-emergency-text` | `#991B1B` | Hotline heading on pale red |
+| Emergency border | `--color-emergency-border` | `#C62828` | Hotline card border |
+| Page ground | `--color-page` | `#F1F6F8` | App background |
+| Surface | `--color-surface` | `#FFFFFF` | Cards, form controls, bottom navigation |
+| Main text | `--color-text-primary` | `#0B2530` | Headings and body text |
+| Secondary text | `--color-text-secondary` | `#48616C` | Supporting information |
+| Card border | `--color-border` | `#A3B7C1` | Card separation; target contrast 2:1 or better and validate outdoors |
+| Control border | `--color-control-border` | `#7B8F99` | Inputs and outlined controls; 3.37:1 against white and 3.09:1 against page ground |
+| Verified | `--color-success` | `#047857` | “Checked <date>” and confirmed states |
+| Warning text | `--color-warning-text` | `#92400E` | Stale data/caution text |
+| Warning surface | `--color-warning-surface` | `#FFFBEB` | Caution surface behind warning text |
+| Closed text | `--color-closed-text` | `#5B6B72` | “Usually closed at this time” |
 
-Every text pair meets WCAG AA. **Forest Canopy** (greens) is drawn on the design canvas as an alternate; switching means changing only the primitives in `index.css`.
+Representative light-theme ratios (computed from these hex pairs): white on teal `5.36:1`; white on emergency red `5.62:1`; dark-red title on hotline fill `7.60:1`; primary text on white `15.89:1`; secondary text on white `6.56:1`; success on white `5.48:1`; warning text on warning surface `6.84:1`; closed text on white `5.54:1`. The card border is not a text pair and is not a claim of WCAG text compliance. Confirm actual rendered combinations before release.
 
-**Type.** Lexend for headings, numbers and buttons (designed for reading ease; phone numbers use tabular figures). Source Sans 3 for body text. Both are self-hosted through Fontsource and precached, Latin files only (about 130 KB), so they work offline. Scale: hotline number 72 to 96px, page title 26 to 34px, section 19px, card title 17px, body 16px, small 13px. Inputs are never under 16px, so iOS doesn't zoom.
+### Existing-token migration map
 
-**Icons.** One outline set, [Lucide](https://lucide.dev) (`lucide-react`), at stroke 1.75. Each category and contact kind has its own icon in [`components/icons.ts`](../app/src/components/icons.ts). Icons sit inline beside text, never in tinted squares. Decorative icons are `aria-hidden`; icon-only buttons have an `aria-label`.
+Use these mappings when updating `app/src/index.css`; preserve the three token layers (primitive → semantic → component) and change the smallest layer that owns each meaning.
 
-**Tokens.** Three layers. Components use only layers 2 and 3, never a raw hex.
+| Existing / component token | Target mapping |
+| --- | --- |
+| `--button-call-bg` | `var(--color-primary-action)` — ordinary calls stay teal |
+| `--button-call-text` | `var(--color-on-primary-action)` |
+| `--hotline-call-bg` *(new)* | `var(--color-emergency-action)` — Call 911 only |
+| `--hotline-call-text` | `var(--color-on-emergency-action)` |
+| `--hotline-bg` | `var(--color-emergency-surface)` |
+| `--hotline-border` *(new)* | `var(--color-emergency-border)` |
+| `--hotline-title` *(new)* | `var(--color-emergency-text)` |
+| `--color-border` | `#A3B7C1` for light card edges |
+| `--color-control-border` *(new)* | `#7B8F99` in light theme |
+| `--color-warning` *(new or existing)* | `#92400E` for light-theme warning text |
+| `--color-closed` *(new or existing)* | `#5B6B72` for light-theme closed text |
+| `--pin-tire / --pin-gas / --pin-mechanic / --pin-hospital / --pin-food / --pin-store / --pin-closed` *(new)* | Use the values in the Map pins table |
+| `--color-flare` | **Remove after all consumers are migrated**; it must not remain an alternate Call 911 accent |
 
-1. Primitives, raw values: `--ocean-700: #0e7490`.
-2. Semantic, a job: `--color-primary: var(--ocean-700)`. Dark mode only redefines this layer.
-3. Component, a part: `--button-call-bg: var(--color-primary)`.
+Do not change `--button-call-bg` to red. If the current hotline and normal Call buttons share a token, split the emergency button onto its own component token before restyling either component.
 
-**Shape.** Cards 16px, buttons and inputs 12px, chips and the active tab pill fully round. Elevation is a 1px border, never a shadow. Gutter 16px, content up to 48rem.
+### Dark theme tokens
 
-**Components built so far** (all in [`Cards.tsx`](../app/src/components/Cards.tsx), shared by every list):
+Dark mode follows the device preference unless the user explicitly selects a theme. Preserve the same semantic roles; do not merely invert every colour.
 
-- Hotline card: deep background, the country name from `Intl.DisplayNames` (no names in code), the number at display size, one aqua Call button, the check date. It shows while data loads too, from the built-in fallback.
-- Contact and service cards: name, SAMPLE badge, heart, kind or category icon with label and landmark, hours and area, Call (filled) and Directions (outlined), then "Last checked".
-- Area picker: native `<select>`, areas grouped by province or region.
-- Chips: only the categories that exist in the picked area, each with its icon.
-- Notices: loading, error with "Try again", the sample-data warning. Offline shows once, as a pill in the header.
+| Role | Dark value | Intended use |
+| --- | --- | --- |
+| Brand action | `#22D3EE` | Teal/cyan primary action on dark surfaces |
+| On brand action | `#061A22` | Dark text/icons on bright cyan button |
+| Link / brand text | `#67E8F9` | Links and brand icons |
+| Emergency action | `#DC2626` | Call 911; white label contrast is 4.83:1 |
+| On emergency | `#FFFFFF` | Emergency button text/icons |
+| Emergency surface | `#2A1215` | Hotline card background |
+| Emergency title | `#FCA5A5` | Hotline card title |
+| Emergency border | `#F87171` | Hotline border |
+| Page ground | `#061A22` | App background |
+| Surface | `#0C2733` | Cards and controls |
+| Main text | `#E6F4F7` | Headings/body text |
+| Secondary text | `#A6C1CA` | Supporting information |
+| Card border | `#2E5566` | Card separation |
+| Control border | `#5B7C89` | Functional outlines; 3.46:1 against `#0C2733` |
+| Verified | `#34D399` | Verified state and confirmation |
+| Warning text | `#FBBF24` | Warning/caution text |
+| Warning surface | `#322711` | Dark caution surface for warning text |
+| Closed text | `#A6B4BA` | Closed/unavailable label |
 
-**Motion and touch.** Press feedback on touch-down, `scale(0.97)` over 160ms with a strong ease-out. Hover styles only on devices that hover. Nothing animates on entry or loops, and reduced motion turns all of it off. No tap flash, no pull-to-refresh fight, safe-area padding for notches, `theme-color` per scheme, and buttons don't select their label on long-press.
+Dark mode still needs a pairing-by-pairing check. Keep `#FBBF24` warning text on `#322711`, and do not use the bright brand cyan with white button text.
 
-**Forms.** Every input has a visible label. Errors show on blur or submit, clear as soon as the person types, say what went wrong and how to fix it, and are announced. Inputs set `type`, `autocomplete`, `inputmode` and `enterkeyhint`. Buttons start with a verb.
+### Map pins
 
-**Browser surfaces.** Selection colour, caret, accent colour, scrollbar and a 3px focus ring are themed from the palette.
+Use the following as the fixed category mapping. The set is a deliberate visual system, **not a claim of a mathematically optimal colour-blindness solution**. Keep icons, labels, and accessible names so category and status do not depend on colour alone.
 
-**Skills followed** (installed in `app/.agents/skills` and `app/.claude/skills`): ui-ux-pro-max (palette direction, font pairing, accessibility and touch checklist), design-system and brand (the token layers), impeccable (the craft floor; its detector reports nothing on `src/`), design-taste-frontend (colour on data not chrome, no icons in tinted squares, a neutral active pill, honest empty states), emil-design-eng and mobile-native (press feedback and the phone fixes).
+| Category / state | Pin colour | Icon colour | Meaning |
+| --- | --- | --- | --- |
+| Flat tire / tire repair | `#1E293B` | `#FFFFFF` | Charcoal |
+| Gas / fuel | `#0E7490` | `#FFFFFF` | Brand teal |
+| Mechanic / breakdown | `#6B21A8` | `#FFFFFF` | Deep purple |
+| Hospital | `#0072B2` | `#FFFFFF` | Blue, kept separate from emergency red |
+| Food | `#F59E0B` | `#0B2530` | Amber; food icon |
+| Store | `#F59E0B` | `#0B2530` | Amber; store icon |
+| Closed / not usually available at selected time | `#9AA5AB` | `#0B2530` | Grey status treatment; category icon/label remains available |
+| User location | `#1677FF` | `#FFFFFF` | Round blue dot with a pale pulsing halo, never a category-shaped pin |
 
-**Checking a UI change.** `npm run lint`, `npx vitest run` and `npm run build` in `app/`; screenshots at 390px and 1280px, light and dark; `./.agents/skills/impeccable/scripts/impeccable detect --json src/` prints `[]`; then a real low-cost Android phone outdoors (Roadmap ground rule 3).
+- Give every map pin a 2px white ring and a 1px dark outer outline so it separates from light and dark map tiles.
+- Food and Store intentionally share amber because both are non-urgent supplies; their icons and labels distinguish them.
+- Hospital pins are blue. Reserve red for the emergency-call action; a hospital category must not make ordinary browsing look like an emergency.
+- A closed pin may be muted grey, but keep its category glyph and visible status text. Never hide a place or imply live availability solely from its colour.
+- Test pins on the actual map style in normal vision and protanopia/deuteranopia simulations. If two categories still collide, first strengthen icon/label differentiation rather than inventing more colours.
 
-## 11. Navigation as built
+### Layout, shape, and surfaces
+
+- Spacing scale: 4, 8, 12, 16, 24, 32px. Standard phone gutter: 16px.
+- Cards: 12px corner radius, white surface, 1px neutral border. Avoid a shadow on every card.
+- Buttons and inputs: 10px corner radius. Primary buttons: at least 48px high; main emergency/Call actions: 52–56px high.
+- Category tiles: consistent dimensions, a single Phosphor icon, short visible label, and neutral or very pale teal icon backing. Do not give each category its own decorative card colour.
+- Chips: compact, lightly bordered, selected state clearly indicated. Avoid turning every filter into a saturated pill.
+- Bottom navigation: four evenly spaced items, icon plus label, visible selected state. Avoid a large floating centre button that blocks map content.
+- Borders carry most card separation. A subtle shadow is allowed only where elevation is meaningful, such as a map bottom sheet or modal.
+- Use `max-width: 48rem` for narrow content; responsive layouts may expand on tablets and desktops without making mobile cards wider than necessary.
+
+### Component rules
+
+- **Hotline card:** pale-red surface, red border, dark-red title, a full-width red Call 911 button. Quick local contacts are separate, compact calls. The national hotline is never hidden.
+- **Normal call:** teal fill with white text in light mode; do not reuse the emergency token. “Call” opens the phone dialer for that specific published number.
+- **Directions:** outlined neutral control; opens Google Maps and does not look like the primary/emergency action.
+- **Service category tile:** one icon + label; consistent size and padding. Do not show arbitrary per-category backgrounds.
+- **Service card:** name and distance first, category/barangay next, “Usually open at this time” or “Usually closed at this time”, feature confirmation, last-checked date, then Call and Directions.
+- **Verified data:** compact green icon/label with date and method. SAMPLE data always has a separate neutral SAMPLE badge.
+- **Warnings:** amber text on a pale amber surface in light mode. Explain the issue in words and state the next action.
+- **Offline:** one subtle header banner/pill saying “Offline: showing saved info”. Do not let the banner push Call 911 off-screen.
+- **Empty state:** one clear explanation and one useful next action; no illustration required.
+
+### Motion, touch, forms, and browser chrome
+
+- Use brief press feedback (`scale(0.98)` over about 120–160ms) for touch. No decorative entrance animation or continuous pulsing; the user-location halo is the only subtle recurring map cue.
+- Respect `prefers-reduced-motion`. Hover states apply only to devices that support hover.
+- Use safe-area padding for notches and bottom navigation. Do not suppress accessibility focus outlines; style a visible 3px focus ring from the palette.
+- Do not disable browser zoom or hide scrollbars in a way that removes platform affordances. Keep scrolling available when a screen does not fit.
+- Forms have visible labels. Validate on blur or submit, explain how to fix an error, and announce the error. Set appropriate `type`, `autocomplete`, `inputmode`, and `enterkeyhint`.
+- Buttons start with a verb and describe the result: “Call 911”, “Call”, “Directions”, “Clear filters”, “Report wrong info”.
+
+### Design acceptance checks
+
+Before merging a visual change:
+
+1. Run `npm run lint`, `npx vitest run`, and `npm run build` in `app/`.
+2. Inspect screenshots at 360 × 740 and 390px mobile, plus 1280px desktop, in light and dark modes.
+3. Check text and control contrast against the actual rendered backgrounds; do not assume every pair passes because the token names look right.
+4. Test protanopia/deuteranopia for the map and verify that category icons/labels remain understandable.
+5. Test Home, Hotlines, and Nearby offline after one successful visit. Confirm 911 appears before map work or other non-critical loading.
+6. Test on a real low-cost Android device outdoors at reduced brightness. Verify emergency action discoverability, card edges, tap targets, map pin visibility, and text wrapping.
+7. Confirm the required font and icons are served from the local build and do not require a third-party request at runtime.
+
+## 11. Navigation target and migration notes
+
+This is the **target navigation**, not a claim that all routes have already been implemented. The current build has five tabs; the UI target is four tabs. Move Emergency into Home/Hotlines and add Map as a top-level tab. Keep existing routes working while the tabs change.
 
 | Tab | Route | What it holds |
 | --- | --- | --- |
-| Home | `/` | "Help near <area>", the national hotline with Call 911 beside the number, up to three local numbers, the three nearest places, six What we offer cards, and Saved. Each preview links to its tab. |
-| Services | `/services` | **What we offer**: one card per kind of service (vulcanizing, mechanic, gas, hospital, resto, hotel, store), each with its count and the nearest distance. The card is the filter: there are no chips. |
-| (from a card) | `/services/:category` | Every place of that kind near the area, nearest first, with distance, hours, Call and Directions. An empty category says so and links back. |
-| Emergency | `/emergency` | The national hotline, then the area's checked local numbers. |
-| Saved | `/saved` | Hearted places (nearest first) and numbers. |
-| Profile | `/profile` | Test sign-in, location privacy note, About. |
+| Home | `/` | Compact location header, emergency-red Call 911 card, valid quick local hotlines, six What’s wrong? actions, optional mini-map preview, safety note |
+| Map | `/map` | Full-screen map, category filter chips, pins using the fixed map palette, user location dot, bottom sheet for a selected place; list fallback if map is unavailable |
+| Saved | `/saved` | Saved places and contacts sorted by distance when location is known |
+| Profile | `/profile` | Test sign-in, language, location permissions/privacy, offline data, report wrong info, About |
 
-**Location bar** (top right on every screen): "Near <area>" from GPS, or "<area> · 85 km away" when the nearest listed area is more than 30 km off. A spinning refresh button while a fix is in progress. A plain picker only when GPS is off.
+Screens opened from tabs (not bottom tabs of their own):
 
-**Layout by width:** phones get a top bar and a 5-tab bottom bar; tablets (48rem and up) an 88px rail; desktops (72rem and up) a 240px labelled sidebar, content up to 72rem, Home in two columns and place lists in two columns from 60rem.
+| Screen | Route | Opened from |
+| --- | --- | --- |
+| Hotlines | `/hotlines` | Home emergency card, “All” |
+| Nearby results | `/nearby/:need` | One of the six Home category actions or Map “List” |
+| Place details | `/place/:id` | A result card/row or map bottom sheet |
+| About and privacy | `/about` | Profile |
 
-**Motion and chrome:** a 200ms fade and lift when a tab or page opens (off with reduced motion). No visible scrollbars anywhere; scrolling still works.
+**Compatibility:** `/services` and `/about` were shared in v0.2 and must keep working. `/about` remains About. `/services` opens Nearby results with every category (“All”). If existing components still use `/services/:category`, keep those paths as aliases or redirects to the corresponding `/nearby/:need` route until all inbound links and tests are updated. Do not break a permanent link just to make the navigation cleaner.
+
+**Location control:** show “Near <area>” from GPS. If the nearest listed area is more than 30km away, show the area and its distance rather than silently implying a precise match. While refreshing, show a small progress indicator. A plain area picker replaces the location control only when GPS is off, denied, or unavailable.
+
+**Responsive layout:** phones use a top bar and four-tab bottom navigation. Tablets (48rem and up) may use an 88px navigation rail. Desktops (72rem and up) use a 240px labelled sidebar with content capped at a readable width. Wider screens may use two-column results, but mobile card order and emergency priority stay the same.
+
+**Motion and chrome:** use the same restrained press feedback specified in section 10. Do not add a fade-and-lift animation to every page transition. Do not hide usable scrollbars as a visual trick; scrolling must remain discoverable and functional.
+
+**Implementation order:**
+
+1. Update semantic tokens and type/icon packages.
+2. Re-skin shared cards, buttons, chips, location control, and bottom navigation.
+3. Update Home's hotline card and category grid without changing the call/route behaviour.
+4. Implement the four-tab navigation and Map fallback while preserving old route aliases.
+5. Update Nearby Results and Place Details to use the same statuses, border, button, and pin rules.
+6. Re-run tests and the acceptance checks in section 10 before removing old tokens/packages.
