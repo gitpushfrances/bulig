@@ -101,7 +101,12 @@ export default function EmergencyPage() {
         </div>
       )}
 
-      {!account && (
+      <p className={styles.footnote}>
+        Bulig only shows numbers. It never calls for you, sends your location or dispatches help. Numbers
+        not checked in the last 180 days are hidden.
+      </p>
+      {/* Last, and only once the numbers are in, so it never pushes anything as the page loads. */}
+      {!account && ready && (
         <p className={`${styles.notice} ${styles.guestNotice}`}>
           <span>You&apos;re using Bulig without an account. Nearby services and the map need one.</span>
           <Link className={styles.more} to="/login?next=%2F">
@@ -109,11 +114,6 @@ export default function EmergencyPage() {
           </Link>
         </p>
       )}
-
-      <p className={styles.footnote}>
-        Bulig only shows numbers. It never calls for you, sends your location or dispatches help. Numbers
-        not checked in the last 180 days are hidden.
-      </p>
     </section>
   )
 }

@@ -1,0 +1,3 @@
+# Bulig is a public app: everything may be indexed.
+User-agent: *
+Allow: /
