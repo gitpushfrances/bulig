@@ -89,8 +89,9 @@
   overscroll-behavior: none;
 }
 
+/* Dark: follows the phone unless the person picked Light or Dark in Profile (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --color-bg: var(--zinc-950);
     --color-surface: var(--zinc-900);
     --color-text: var(--zinc-25);
@@ -115,6 +116,40 @@
     --color-selection: var(--zinc-700);
     --color-error: var(--red-400);
   }
+}
+
+:root[data-theme='dark'] {
+  --color-bg: var(--zinc-950);
+  --color-surface: var(--zinc-900);
+  --color-text: var(--zinc-25);
+  --color-text-muted: var(--zinc-400);
+  --color-border: var(--zinc-800);
+  --color-border-strong: var(--zinc-500);
+  --color-primary: var(--zinc-25);
+  --color-on-primary: var(--zinc-950);
+  --color-primary-text: var(--zinc-25);
+  --color-selected: var(--zinc-800);
+  --color-deep: var(--zinc-850);
+  --color-on-deep: var(--zinc-25);
+  --color-on-deep-muted: var(--zinc-400);
+  --color-emergency: var(--red-600);
+  --color-on-emergency: var(--zinc-0);
+  --color-checked: var(--green-400);
+  --color-sample-bg: var(--zinc-800);
+  --color-sample-text: var(--zinc-200);
+  --color-status-bg: var(--zinc-800);
+  --color-status-text: var(--zinc-200);
+  --color-focus: var(--zinc-25);
+  --color-selection: var(--zinc-700);
+  --color-error: var(--red-400);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 *,

@@ -4,7 +4,8 @@
 export type CountryCode = string // ISO 3166-1 alpha-2, upper case: "PH"
 export type AreaId = string // slug, unique worldwide: "ph-eastern-samar-guiuan"
 
-export const CATEGORIES = ['tire_repair', 'mechanic', 'fuel', 'hospital', 'food', 'lodging', 'store'] as const
+// 'other' is last on purpose: new stalls and local finds (halo-halo, BBQ, kiosks), shown after the road needs.
+export const CATEGORIES = ['tire_repair', 'mechanic', 'fuel', 'hospital', 'food', 'lodging', 'store', 'other'] as const
 export type Category = (typeof CATEGORIES)[number]
 
 export const CONTACT_KINDS = [
@@ -56,6 +57,10 @@ export interface Service {
   lat?: number
   lng?: number
   hours?: string
+  // What it is, in the owner's words: "Halo-halo", "BBQ". Shown instead of the category name.
+  subtype?: string
+  // ISO date the place was first listed. Places listed in the last 60 days get a NEW badge.
+  addedAt?: string
   verifiedAt: string
   source: string
   sample?: boolean

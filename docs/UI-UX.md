@@ -10,17 +10,19 @@ Visual references (private, John's account): [System Map](https://claude.ai/arti
 
 Bulig covers the whole Philippines, then any country. Town names in the wireframes below are placeholders, not a pilot list.
 
-**Where the app is now (2026-10-29, read this first in a new conversation):**
+**Where the app is now (2026-10-30, read this first in a new conversation):**
 
 | Area | Built and live on `main` |
 | --- | --- |
 | Theme | **Graphite**: near-black, zinc greys, white; light and dark. Red only for Call 911 and emergency actions, green only for checked. See [§10 Theme: Graphite](#theme-graphite-current-2026-10-29). Ocean Depths is retired. |
-| Navigation | Five tabs: Home `/`, Services `/services`, Emergency `/emergency`, Saved `/saved`, Profile `/profile` (+ `/about`). Bottom bar on phones, rail on tablets, sidebar on desktop. |
+| Navigation | Five tabs: Home `/`, Services `/services`, Map `/map`, Saved `/saved`, Profile `/profile`. **Emergency is not a tab:** a red hazard button floats on every screen and opens `/emergency`; Back returns. Bottom bar on phones, rail on tablets, sidebar on desktop. |
 | Location | GPS finds the area by itself (`watchPosition`) with a refresh button; header line "Near you · <barangay>, <town>" from OpenStreetMap Nominatim. Area picker only when GPS is off. |
-| Home | "What do you need?" bento of the seven services, then the national hotline (Call 911), local numbers, nearest places, Saved. |
-| Sign-in | [Welcome](#welcome-welcome) on the first open of `/`; Sign in / Create account card (also on Profile). Test logins `test@`, `moderator@`, `admin@bulig.com`, password `password`. Sign-ups are users kept on the phone (hashed password). |
-| Mascot | Ropi on quiet screens only: Welcome, About, Saved empty, empty category, offline with nothing cached, signed-in Profile. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
-| Not built yet | Map tab, the six "What's wrong?" buttons, Nearby results, Place details, real backend sign-in (Phase 4). |
+| Home | "What do you need?" bento: the seven road services plus **Others** (new and local stalls, wide tile, NEW badge), then the national hotline (Call 911), local numbers, nearest places, Saved. |
+| Map | MapLibre + OpenFreeMap (free, no key), recoloured to Graphite light/dark; category pins, chips, a place sheet with Call and Directions; a list when offline. See [Map](#map-map). |
+| Accounts | Everything but Emergency needs an account ([Accounts and access](#accounts-and-access-decided-by-john-2026-10-30)). [Login](#login-login), [Sign up = onboarding](#sign-up--onboarding-signup) with Ropi, [Forgot password](#forgot-password-forgot-password). "Continue without an account" = Emergency only. Test logins (typed, no shortcuts): `test@`, `moderator@`, `admin@bulig.com` / `password`. Sign-ups are users kept on the phone (hashed password). |
+| Profile | Production-style settings: avatar, role, member since, edit profile, change password, theme (System/Light/Dark), install, help, Terms, Privacy, licences, sign out, delete account, "Bulig v0.3.0 · build <commit>". |
+| Mascot | Ropi on quiet screens only, now **talking** in speech bubbles (`RopiSays`): login (head mark / side panel), onboarding (all four poses), forgot password, guest gate, Saved empty ("Let's get started!"), empty category, offline, map offline, About, Profile avatar. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
+| Not built yet | The six "What's wrong?" buttons, Nearby results, Place details, real backend sign-in and reset emails (Phase 4). |
 
 The change history is in [CHANGELOG.md](CHANGELOG.md) under **Unreleased**.
 
@@ -188,11 +190,16 @@ Filter presets:
 
 ### Map (`/map`)
 
-- A full-screen map centred on the blue location dot, or on the picked town when location is off.
-- Round pins with a category icon and colour. Pins use the fixed category palette below. A place that is usually closed at the selected time is shown with a grey status treatment, but its icon and label remain available; colour is never the only status signal.
-- Filter chips across the top: Vulcanizing, Air pump, Gas, Mechanic, Hospital, Food, Store, Usually open at this time.
-- Tapping a pin opens a bottom sheet with the same content as the Nearest card. A "List" button switches to Nearby results with the same filters.
-- If the map can't load (offline without cached tiles, or no WebGL2), the tab shows the list instead and says why.
+**Built (2026-10-30).** Free forever: **MapLibre GL JS** draws the map, **OpenFreeMap** serves the tiles (no API key, no account, no fees), from OpenStreetMap data. No Google Maps SDK or paid tile plan. Directions hand off to the phone's Google Maps app by URL, which is free.
+- The tab fills the space between the top bar and the tab bar, edge to edge. It centres on the blue location dot (zoom 14), else the area's centre (zoom 13), else the whole Philippines.
+- **Styled in Graphite:** the OpenFreeMap `positron` style is recoloured layer by layer in `app/src/map/mapTheme.ts` (land, water, parks, buildings, roads, labels), with a light and a dark palette that follow the app theme. Blue is used only for the "you are here" dot and its soft halo.
+- Pins: near-black circles with a white category icon (white with a black icon in dark mode), a small point at the bottom. The selected pin inverts and grows slightly.
+- Filter chips across the top, one per category plus All, in a single scrolling row.
+- Controls on the right under the chips: the red **emergency** button, then **Go to my location** (refreshes GPS and flies there).
+- Tapping a pin opens a sheet at the bottom: name, type and distance, landmark, NEW / SAMPLE badges, heart, **Call** and **Directions**, and a close button. Tapping the map closes it.
+- The map credit (OpenFreeMap © OpenMapTiles, data from OpenStreetMap) is always shown, as the licence requires.
+- MapLibre (about 270 kB gzipped) loads only when the Map tab opens and is kept out of the offline cache, so Home and Emergency never wait for it.
+- Offline, or without WebGL: Ropi `thinking` says "The map needs a connection" and the tab shows the nearest places as a list.
 
 ### Place details (`/place/:id`)
 
@@ -205,28 +212,78 @@ Filter presets:
 
 ### Saved (`/saved`)
 
-- Hearted places and numbers, kept with the signed-in account on this phone, shown as "More nearby" rows sorted by distance. Signed out, the heart opens Profile to sign in, then comes back.
-- Empty state: Ropi `friendly` (see [Mascot](#mascot-ropi)) above "Tap the heart on any place to save it here."
+- Hearted places and numbers, kept with the signed-in account on this phone, sorted by distance.
+- Empty state: Ropi `friendly` says "**Let's get started!** Tap the heart on any place to save it here.", then **Find a place**.
 
-### Welcome (`/welcome`)
+### Accounts and access (decided by John, 2026-10-30)
 
-- Shown once per phone: the first open of `/` redirects here while nobody is signed in and Welcome has not been seen (`bulig.welcomed`). Signing in, creating an account, or **Skip for now** marks it seen and opens Home. Shared deep links (`/services/...`, `/emergency`, ...) never redirect.
-- No tab bar and **no emergency button** (John, 2026-10-29: it cluttered the login). The top bar has the Bulig mark on the left and **Skip for now** on the right, a quiet text button that opens Home, where 911 is the first thing on screen.
-- Ropi `ready` (120px), "Welcome to Bulig", and one line: "Sign in to keep the places you trust one tap away."
-- One card, max 26rem wide, with two tabs, **Sign in** and **Create account** (a real tab list: arrow keys switch). The same card is on Profile while signed out. The whole screen fits on a 390 × 844 phone without scrolling.
-  - Sign in: Email, Password (with show/hide), a full-width **Sign in**. Under a thin divider, a quiet row for testers: "Test logins · password `password`" and three chips (User, Moderator, Admin) that fill the form.
-  - Create account: Name, Email, Password (at least 8 characters, hint under the field), **Create account**. Errors appear when leaving a field and clear on typing. An email that already has an account offers **Sign in instead**. "For now your account is kept on this phone only."
+- **Everything except Emergency needs an account.** Home, Services, Map, Saved and Profile sit behind `RequireAccount`.
+- **Emergency (`/emergency`) is open to everyone, always:** signed in, guest, or a stranger opening a shared link. Nothing about calling 911 or local authorities ever waits on a login.
+- Not signed in and not a guest: any other screen redirects to `/login?next=<that screen>` and returns there after signing in or signing up.
+- **Guest** ("Continue without an account" on the login, `bulig.guest`): lands on Emergency. Any other tab shows the **gate**: Ropi `thinking` says "This part needs a free account. Emergency numbers stay open to everyone.", then "Sign in to see what's near you" with **Sign in**, **Create an account** and **Emergency numbers**.
+- Signing in or signing up clears guest mode.
+
+### Login (`/login`)
+
+- No tab bar, no header, no test shortcuts, no emergency button (John, 2026-10-30). It simulates the real product.
+- **Phones:** Ropi's head in a circle (88px, tappable) tops the screen as the app mark, then "Welcome back" / "Sign in to find help along the way."
+- **From 60rem (tablet landscape, desktop):** a split screen. Left: a quiet panel with Ropi `ready` waving (260px, tap for the reaction), "Bulig", "Help along the way." Right: the form.
+- Form: Email, Password (show/hide), a full-width **Sign in**. Directly under the button: **Forgot password?**
+- A divider "New to Bulig?", then **Create an account** (outlined, full width), which opens the onboarding.
+- At the bottom: **Continue without an account**, with "Emergency numbers only" under it.
+- The test logins still work when typed: `test@bulig.com`, `moderator@bulig.com`, `admin@bulig.com`, password `password` (see [WORKFLOW.md](WORKFLOW.md#sign-in)).
+
+### Sign up = onboarding (`/signup`)
+
+Ropi explains Bulig before the account form. Progress dots on the top left, **Skip intro** on the top right (steps 1–4), **Back** / **Next** at the bottom, "Already have an account? Sign in" under everything. Each step moves focus to its heading. One Ropi per screen, so the login's side panel is off here.
+
+| Step | Ropi | Title | What it explains |
+| --- | --- | --- | --- |
+| 1 | `ready`: "Hi, I'm Ropi! I'll show you around Bulig." | Help along the way | What Bulig is (checked numbers and the nearest road services, anywhere in the Philippines); built around GPS |
+| 2 | `friendly`: "Here's how it helps on a normal day." | Every day on the road | Flat tire → Vulcanizing, gas and mechanics nearest first, restos, hotels and **Others**, the heart to save |
+| 3 | `thinking`: "Why use Bulig and not just search?" | Why Bulig | Checked with dates, works with no signal, free with no ads or paywall near 911 |
+| 4 | `head`: "One last thing: staying safe." | Safety first | The red button on every screen; pull over first (RA 10913); Bulig never sends help or location |
+| 5 | `friendly`: "Let's get started! Make your account." | Create your account | Name, Email, Password (8+), "I agree to the Terms of Use and Privacy Policy" (required), **Back** / **Create account** |
+
+After **Create account** the person lands on Home (or the screen that asked for sign-in).
+
+### Forgot password (`/forgot-password`)
+
+- Ropi's head mark, "Forgot your password?", Email, **Send reset link**, "Back to sign in".
+- Then Ropi `friendly`: "**Check your inbox.** If <email> has an account, a reset link is on its way." It never says whether the email has an account.
+- Preview note under it: "Reset emails start when accounts move online. Nothing was sent from this phone." Remove it when Phase 4 sends real emails.
+
+### Emergency (`/emergency`)
+
+- Not a tab. A **red round button with a hazard icon** floats bottom right on every screen (above the tab bar on phones), and the Map has the same red button in its control stack. It opens Emergency.
+- Emergency has **Back** at the top, which returns to the previous screen. When Emergency is the first page of a visit (a shared link), a signed-in person sees **Home** instead; others see neither.
+- Content as before: the national hotline card (911), local numbers for the area, checked dates. Without an account, a note at the bottom: "You're using Bulig without an account. Nearby services and the map need one." with **Sign in**.
 
 ### Profile (`/profile`)
 
-The tab holds:
-- Sign-in or create an account, in the same card as [Welcome](#welcome-welcome). Test logins for each role: `test@bulig.com` (user), `moderator@bulig.com` (moderator, Cebu City), `admin@bulig.com` (admin), all with `password`. Signed in, it shows the name, email and role, and Sign out. Roles and the real sign-in phases are in [WORKFLOW.md](WORKFLOW.md#sign-in). Emergency Help never needs it.
-- Language: English, plus the area's own languages from `Area.languages`.
-- Location: whether it's allowed, and how to change it in phone settings.
-- Offline data: "Updated <date> · 32 places on this phone".
-- Report wrong info.
-- About Bulig and privacy: opens `/about` ("Bulig collects nothing personal").
-- App version, and a "No account needed." footer.
+Built like a production settings screen:
+- **Header card:** Ropi's head as the avatar, name, email, a role badge (User / Moderator / Admin), "Member since <month year>".
+- **Account:** Edit profile (`/profile/edit`: name, email read-only, optional mobile number checked as a PH number, optional home area), Change password (`/profile/password`: current, new, confirm; test logins can't change theirs), Saved places with the count, Home area when set.
+- **Preferences:** Appearance (System / Light / Dark, remembered and applied before the first paint), Language (English), Location (Allowed / Blocked / Not asked yet, from the phone's permission).
+- **App:** **Install Bulig**: the browser's install prompt on Android/Chrome, or the Share → Add to Home Screen steps on iPhone. Hidden once installed. Offline data: "<n> places · <n> numbers".
+- **Support and legal:** Help and FAQ (`/help`), About Bulig, Terms of Use (`/terms`), Privacy Policy (`/privacy`), Open-source licences (`/licenses`). Help, Terms, Privacy and Licences are open without an account (sign-up links to them).
+- **Sign out** (outlined, full width), then back to the login.
+- **Delete account:** for accounts made on this phone. Typing "delete" enables the red-outlined button; it removes the account, its saved places and details. Test logins say they can't be deleted.
+- **Footer:** "Bulig v0.3.0 · build <commit>" (version from `package.json`, build from the deploy's git commit), "Made for travellers in the Philippines."
+- Terms and Privacy are **drafts** with a visible "needs legal review" note. They describe what the app really does today (what stays on the phone, what goes to Nominatim, OpenFreeMap and Google Maps, RA 10173).
+
+### Others: new and local businesses
+
+- A category, `other`, labelled **Others**: "New stalls and local finds" (halo-halo, BBQ, fishball, coffee kiosks, buko juice, lechon manok, merienda, pancit).
+- On Home it closes the bento as a **wide tile** (two columns on phones, the last two of four on tablets and up), with a **NEW** badge when any place in it is new. On Services it is the last card.
+- A place shows its own word (`Service.subtype`: "Halo-halo") instead of the category name, on cards, rows and the map sheet.
+- **NEW** (black pill, white text) on places listed in the last 60 days (`Service.addedAt`). It never changes the order: nearest still comes first. If paid placement ever comes, it gets a separate, clear "Sponsored" label.
+- Others never appears on Emergency or near the hotline.
+
+### Installed, full screen
+
+- A website can't hide the browser's address bar by itself. Installing Bulig (Profile → Install Bulig, or the browser's Add to Home Screen) opens it full screen, with no address bar, like any app.
+- The manifest uses `display: standalone`, `id` and `scope` `/`. `index.html` adds `apple-mobile-web-app-capable` and `mobile-web-app-capable` so iPhones open the installed app full screen too.
 
 ## 6. Rules for every screen
 
@@ -447,17 +504,17 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 
 | Pose | File | Used on |
 | --- | --- | --- |
-| Ready (sitting, waving) | `ropi-ready.webp` | Welcome, About |
-| Friendly (standing, tail up) | `ropi-friendly.webp` | Saved empty state |
-| Thinking (paw on chin) | `ropi-thinking.webp` | No results, offline with nothing cached |
-| Head (round crop) | `ropi-head.webp` | Profile, only inside a circular frame |
+| Ready (sitting, waving) | `ropi-ready.webp` | Login side panel (60rem+), onboarding step 1, About |
+| Friendly (standing, tail up) | `ropi-friendly.webp` | Saved empty state, onboarding step 2 and the account form, forgot-password confirmation |
+| Thinking (paw on chin) | `ropi-thinking.webp` | No results, offline with nothing cached, Map offline, guest gate, onboarding step 3 |
+| Head (round crop) | `ropi-head.webp` | Login and forgot-password mark on phones, Profile avatar, onboarding step 4; only inside a circular frame |
 
-- **Never** on Home, Hotlines, the Call 911 card, the "What's wrong?" grid, Nearby results lists, Place details, or the Map. Those screens are for getting help fast.
+- **Never** on Home, Hotlines, the Call 911 card, the "What's wrong?" grid, Nearby results lists, Place details, or the Map itself (its offline list may show Ropi). Those screens are for getting help fast.
 - **Never** as a reaction to tapping a card, a Call button, or any other control. A tap on a control does its job at once.
-- One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text, never beside or over a button.
+- One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text (or under its speech bubble), never beside or over a button.
 - Add a new pose only when a real screen needs it. Every pose must keep the same face, colours, outfit and art style.
 
-**Status (2026-10-29):** built. `app/src/components/Mascot.tsx` (`variant` of `ready | friendly | thinking | head`, optional `height`, default 128px) is used on the Saved empty state, an empty category, offline with nothing cached (Services, a category, Saved; via `DataNotice`'s `ropi` prop, which Home and Emergency never pass), About (160px) and the signed-in Profile (56px circle). Welcome (120px) uses `ready` too.
+**Status (2026-10-30):** built. `app/src/components/Mascot.tsx` (`variant`, `height`, tap reaction) and `RopiSays.tsx` (Ropi under a speech bubble with a tail; the bubble is real text for screen readers, Ropi stays decorative). Used on every screen in the table above.
 
 **Files**
 - Stored in [`app/public/assets/mascot/`](../app/public/assets/mascot/), served from `/assets/mascot/<name>.webp`. Naming and export rules are in that folder's README.

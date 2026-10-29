@@ -10,6 +10,22 @@
     <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
+    <!-- Installed to the home screen, Bulig opens full screen like an app, with no browser bar. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Bulig" />
+    <script>
+      // The saved theme (Profile > Appearance), applied before the first paint. See src/theme.ts.
+      try {
+        var t = localStorage.getItem('bulig.theme')
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t)
+          var c = t === 'dark' ? '#09090b' : '#fafafa'
+          document.querySelectorAll('meta[name=theme-color]').forEach(function (m) { m.setAttribute('content', c) })
+        }
+      } catch (e) {}
+    </script>
     <title>Bulig</title>
   </head>
   <body>

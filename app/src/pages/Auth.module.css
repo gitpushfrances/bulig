@@ -1,0 +1,217 @@
+/* Shared by Login, Sign up (onboarding) and Forgot password. */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submit {
+  width: 100%;
+  min-height: 52px;
+}
+
+/* A text link that is still a 44px target. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.forgot {
+  align-self: center;
+  margin-top: -4px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.full {
+  width: 100%;
+}
+
+.guest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  text-align: center;
+}
+
+.guestNote {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.center {
+  text-align: center;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.check input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+}
+
+.check a {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ---------- Onboarding ---------- */
+
+.stepTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border);
+  transition:
+    width 200ms var(--ease-out),
+    background-color 200ms var(--ease-out);
+}
+
+.dotOn {
+  width: 22px;
+  background: var(--color-primary);
+}
+
+.skipIntro {
+  margin-right: -8px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.stepTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.point svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-text);
+}
+
+.point strong {
+  display: block;
+  font-weight: 700;
+}
+
+.point span {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+}
+
+.nav > * {
+  flex: 1;
+}
+
+/* A notice in preview builds: what a screen will do once accounts move online. */
+.preview {
+  padding: 12px 14px;
+  border-radius: var(--radius-control);
+  background: var(--color-sample-bg);
+  color: var(--color-sample-text);
+  font-size: 0.875rem;
+}
