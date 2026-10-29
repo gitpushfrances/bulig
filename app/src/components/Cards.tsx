@@ -2,10 +2,11 @@ import { ChevronRight, CircleCheck, Clock, MapPin, Navigation, Phone } from 'luc
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { formatDate, telHref } from '../data/format.ts'
-import { categoryBlurb, categoryLabel, categorySlug, kindLabel } from '../data/labels.ts'
+import { categoryBlurb, categoryLabel, kindLabel } from '../data/labels.ts'
 import { formatDistance, type Ranked } from '../rules/nearby.ts'
 import { isNew } from '../rules/services.ts'
-import { CATEGORIES, type Category, type EmergencyContact, type Labels, type Service } from '../types.ts'
+import { nearbyHref, NEEDS, needForCategory } from '../rules/needs.ts'
+import type { Category, EmergencyContact, Labels, Service } from '../types.ts'
 import styles from '../pages/Page.module.css'
 import { CATEGORY_ICONS, ICON_STROKE, KIND_ICONS } from './icons.ts'
 import SaveButton from './SaveButton.tsx'
@@ -221,7 +222,7 @@ export function OfferCard({
   const Icon = CATEGORY_ICONS[category]
   return (
     <Link
-      to={`/services/${categorySlug(category)}`}
+      to={nearbyHref(needForCategory(category))}
       className={`${styles.offer} ${compact ? styles.offerCompact : ''} ${count === 0 ? styles.offerEmpty : ''}`}
     >
       <span className={styles.offerTop}>
@@ -279,14 +280,17 @@ export function NumberRow({ contact }: { contact: EmergencyContact }) {
   )
 }
 
-// Home's services at a glance: the first kind as a large tile with its nearest place, the rest as
+// "What's wrong?" at a glance: each tile is a problem ("Flat tire") over the kind of place that
+// solves it ("Vulcanizing"), and opens Nearby results. Home's services at a glance: the first kind as a large tile with its nearest place, the rest as
 // small tiles. Others (new and local stalls) closes the grid as a wide tile. Eight tiles fill a
 // 2-column grid on phones and a 4-column grid from tablets exactly.
 export function ServiceBento({ ranked, labels }: { ranked: Ranked<Service>[]; labels: Labels | null }) {
   return (
     <nav className={styles.bento} aria-label="Common services">
-      {CATEGORIES.map((category, i) => {
+      {NEEDS.map((need, i) => {
+        const category = need.category
         const Icon = CATEGORY_ICONS[category]
+        const kind = categoryLabel(category, labels)
         const inCategory = ranked.filter((r) => r.item.category === category)
         const nearest = inCategory[0]
         const feature = i === 0
@@ -294,15 +298,16 @@ export function ServiceBento({ ranked, labels }: { ranked: Ranked<Service>[]; la
         const fresh = wide && inCategory.some((r) => isNew(r.item, new Date()))
         return (
           <Link
-            key={category}
-            to={`/services/${categorySlug(category)}`}
+            key={need.id}
+            to={nearbyHref(need)}
             className={`${styles.bentoTile} ${feature ? styles.bentoFeature : ''} ${wide ? styles.bentoWide : ''}`}
           >
             <Icon className={styles.offerIcon} size={feature ? 30 : 22} strokeWidth={1.6} aria-hidden="true" />
             <span className={styles.bentoName}>
-              {categoryLabel(category, labels)}
+              {need.label}
               {fresh && <New />}
             </span>
+            {kind !== need.label && <span className={styles.bentoKind}>{kind}</span>}
             {(feature || wide) && <span className={styles.offerBlurb}>{categoryBlurb(category)}</span>}
             <span className={styles.bentoFoot}>
               {inCategory.length === 0

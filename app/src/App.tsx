@@ -5,7 +5,7 @@ import Layout from './components/Layout.tsx'
 import RequireAccount from './components/RequireAccount.tsx'
 import HomePage from './pages/HomePage.tsx'
 import ServicesPage from './pages/ServicesPage.tsx'
-import CategoryPage from './pages/CategoryPage.tsx'
+import NearbyPage from './pages/NearbyPage.tsx'
 import EmergencyPage from './pages/EmergencyPage.tsx'
 import MapPage from './pages/MapPage.tsx'
 import SavedPage from './pages/SavedPage.tsx'
@@ -41,7 +41,8 @@ export default function App() {
               <Route element={<RequireAccount />}>
                 <Route index element={<HomePage />} />
                 <Route path="services" element={<ServicesPage />} />
-                <Route path="services/:category" element={<CategoryPage />} />
+                <Route path="services/:category" element={<NearbyPage />} />
+                <Route path="nearby/:need" element={<NearbyPage />} />
                 <Route path="map" element={<MapPage />} />
                 <Route path="saved" element={<SavedPage />} />
                 <Route path="profile" element={<ProfilePage />} />

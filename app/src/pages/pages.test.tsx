@@ -18,7 +18,8 @@ describe('Home', () => {
 
     const hotline = await screen.findByRole('region', { name: 'National Emergency Hotline' })
     expect(within(hotline).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
-    expect(await screen.findByRole('link', { name: /^Vulcanizing/ })).toHaveAttribute('href', '/services/tire-repair')
+    // The bento is "What's wrong?": the problem over the kind of place, opening Nearby results.
+    expect(await screen.findByRole('link', { name: /^Flat tire/ })).toHaveAttribute('href', '/nearby/flat-tire')
     expect(screen.getByRole('link', { name: 'All emergency numbers' })).toHaveAttribute('href', '/emergency')
     expect(screen.getByRole('list', { name: 'Nearest places' })).toBeInTheDocument()
   })
@@ -69,26 +70,35 @@ describe('What we offer', () => {
     expect(within(offers).getByRole('link', { name: /^Hotel and inn/ })).toHaveTextContent('9 places')
   })
 
-  it('opens a category from its card and reaches a call button', async () => {
+  it('opens Nearby results from a card: the nearest big, the rest as rows', async () => {
     renderAt('/services')
 
     fireEvent.click(await screen.findByRole('link', { name: /^Vulcanizing/ }))
-    const places = await screen.findByRole('list', { name: 'Places' })
-    expect(within(places).getAllByRole('listitem')).toHaveLength(10)
-    expect(within(places).getByRole('link', { name: 'Call Sample Vulcanizing Shop' })).toHaveAttribute(
-      'href',
-      'tel:+639000000101',
-    )
+    expect(await screen.findByRole('heading', { level: 1, name: 'Flat tire' })).toBeInTheDocument()
+    const nearest = screen.getAllByRole('article')
+    expect(nearest).toHaveLength(1)
+    expect(within(nearest[0]).getByRole('link', { name: /^Call / })).toHaveAttribute('href', expect.stringMatching(/^tel:/))
+    // Route opens the in-app route on the Map, not another app.
+    expect(within(nearest[0]).getByRole('link', { name: /^Route to / })).toHaveAttribute('href', expect.stringMatching(/^\/map\?to=/))
+    const more = screen.getByRole('list', { name: 'More vulcanizing shops' })
+    expect(within(more).getAllByRole('listitem')).toHaveLength(9)
+    expect(screen.getByRole('link', { name: 'Show on map' })).toHaveAttribute('href', '/map?cat=tire_repair')
     expect(screen.getAllByText('SAMPLE').length).toBeGreaterThan(0)
-    // Directions opens the in-app route on the Map, not another app.
-    expect(within(places).getAllByRole('link', { name: /^Directions to / })[0]).toHaveAttribute('href', expect.stringMatching(/^\/map\?to=/))
+  })
+
+  it('opens the same page from /nearby/<need>, and points hospital seekers at 911', async () => {
+    renderAt('/nearby/hospital')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hospital' })).toBeInTheDocument()
+    expect(within(screen.getByRole('article')).getByRole('link', { name: /^Call / })).toHaveTextContent('Call hospital')
+    expect(screen.getByRole('link', { name: /Life-threatening\?/ })).toHaveAttribute('href', '/emergency')
   })
 
   it('says so when a category has nothing in the area', async () => {
     localStorage.setItem('bulig.area', 'ph-eastern-samar-mercedes')
     renderAt('/services/lodging')
 
-    expect(await screen.findByText('No hotel and inn listed near Mercedes yet.')).toBeInTheDocument()
+    expect(await screen.findByText('No hotels and inns listed near Mercedes yet.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'See other services' })).toHaveAttribute('href', '/services')
     expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'thinking')
   })

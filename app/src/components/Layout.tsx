@@ -16,7 +16,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { to: '/', label: 'Home', icon: House },
-  { to: '/services', label: 'Services', icon: LayoutGrid },
+  { to: '/services', label: 'Services', icon: LayoutGrid, also: ['/nearby'] },
   { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/saved', label: 'Saved', icon: Heart },
   { to: '/profile', label: 'Profile', also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
@@ -24,7 +24,8 @@ const tabs: Tab[] = [
 
 function isActive({ to, also }: Tab, pathname: string): boolean {
   if (to === '/') return pathname === '/'
-  return pathname === to || pathname.startsWith(`${to}/`) || !!also?.includes(pathname)
+  const under = (p: string) => pathname === p || pathname.startsWith(`${p}/`)
+  return under(to) || !!also?.some(under)
 }
 
 // Emergency is not a tab: a red button floats on every screen and opens it; Back returns here.

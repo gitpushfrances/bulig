@@ -72,8 +72,12 @@ export default function MapPage() {
   const routeToRef = useRef<string | null>(null)
   const [status, setStatus] = useState<Status>('loading')
   const [pins, setPins] = useState<{ id: string; el: HTMLElement }[]>([])
-  const [filter, setFilter] = useState<Category | null>(null)
   const [params] = useSearchParams()
+  // /map?cat=<category> (the Map button on Nearby results): open with that kind of place only.
+  const [filter, setFilter] = useState<Category | null>(() => {
+    const cat = params.get('cat')
+    return (CATEGORIES as readonly string[]).includes(cat ?? '') ? (cat as Category) : null
+  })
   // /map?to=<id> (Directions on a card): open with that place picked and its route on.
   const [selected, setSelected] = useState<string | null>(() => params.get('to'))
   const [routeTo, setRouteTo] = useState<string | null>(() => params.get('to'))
