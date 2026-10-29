@@ -1,38 +1,33 @@
-/* Ocean Depths. Tokens come in three layers (docs/UI-UX.md, "Tokens"):
-   primitives are raw values, semantic tokens name a job, component tokens name a part.
-   Components only use semantic or component tokens, never a primitive or a raw hex. */
+/* Graphite: a minimal light theme of near-black, greys and white. Colour is kept for meaning
+   only: red for emergencies, green for checked, greys for everything else.
+   Tokens come in three layers (docs/UI-UX.md, "Tokens"): primitives are raw values, semantic
+   tokens name a job, component tokens name a part. Components only use semantic or component
+   tokens, never a primitive or a raw hex. */
 
 @import '@fontsource-variable/lexend/wght.css';
 @import '@fontsource-variable/source-sans-3/wght.css';
 
 :root {
-  /* 1. Primitives */
-  --ocean-990: #061a22;
-  --ocean-950: #0a2230;
-  --ocean-925: #0c2733;
-  --ocean-900: #0b2530;
-  --ocean-850: #0f3b4b;
-  --ocean-800: #0b3b4f;
-  --ocean-750: #1e4250;
-  --ocean-700: #0e7490;
-  --ocean-650: #0b5a70;
-  --ocean-400: #22d3ee;
-  --ocean-300: #67e8f9;
-  --ocean-200: #a5f3fc;
-  --ocean-100: #ddf3f7;
-  --ocean-75: #e2ecef;
-  --ocean-50: #f1f6f8;
-  --slate-700: #48616c;
-  --slate-600: #1f3640;
-  --slate-300: #a6c1ca;
-  --slate-200: #d3e1e6;
-  --slate-150: #e3eaed;
-  --slate-50: #e6f4f7;
-  --aqua-400: #2dd4bf;
-  --aqua-950: #062a33;
-  --kelp-700: #047857;
-  --kelp-300: #34d399;
-  --white: #ffffff;
+  /* 1. Primitives (zinc greys) */
+  --zinc-0: #ffffff;
+  --zinc-25: #fafafa;
+  --zinc-50: #f4f4f5;
+  --zinc-100: #ebebed;
+  --zinc-200: #e4e4e7;
+  --zinc-300: #d4d4d8;
+  --zinc-400: #a1a1aa;
+  --zinc-500: #71717a;
+  --zinc-600: #52525b;
+  --zinc-700: #3f3f46;
+  --zinc-800: #27272a;
+  --zinc-850: #1f1f23;
+  --zinc-900: #18181b;
+  --zinc-950: #09090b;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --red-400: #f87171;
+  --green-700: #15803d;
+  --green-400: #4ade80;
 
   --font-display: 'Lexend Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Source Sans 3 Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -40,40 +35,42 @@
   --press-ms: 160ms;
 
   /* 2. Semantic, light */
-  --color-bg: var(--ocean-50);
-  --color-surface: var(--white);
-  --color-text: var(--ocean-900);
-  --color-text-muted: var(--slate-700);
-  --color-border: var(--slate-200);
-  --color-primary: var(--ocean-700);
-  --color-on-primary: var(--white);
-  --color-primary-text: var(--ocean-650);
-  --color-selected: var(--ocean-75);
-  --color-deep: var(--ocean-800);
-  --color-on-deep: var(--white);
-  --color-on-deep-muted: #cfe7ee;
-  --color-flare: var(--aqua-400);
-  --color-on-flare: var(--aqua-950);
-  --color-checked: var(--kelp-700);
-  --color-sample-bg: var(--slate-150);
-  --color-sample-text: var(--slate-600);
-  --color-status-bg: var(--ocean-100);
-  --color-status-text: var(--ocean-650);
-  --color-focus: var(--ocean-700);
-  --color-selection: #c7eef5;
-  --color-error: #b42318;
+  --color-bg: var(--zinc-25);
+  --color-surface: var(--zinc-0);
+  --color-text: var(--zinc-900);
+  --color-text-muted: var(--zinc-600);
+  --color-border: var(--zinc-200);
+  /* Inputs and other controls whose edge must be seen (WCAG 1.4.11, 3:1 or more). */
+  --color-border-strong: var(--zinc-500);
+  --color-primary: var(--zinc-900);
+  --color-on-primary: var(--zinc-0);
+  --color-primary-text: var(--zinc-900);
+  --color-selected: var(--zinc-50);
+  --color-deep: var(--zinc-900);
+  --color-on-deep: var(--zinc-0);
+  --color-on-deep-muted: var(--zinc-300);
+  --color-emergency: var(--red-600);
+  --color-on-emergency: var(--zinc-0);
+  --color-checked: var(--green-700);
+  --color-sample-bg: var(--zinc-100);
+  --color-sample-text: var(--zinc-700);
+  --color-status-bg: var(--zinc-100);
+  --color-status-text: var(--zinc-800);
+  --color-focus: var(--zinc-900);
+  --color-selection: var(--zinc-200);
+  --color-error: var(--red-700);
 
   /* 3. Component */
   --button-call-bg: var(--color-primary);
   --button-call-text: var(--color-on-primary);
   --hotline-bg: var(--color-deep);
-  --hotline-call-bg: var(--color-flare);
-  --hotline-call-text: var(--color-on-flare);
+  --hotline-call-bg: var(--color-emergency);
+  --hotline-call-text: var(--color-on-emergency);
   --chip-active-bg: var(--color-primary);
   --chip-active-text: var(--color-on-primary);
   --tab-active-bg: var(--color-selected);
-  --radius-card: 16px;
-  --radius-control: 12px;
+  --radius-card: 14px;
+  --radius-control: 10px;
   --gutter: 16px;
   --content-max: 72rem;
   --tabbar-h: 64px;
@@ -94,28 +91,29 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: var(--ocean-990);
-    --color-surface: var(--ocean-925);
-    --color-text: var(--slate-50);
-    --color-text-muted: var(--slate-300);
-    --color-border: var(--ocean-750);
-    --color-primary: var(--ocean-400);
-    --color-on-primary: #052029;
-    --color-primary-text: var(--ocean-300);
-    --color-selected: var(--ocean-850);
-    --color-deep: var(--ocean-700);
-    --color-on-deep: var(--white);
-    --color-on-deep-muted: #e0f5fa;
-    --color-flare: var(--aqua-400);
-    --color-on-flare: var(--aqua-950);
-    --color-checked: var(--kelp-300);
-    --color-sample-bg: #1e3a46;
-    --color-sample-text: var(--slate-50);
-    --color-status-bg: var(--ocean-850);
-    --color-status-text: var(--ocean-200);
-    --color-focus: var(--ocean-300);
-    --color-selection: #155e75;
-    --color-error: #fda29b;
+    --color-bg: var(--zinc-950);
+    --color-surface: var(--zinc-900);
+    --color-text: var(--zinc-25);
+    --color-text-muted: var(--zinc-400);
+    --color-border: var(--zinc-800);
+    --color-border-strong: var(--zinc-500);
+    --color-primary: var(--zinc-25);
+    --color-on-primary: var(--zinc-950);
+    --color-primary-text: var(--zinc-25);
+    --color-selected: var(--zinc-800);
+    --color-deep: var(--zinc-850);
+    --color-on-deep: var(--zinc-25);
+    --color-on-deep-muted: var(--zinc-400);
+    --color-emergency: var(--red-600);
+    --color-on-emergency: var(--zinc-0);
+    --color-checked: var(--green-400);
+    --color-sample-bg: var(--zinc-800);
+    --color-sample-text: var(--zinc-200);
+    --color-status-bg: var(--zinc-800);
+    --color-status-text: var(--zinc-200);
+    --color-focus: var(--zinc-25);
+    --color-selection: var(--zinc-700);
+    --color-error: var(--red-400);
   }
 }
 

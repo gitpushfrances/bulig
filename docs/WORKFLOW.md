@@ -47,11 +47,11 @@ flowchart TD
 
 | Phase | How it works |
 | --- | --- |
-| **Now (test UI)** | On the Profile tab, one hardcoded test login, `test@bulig.com` / `password`, role **user**, in [`app/src/auth/testAccount.ts`](../app/src/auth/testAccount.ts). The session and saved places are kept in `localStorage` on the phone. |
+| **Now (test UI)** | On Welcome (first open) and the Profile tab. Three hardcoded test logins, all with the password `password`, in [`app/src/auth/testAccount.ts`](../app/src/auth/testAccount.ts): `test@bulig.com` (**user**), `moderator@bulig.com` (**moderator** for Cebu City), `admin@bulig.com` (**admin**). **Create account** makes a **user** kept on this phone only ([`localAccounts.ts`](../app/src/auth/localAccounts.ts)): name, email and a salted SHA-256 hash of the password in `bulig.accounts`, never the password itself. Moderators and admins are never self-registered. The session and saved places are kept in `localStorage` on the phone. |
 | **Phase 4** | Laravel Sanctum accounts. Admins and moderators sign in to Filament; the API checks roles with the same rules as `can()`. |
 | **Phase 5** | Travellers and business owners sign in (Google through Socialite, Sanctum tokens). Saved places sync to the account. |
 
-**The test login is not security.** It ships inside the app's JavaScript, so anyone can read it. It exists only so testers can try saving. Never put a real password in the app, and remove `testAccount.ts` when Phase 4 sign-in lands. `AuthProvider` is the only place to change: pages call `useAuth()` and don't know where the account comes from.
+**The test logins and local accounts are not security.** The test logins ship inside the app's JavaScript, so anyone can read them; they exist only so testers can try each role. Local accounts live in the phone's storage, readable by anyone holding the phone; hashing only keeps a reused password out of plain text. Never put a real password in the app, and remove `testAccount.ts` and `localAccounts.ts` when Phase 4 sign-in lands. `AuthProvider` is the only place to change: pages call `useAuth()` and don't know where the account comes from.
 
 Saving flow:
 

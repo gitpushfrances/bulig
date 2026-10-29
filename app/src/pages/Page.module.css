@@ -720,6 +720,22 @@
   gap: 12px;
 }
 
+/* An empty state with Ropi: Ropi on top, the text and one action centred under it. */
+.emptyMascot {
+  align-items: center;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.emptyMascot p {
+  max-width: 34ch;
+}
+
+/* Lined up with the heading under it. */
+.aboutMascot {
+  align-self: flex-start;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -751,7 +767,7 @@
   min-height: 48px;
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-control);
   background: var(--color-surface);
   color: var(--color-text);
@@ -777,6 +793,104 @@
   font-weight: 600;
 }
 
+.hint,
+.fine {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.fine {
+  text-align: center;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ---------- Sign in / Create account ---------- */
+
+.authCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Two-way switch. The pressed half lifts onto the surface; the rest stays flat. */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-control);
+  background: var(--color-selected);
+}
+
+.segmented button {
+  min-height: 44px;
+  border: 0;
+  border-radius: calc(var(--radius-control) - 3px);
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+
+.segmented button[aria-selected='true'] {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.fillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--press-ms) var(--ease-out);
+}
+
+.chip:active {
+  transform: scale(0.96);
+}
+
+.inlineAlert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.textButton {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .reveal {
   position: absolute;
   top: 2px;
@@ -796,6 +910,13 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+}
+
+.profileHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .linkList {

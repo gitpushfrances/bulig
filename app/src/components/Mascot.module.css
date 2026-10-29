@@ -1,0 +1,106 @@
+/* Ropi. Still by default; one short reaction on tap. Only transform and opacity move.
+   index.css turns animations off under prefers-reduced-motion: the icons then show in place,
+   without moving, until Mascot.tsx removes them. */
+
+.mascot {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  flex: none;
+  transform-origin: 50% 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.image {
+  display: block;
+  width: auto;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Profile only: the head-and-shoulders crop inside a circle. */
+.head {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-selected);
+  transform-origin: 50% 50%;
+}
+
+.head .image {
+  width: 100%;
+  height: auto;
+  margin-top: 8%;
+}
+
+.playing {
+  animation: hop 480ms var(--ease-out);
+}
+
+.head.playing {
+  animation-name: nod;
+}
+
+.float {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  margin-left: -9px;
+  color: var(--color-primary-text);
+  transform: translate(var(--dx), -12px);
+  animation: float 560ms var(--ease-out) both;
+  pointer-events: none;
+}
+
+/* The circle clips anything outside it, so the head's icons sit inside the frame. */
+.head .float {
+  top: 18%;
+}
+
+@keyframes hop {
+  0% {
+    transform: none;
+  }
+  30% {
+    transform: translateY(-6%) rotate(-4deg);
+  }
+  60% {
+    transform: translateY(0) rotate(3deg);
+  }
+  80% {
+    transform: rotate(-1.5deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes nod {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: rotate(-6deg);
+  }
+  70% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes float {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * 0.4), 6px) scale(0.9);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), -36px) scale(1);
+  }
+}

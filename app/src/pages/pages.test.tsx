@@ -88,6 +88,7 @@ describe('What we offer', () => {
 
     expect(await screen.findByText('No hotel and inn listed near Mercedes yet.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'See other services' })).toHaveAttribute('href', '/services')
+    expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'thinking')
   })
 
   it('shows not found for an unknown category', () => {

@@ -18,6 +18,8 @@ function fakeFetch(input: RequestInfo | URL): Promise<Response> {
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(fakeFetch))
   localStorage.clear()
+  // A returning visitor by default, so `/` opens Home. Welcome tests remove this.
+  localStorage.setItem('bulig.welcomed', '1')
 })
 
 afterEach(() => {

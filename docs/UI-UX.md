@@ -194,10 +194,20 @@ Filter presets:
 - Hearted places and numbers, kept with the signed-in account on this phone, shown as "More nearby" rows sorted by distance. Signed out, the heart opens Profile to sign in, then comes back.
 - Empty state: Ropi `friendly` (see [Mascot](#mascot-ropi)) above "Tap the heart on any place to save it here."
 
+### Welcome (`/welcome`)
+
+- Shown once per phone: the first open of `/` redirects here while nobody is signed in and Welcome has not been seen (`bulig.welcomed`). Signing in, creating an account, or **Continue without an account** marks it seen and opens Home. Shared deep links (`/services/...`, `/emergency`, ...) never redirect.
+- No tab bar. The top bar has the Bulig mark and a red **Emergency? Call 911** link (`tel:911`), so 911 is one tap away here too.
+- Ropi `ready` (150px), "Welcome to Bulig", and one line on what Bulig does.
+- One card with two tabs, **Sign in** and **Create account** (a real tab list: arrow keys switch). The same card is on Profile while signed out.
+  - Sign in: the three test logins as chips (User, Moderator, Admin; password `password`) that fill the form, then Email, Password (with show/hide), **Sign in**.
+  - Create account: Name, Email, Password (at least 8 characters, hint under the field), **Create account**. Errors appear when leaving a field and clear on typing. An email that already has an account offers **Sign in instead**. "For now your account is kept on this phone only."
+- **Continue without an account** sits under the card as a plain text button.
+
 ### Profile (`/profile`)
 
 The tab holds:
-- Sign-in. For now one hardcoded test login, `test@bulig.com` / `password`, with a "Fill in test login" button. Signed in, it shows the name, email and role, and Sign out. Roles and the real sign-in phases are in [WORKFLOW.md](WORKFLOW.md#sign-in). Emergency Help never needs it.
+- Sign-in or create an account, in the same card as [Welcome](#welcome-welcome). Test logins for each role: `test@bulig.com` (user), `moderator@bulig.com` (moderator, Cebu City), `admin@bulig.com` (admin), all with `password`. Signed in, it shows the name, email and role, and Sign out. Roles and the real sign-in phases are in [WORKFLOW.md](WORKFLOW.md#sign-in). Emergency Help never needs it.
 - Language: English, plus the area's own languages from `Area.languages`.
 - Location: whether it's allowed, and how to change it in phone settings.
 - Offline data: "Updated <date> · 32 places on this phone".
@@ -219,7 +229,7 @@ The tab holds:
 - Interactive targets are at least 48 × 48px. Call 911 and primary Call actions are visually prominent and easy to hit.
 - Verify each actual foreground/background pair against WCAG AA. Normal text needs 4.5:1; large text and necessary control/state visuals have their respective WCAG thresholds. Do not claim the entire palette passes based on a few sampled pairs.
 - Use one self-hosted font family, precached for offline; no runtime font request leaves the app.
-- The brand remains Ocean Depths teal. Emergency actions are red. Amber means caution or stale information. Green means verified/success. Grey means closed or unconfirmed. Never use colour as the sole carrier of meaning.
+- The theme is Graphite: near-black, greys and white (see [Theme: Graphite](#theme-graphite-current-2026-10-29)). Emergency actions are red. Amber means caution or stale information. Green means verified/success. Grey means closed or unconfirmed. Never use colour as the sole carrier of meaning.
 - Card edges use a visibly stronger neutral border. Functional controls use a separate control-border token with at least 3:1 contrast against their adjacent surface where WCAG 1.4.11 applies. Test the app outdoors on a real low-cost Android device; a calculated ratio is not a sunlight test.
 
 **Fast and offline**
@@ -275,7 +285,7 @@ All additive and optional, so contract v1 stays (see [ARCHITECTURE.md](ARCHITECT
 
 Features: `tubeless`, `tube_type`, `air_pump`, `comes_to_you`, `motorcycle`, `car_truck`, `bottled_fuel`, `emergency_room`.
 
-## 10. Visual design: Ocean Depths · Modern Utility Minimalism
+## 10. Visual design: Graphite · Modern Utility Minimalism
 
 ### Design direction
 
@@ -341,81 +351,36 @@ Use the `regular` weight for most icons. A matching `fill` variant may indicate 
 - Every icon-only button has an accessible name (`aria-label` or visible equivalent). Decorative icons are hidden from assistive technology. A visible label accompanies every unfamiliar service-category icon.
 - Do not use emojis as UI icons. Do not combine Phosphor, Lucide, Material Symbols, and hand-picked third-party sets in the same interface. A custom SVG is permitted only when the chosen library has no clear symbol for a concept such as a flat tire.
 
-### Light theme tokens
+### Theme: Graphite (current, 2026-10-29)
 
-Token source: [`app/src/index.css`](../app/src/index.css). The raw values live in the primitive layer; components consume semantic/component tokens only. Retire `--color-flare`; do not leave it as a future source of conflicting accents. Keep ordinary `--button-call-bg` mapped to teal and use a separate emergency token (for example `--hotline-call-bg`) for Call 911.
+John replaced Ocean Depths with **Graphite** on 2026-10-29: a minimal, light theme of near-black, zinc greys and white. Colour is kept for meaning only: **red** for emergency actions, **green** for checked, greys for everything else. The brand colour is near-black. Ropi keeps a teal scarf; Ropi is an illustration, not a UI colour.
 
-| Role | Token | Light value | Intended use |
-| --- | --- | --- | --- |
-| Brand action | `--color-primary-action` | `#0E7490` | Normal Call, primary actions, selected nav |
-| On brand action | `--color-on-primary-action` | `#FFFFFF` | Text/icons on teal primary buttons |
-| Link / brand text | `--color-primary-text` | `#0B5A70` | Links and brand icons on light surfaces |
-| Emergency action | `--color-emergency-action` | `#C62828` | Call 911 only and emergency actions |
-| On emergency | `--color-on-emergency-action` | `#FFFFFF` | Emergency button label/icon |
-| Emergency surface | `--color-emergency-surface` | `#FEF2F2` | Hotline card background |
-| Emergency title | `--color-emergency-text` | `#991B1B` | Hotline heading on pale red |
-| Emergency border | `--color-emergency-border` | `#C62828` | Hotline card border |
-| Page ground | `--color-page` | `#F1F6F8` | App background |
-| Surface | `--color-surface` | `#FFFFFF` | Cards, form controls, bottom navigation |
-| Main text | `--color-text-primary` | `#0B2530` | Headings and body text |
-| Secondary text | `--color-text-secondary` | `#48616C` | Supporting information |
-| Card border | `--color-border` | `#A3B7C1` | Card separation; target contrast 2:1 or better and validate outdoors |
-| Control border | `--color-control-border` | `#7B8F99` | Inputs and outlined controls; 3.37:1 against white and 3.09:1 against page ground |
-| Verified | `--color-success` | `#047857` | “Checked <date>” and confirmed states |
-| Warning text | `--color-warning-text` | `#92400E` | Stale data/caution text |
-| Warning surface | `--color-warning-surface` | `#FFFBEB` | Caution surface behind warning text |
-| Closed text | `--color-closed-text` | `#5B6B72` | “Usually closed at this time” |
+Token source: [`app/src/index.css`](../app/src/index.css), in three layers (primitive `--zinc-*`, `--red-*`, `--green-*` → semantic `--color-*` → component `--button-*`, `--hotline-*`, `--tab-*`). Components use semantic or component tokens only.
 
-Representative light-theme ratios (computed from these hex pairs): white on teal `5.36:1`; white on emergency red `5.62:1`; dark-red title on hotline fill `7.60:1`; primary text on white `15.89:1`; secondary text on white `6.56:1`; success on white `5.48:1`; warning text on warning surface `6.84:1`; closed text on white `5.54:1`. The card border is not a text pair and is not a claim of WCAG text compliance. Confirm actual rendered combinations before release.
+| Role | Token | Light | Dark | Use |
+| --- | --- | --- | --- | --- |
+| Page ground | `--color-bg` | `#FAFAFA` | `#09090B` | App background |
+| Surface | `--color-surface` | `#FFFFFF` | `#18181B` | Cards, forms, navigation |
+| Main text | `--color-text` | `#18181B` | `#FAFAFA` | Headings and body |
+| Secondary text | `--color-text-muted` | `#52525B` | `#A1A1AA` | Supporting information |
+| Card border | `--color-border` | `#E4E4E7` | `#27272A` | Card edges, dividers |
+| Control border | `--color-border-strong` | `#71717A` | `#71717A` | Inputs and chips (WCAG 1.4.11) |
+| Primary action | `--color-primary` | `#18181B` | `#FAFAFA` | Normal Call, Sign in, selected states, the logo tile |
+| On primary | `--color-on-primary` | `#FFFFFF` | `#09090B` | Text and icons on primary |
+| Selected / soft fill | `--color-selected` | `#F4F4F5` | `#27272A` | Active tab pill, feature tile, segmented track |
+| Hotline card | `--color-deep` | `#18181B` | `#1F1F23` | National hotline card |
+| Emergency action | `--color-emergency` | `#DC2626` | `#DC2626` | Call 911 and every emergency action, nothing else |
+| On emergency | `--color-on-emergency` | `#FFFFFF` | `#FFFFFF` | Label on the red button |
+| Checked | `--color-checked` | `#15803D` | `#4ADE80` | "Checked <date>" |
+| Error | `--color-error` | `#B91C1C` | `#F87171` | Form errors |
+| Sample badge | `--color-sample-bg` / `-text` | `#EBEBED` / `#3F3F46` | `#27272A` / `#E4E4E7` | SAMPLE badge, test notices |
 
-### Existing-token migration map
+Measured contrast (WCAG): light text on page `16.97:1`; secondary text on white `7.73:1`; white on primary `17.72:1`; white on emergency red `4.83:1`; checked on white `5.02:1`; error on white `6.47:1`; control border on white `4.83:1`. Dark: text on page `19.06:1`; secondary on surface `6.91:1`; checked on surface `10.17:1`; error on surface `6.40:1`; control border on surface `3.67:1`. Still test outdoors on a real low-cost phone.
 
-Use these mappings when updating `app/src/index.css`; preserve the three token layers (primitive → semantic → component) and change the smallest layer that owns each meaning.
-
-| Existing / component token | Target mapping |
-| --- | --- |
-| `--button-call-bg` | `var(--color-primary-action)` — ordinary calls stay teal |
-| `--button-call-text` | `var(--color-on-primary-action)` |
-| `--hotline-call-bg` *(new)* | `var(--color-emergency-action)` — Call 911 only |
-| `--hotline-call-text` | `var(--color-on-emergency-action)` |
-| `--hotline-bg` | `var(--color-emergency-surface)` |
-| `--hotline-border` *(new)* | `var(--color-emergency-border)` |
-| `--hotline-title` *(new)* | `var(--color-emergency-text)` |
-| `--color-border` | `#A3B7C1` for light card edges |
-| `--color-control-border` *(new)* | `#7B8F99` in light theme |
-| `--color-warning` *(new or existing)* | `#92400E` for light-theme warning text |
-| `--color-closed` *(new or existing)* | `#5B6B72` for light-theme closed text |
-| `--pin-tire / --pin-gas / --pin-mechanic / --pin-hospital / --pin-food / --pin-store / --pin-closed` *(new)* | Use the values in the Map pins table |
-| `--color-flare` | **Remove after all consumers are migrated**; it must not remain an alternate Call 911 accent |
-
-Do not change `--button-call-bg` to red. If the current hotline and normal Call buttons share a token, split the emergency button onto its own component token before restyling either component.
-
-### Dark theme tokens
-
-Dark mode follows the device preference unless the user explicitly selects a theme. Preserve the same semantic roles; do not merely invert every colour.
-
-| Role | Dark value | Intended use |
-| --- | --- | --- |
-| Brand action | `#22D3EE` | Teal/cyan primary action on dark surfaces |
-| On brand action | `#061A22` | Dark text/icons on bright cyan button |
-| Link / brand text | `#67E8F9` | Links and brand icons |
-| Emergency action | `#DC2626` | Call 911; white label contrast is 4.83:1 |
-| On emergency | `#FFFFFF` | Emergency button text/icons |
-| Emergency surface | `#2A1215` | Hotline card background |
-| Emergency title | `#FCA5A5` | Hotline card title |
-| Emergency border | `#F87171` | Hotline border |
-| Page ground | `#061A22` | App background |
-| Surface | `#0C2733` | Cards and controls |
-| Main text | `#E6F4F7` | Headings/body text |
-| Secondary text | `#A6C1CA` | Supporting information |
-| Card border | `#2E5566` | Card separation |
-| Control border | `#5B7C89` | Functional outlines; 3.46:1 against `#0C2733` |
-| Verified | `#34D399` | Verified state and confirmation |
-| Warning text | `#FBBF24` | Warning/caution text |
-| Warning surface | `#322711` | Dark caution surface for warning text |
-| Closed text | `#A6B4BA` | Closed/unavailable label |
-
-Dark mode still needs a pairing-by-pairing check. Keep `#FBBF24` warning text on `#322711`, and do not use the bright brand cyan with white button text.
+- Ordinary Call buttons are the primary near-black (white in dark mode). Only Call 911 and emergency actions are red, so red always means emergency.
+- The national hotline is a near-black card with a red Call 911 button. It replaces the earlier pale-red card in "Component rules"; the hotline must stay the strongest block on Home.
+- Shape: cards 14px corners, controls 10px. Borders separate surfaces; no shadows except the selected segmented tab's 1px ring.
+- `theme-color`, the PWA manifest and the app icons use `#FAFAFA` / `#09090B` and a near-black tile.
 
 ### Map pins
 
@@ -443,7 +408,7 @@ Use the following as the fixed category mapping. The set is a deliberate visual 
 - Spacing scale: 4, 8, 12, 16, 24, 32px. Standard phone gutter: 16px.
 - Cards: 12px corner radius, white surface, 1px neutral border. Avoid a shadow on every card.
 - Buttons and inputs: 10px corner radius. Primary buttons: at least 48px high; main emergency/Call actions: 52–56px high.
-- Category tiles: consistent dimensions, a single Phosphor icon, short visible label, and neutral or very pale teal icon backing. Do not give each category its own decorative card colour.
+- Category tiles: consistent dimensions, a single Phosphor icon, short visible label, and neutral icon backing. Do not give each category its own decorative card colour.
 - Chips: compact, lightly bordered, selected state clearly indicated. Avoid turning every filter into a saturated pill.
 - Bottom navigation: four evenly spaced items, icon plus label, visible selected state. Avoid a large floating centre button that blocks map content.
 - Borders carry most card separation. A subtle shadow is allowed only where elevation is meaningful, such as a map bottom sheet or modal.
@@ -452,7 +417,7 @@ Use the following as the fixed category mapping. The set is a deliberate visual 
 ### Component rules
 
 - **Hotline card:** pale-red surface, red border, dark-red title, a full-width red Call 911 button. Quick local contacts are separate, compact calls. The national hotline is never hidden.
-- **Normal call:** teal fill with white text in light mode; do not reuse the emergency token. “Call” opens the phone dialer for that specific published number.
+- **Normal call:** near-black fill with white text in light mode (white with near-black text in dark); do not reuse the emergency token. “Call” opens the phone dialer for that specific published number.
 - **Directions:** outlined neutral control; opens Google Maps and does not look like the primary/emergency action.
 - **Service category tile:** one icon + label; consistent size and padding. Do not show arbitrary per-category backgrounds.
 - **Service card:** name and distance first, category/barangay next, “Usually open at this time” or “Usually closed at this time”, feature confirmation, last-checked date, then Call and Directions.
@@ -469,7 +434,7 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 
 | Pose | File | Used on |
 | --- | --- | --- |
-| Ready (sitting, waving) | `ropi-ready.webp` | Welcome / first-run tip, About |
+| Ready (sitting, waving) | `ropi-ready.webp` | Welcome, About |
 | Friendly (standing, tail up) | `ropi-friendly.webp` | Saved empty state |
 | Thinking (paw on chin) | `ropi-thinking.webp` | No results, offline with nothing cached |
 | Head (round crop) | `ropi-head.webp` | Profile, only inside a circular frame |
@@ -479,7 +444,7 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 - One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text, never beside or over a button.
 - Add a new pose only when a real screen needs it. Every pose must keep the same face, colours, outfit and art style.
 
-**Status (2026-10-29):** rules and folder are in place; John is adding the four WebP files. Still to build: `app/src/components/Mascot.tsx` (a `variant` prop of `ready | friendly | thinking | head`, the tap reaction, reduced-motion support, tests) and its use in the Saved, no-results and offline empty states.
+**Status (2026-10-29):** built. `app/src/components/Mascot.tsx` (`variant` of `ready | friendly | thinking | head`, optional `height`, default 128px) is used on the Saved empty state, an empty category, offline with nothing cached (Services, a category, Saved; via `DataNotice`'s `ropi` prop, which Home and Emergency never pass), About (160px) and the signed-in Profile (56px circle). Welcome (150px) uses `ready` too.
 
 **Files**
 - Stored in [`app/public/assets/mascot/`](../app/public/assets/mascot/), served from `/assets/mascot/<name>.webp`. Naming and export rules are in that folder's README.
