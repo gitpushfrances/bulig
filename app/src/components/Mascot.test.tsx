@@ -108,10 +108,16 @@ describe('Where Ropi appears', () => {
     expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'ready')
   })
 
-  it('the head, in its circle, on Profile', () => {
+  it('the head as the default avatar, on Profile and its tab', () => {
     renderAt('/profile')
-    const ropi = screen.getByTestId('mascot')
-    expect(ropi).toHaveAttribute('data-variant', 'head')
-    expect(ropi).toHaveClass('head')
+    const heads = document.querySelectorAll('img[src="/assets/mascot/ropi-head.webp"]')
+    expect(heads.length).toBe(2) // the Profile header and the Profile tab
+  })
+
+  it("gives way to the person's photo once they add one", () => {
+    localStorage.setItem('bulig.profile.test@bulig.com', JSON.stringify({ name: 'Test traveller', photo: 'data:image/webp;base64,AAAA' }))
+    renderAt('/profile')
+    expect(document.querySelectorAll('img[src="data:image/webp;base64,AAAA"]').length).toBe(2)
+    expect(document.querySelector('img[src="/assets/mascot/ropi-head.webp"]')).toBeNull()
   })
 })

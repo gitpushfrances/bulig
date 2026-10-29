@@ -17,10 +17,12 @@ export interface Account {
   // Optional details the person adds in Profile > Edit profile.
   phone?: string
   homeArea?: AreaId | null
+  // A small square photo (WebP data URL, 256px) chosen in Edit profile. None = Ropi's head.
+  photo?: string
 }
 
 // The fields Edit profile may change.
-export type ProfileDetails = Pick<Account, 'name' | 'phone' | 'homeArea'>
+export type ProfileDetails = Pick<Account, 'name' | 'phone' | 'homeArea' | 'photo'>
 
 export const ROLE_LABELS: Record<Role, string> = {
   user: 'User',

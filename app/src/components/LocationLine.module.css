@@ -1,0 +1,110 @@
+/* Where you are: plain text between two hairlines, so it reads as a divider between the services
+   and the emergency numbers. One size for the place, a smaller muted line for the time. */
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 64px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* The text takes only its own width, so reload sits right after the address, clear of the
+   floating emergency button at the screen edge. */
+.text,
+.pick {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-text);
+}
+
+.words {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.place {
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+}
+
+.select select {
+  min-height: 44px;
+  padding: 0 24px 0 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.select svg {
+  position: absolute;
+  right: 2px;
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
+.refresh {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.refresh:active svg {
+  scale: 0.88;
+}
+
+.refresh[aria-busy='true'] svg {
+  animation: spin 900ms linear infinite;
+  color: var(--color-text);
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .refresh:hover {
+    background: var(--color-selected);
+    color: var(--color-text);
+  }
+}

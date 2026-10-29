@@ -20,7 +20,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { ROLE_LABELS } from '../auth/types.ts'
 import { TextField } from '../components/Fields.tsx'
-import Mascot from '../components/Mascot.tsx'
+import Avatar from '../components/Avatar.tsx'
 import { SettingsButton, SettingsGroup, SettingsInfo, SettingsLink } from '../components/Settings.tsx'
 import { useAppData } from '../data/context.ts'
 import { promptInstall, useInstall } from '../install.ts'
@@ -139,7 +139,7 @@ export default function ProfilePage() {
       </h1>
 
       <div className={styles.header}>
-        <Mascot variant="head" height={64} />
+        <Avatar size={64} />
         <div className={styles.who}>
           <h2 className={styles.name}>{account.name}</h2>
           <p className={styles.email}>{account.email}</p>

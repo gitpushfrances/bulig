@@ -44,6 +44,10 @@ export function HelpPage() {
       'No. Bulig shows numbers and places; you make the call. It never dispatches anyone and never shares your location with emergency services.',
     ],
     [
+      'How do directions work?',
+      'Tap Directions on a place (or Route on the map). Bulig draws the route on its own map, with the distance and time by car or on foot, from OpenStreetMap. For spoken turn-by-turn, tap Google Maps.',
+    ],
+    [
       'How do I install it as an app?',
       'Profile > Install Bulig. Once installed, it opens full screen from your home screen, like any other app.',
     ],
@@ -137,7 +141,11 @@ export function PrivacyPage() {
               When you open the Map, map images load from OpenFreeMap, which sees the area being viewed, as any
               map service does.
             </li>
-            <li>Directions open Google Maps with the place’s location, only when you tap Directions.</li>
+            <li>
+              When you ask for a route, your position and the place’s go to the OpenStreetMap routing service
+              run by FOSSGIS (routing.openstreetmap.de), again when you have moved about 200 m along the way.
+            </li>
+            <li>Google Maps opens with the place’s location, only when you tap Google Maps.</li>
           </ul>
         </section>
         <section>
@@ -173,6 +181,7 @@ export function LicensesPage() {
     ['OpenFreeMap', 'Free map tile hosting', 'Free to use, no key'],
     ['MapLibre GL JS', 'Map rendering', 'BSD-3-Clause'],
     ['Nominatim', 'Address lookup from OpenStreetMap', 'ODbL 1.0 (data)'],
+    ['OSRM (FOSSGIS)', 'Routes along OpenStreetMap roads', 'BSD-2-Clause'],
     ['React and React Router', 'App framework and routing', 'MIT'],
     ['Lucide', 'Icons', 'ISC'],
     ['Lexend and Source Sans 3', 'Fonts', 'SIL Open Font License 1.1'],
