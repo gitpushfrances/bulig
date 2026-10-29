@@ -93,7 +93,7 @@ flowchart TD
   P --> Y
   P --> G
   P -->|Heart| V[Saved on this phone]
-  P -->|Report wrong info| F[[Google Form]]
+  P -->|Report wrong info, Phase 4| F[In-app report form]
 ```
 
 Bulig never sends help and never shares the exact location (only a rounded one, for the address; see section 6). Every outcome is the person's own phone making a call or opening directions.
@@ -218,7 +218,7 @@ Filter presets:
 
 ### Place details (`/place/:id`)
 
-**Built (2026-10-30).** `PlacePage.tsx`: Back; kind · area; the name with NEW / SAMPLE and the heart; distance and landmark; the status line; 52px **Call** ("Call hospital"), **Route** and **Share** (the phone's share sheet, or "Link copied"); the number in text; **Usual hours** for the week from Monday with **Today** marked, and "Hours can change, especially on holidays. Call first." (or the reported text and "Usual hours aren't recorded yet. Call to check."); **What it offers** (✓ confirmed, struck through "No …" when confirmed not offered, unknown left out); **Checked** with the source; and "Open in Google Maps". Opened from Nearby rows and names, Saved card names, and **Details** on a map pin's sheet. The Services tab stays selected. Not yet: Report wrong info (SCRUM-30).
+**Built (2026-10-30).** `PlacePage.tsx`: Back; kind · area; the name with NEW / SAMPLE and the heart; distance and landmark; the status line; 52px **Call** ("Call hospital"), **Route** and **Share** (the phone's share sheet, or "Link copied"); the number in text; **Usual hours** for the week from Monday with **Today** marked, and "Hours can change, especially on holidays. Call first." (or the reported text and "Usual hours aren't recorded yet. Call to check."); **What it offers** (✓ confirmed, struck through "No …" when confirmed not offered, unknown left out); **Checked** with the source; and "Open in Google Maps". Opened from Nearby rows and names, Saved card names, and **Details** on a map pin's sheet. The Services tab stays selected. Not yet: Report wrong info (SCRUM-30, Phase 4, in the app).
 
 The original spec:
 
@@ -226,7 +226,7 @@ The original spec:
 - A compact verified row: "Checked <date> · <how>", for example "Field visit" or "Phone call", using a success icon/text rather than a large green panel.
 - Services with Yes or "Not confirmed": tube-type, tubeless, air pump, motorcycle, car/truck, comes to you (whichever apply to the category).
 - Usual hours for each day, with the check date and "Hours can change. Call first."
-- "Report wrong info" opens the Google Form with this place's ID filled in.
+- "Report wrong info" (Phase 4): an in-app form that posts to `POST /submissions` with this place's ID. No Google Form.
 - A sticky bottom bar with Call and Directions.
 
 ### Saved (`/saved`)

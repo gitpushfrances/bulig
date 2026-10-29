@@ -68,7 +68,7 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 | 16 | List saved | `GET /me/saved` | 🔒 | 4 | `bulig.saved.<email>` (array of record IDs) |
 | 17 | Save a place or number | `PUT /me/saved/{recordId}` | 🔒 | 4 | `toggleSaved(id)` (heart) |
 | 18 | Unsave | `DELETE /me/saved/{recordId}` | 🔒 | 4 | `toggleSaved(id)` (heart) |
-| 19 | Report wrong info | `POST /submissions` | 🔒 | 5 (3: Google Form) | SCRUM-30: Google Form with the record ID |
+| 19 | Report wrong info | `POST /submissions` | 🔒 | 4 | Not built yet (SCRUM-30); no Google Form |
 
 Admin and moderator screens (Filament, Phase 4) are server-side and not part of this contract.
 
@@ -378,7 +378,7 @@ Idempotent: saving twice is fine. No body. **204.** **Errors:** `404` unknown re
 
 ## 7. Reports (Report wrong info)
 
-Phase 3 (SCRUM-30): a Google Form with the record ID pre-filled; no API. Phase 5: in the app, through this endpoint. Nothing submitted is public until a moderator approves it (ARCHITECTURE.md, Spine 3). Emergency contacts can be reported but never edited by the public.
+Phase 4 (SCRUM-30): in the app, through this endpoint. There is no Google Form step (John, 2026-10-30), so there are no reports before the backend. Nothing submitted is public until a moderator approves it (ARCHITECTURE.md, Spine 3). Emergency contacts can be reported but never edited by the public.
 
 ### 7.1 `POST /submissions` 🔒
 

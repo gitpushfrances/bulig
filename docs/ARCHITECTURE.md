@@ -139,11 +139,13 @@ Corrections, hazard reports and owner edits are one pipeline that grows over tim
 
 | Phase | Where reports come in | Where you review them | What goes public |
 | --- | --- | --- | --- |
-| 3 | Google Form, with the record ID filled in from the button | Google Sheet | You edit the JSON by hand |
-| 4 | Same Google Form | `submissions` table in Filament (you paste or import the Sheet rows) | You approve, and the record updates |
-| 5 | In-app form, `POST /api/v1/submissions` | Same `submissions` table | Same approval step |
+| 3 | None (sample data; you fix records in the JSON files by hand) | | |
+| 4 | In-app form, `POST /api/v1/submissions` ([API.md §7](API.md#7-reports-report-wrong-info)) | `submissions` table in Filament | You approve, and the record updates |
+| 5 | Same, plus hazard reports and owner edits | Same `submissions` table | Same approval step |
 
-The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it opens the Google Form. In Phase 5 it opens an in-app form that posts to the API. No other page changes.
+John dropped the Google Form on 2026-10-30: reports go straight into the app once the backend exists.
+
+The app side is one component, `<ReportButton recordId=... />` on Place details (and later on contact cards). It opens an in-app form that posts to the API, from Phase 4. No other page changes.
 
 **Rule in every phase:** nothing a member of the public submits is shown until you approve it. Emergency contacts can't be edited through this pipeline at all.
 
@@ -206,7 +208,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 | Feature | How |
 | --- | --- |
 | Real data | Replace the sample files with verified records from SCRUM-17 and SCRUM-18. A CI test fails if any record still has `"sample": true`. |
-| Report wrong info | `<ReportButton recordId>` opens the Google Form with the record ID pre-filled through the form's `entry.<id>=` URL parameter, so every report says exactly which record it's about. |
+| Report wrong info | Moved to Phase 4: in the app, `POST /submissions` (no Google Form). |
 | Analytics | Cloudflare Web Analytics script tag. No cookies, no consent banner needed. |
 | Navigation | **Built.** Five tabs: `/` Home, `/services`, `/map`, `/saved`, `/profile` (the tab shows the photo, or Ropi). Emergency (`/emergency`) is not a tab: a floating red button opens it from every screen and Back returns. No top bar. Pushed screens: `/nearby/:need`, `/profile/edit`, `/profile/password`, `/help`, `/terms`, `/privacy`, `/licenses`, `/about`. `/services/:category` renders Nearby results, so v0.2 links still work. Screens in [UI-UX.md](UI-UX.md). |
 | Needs | **Built.** `app/src/rules/needs.ts` maps each need (`flat-tire`, `breakdown`, `out-of-gas`, `hospital`, `food`, `hotel`, `store`, `others`) to a category, its words and whether it is urgent. Data, not page code, so a new need is one entry. Filter chips per need wait for `Service.features` data. |
@@ -242,7 +244,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 | Frontend switch | Add `ApiSource` and build with `VITE_DATA_SOURCE=api`. Keep the JSON files as the fallback build. |
 | Hosting | Oracle Always Free VM (Singapore), Nginx and PHP-FPM, Cloudflare Tunnel for HTTPS, CORS allowing only the app's `workers.dev` origin, nightly `pg_dump` to Cloudflare R2. |
 
-**Connects to:** spine 1 (the same schema files now test the server), spine 2 (`ApiSource` replaces `JsonSource` and no page changes), and spine 3 (Google Form reports now land in `submissions`, so every report is tracked in one place).
+**Connects to:** spine 1 (the same schema files now test the server), spine 2 (`ApiSource` replaces `JsonSource` and no page changes), and spine 3 (in-app reports land in `submissions`, so every report is tracked in one place).
 
 **Contract changes:** none. If the API needs a change to the shape, that's a design bug to fix in the API, not in the app.
 
@@ -256,7 +258,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 
 | Feature | How |
 | --- | --- |
-| In-app corrections | `POST /api/v1/submissions` with `{ type: 'correction', recordType, recordId, message }`. No account needed. Protected by Cloudflare Turnstile (free), a honeypot field, and Laravel rate limiting (5 per hour per IP). `<ReportButton>` switches from the Google Form to this. |
+| In-app corrections | Built in Phase 4 (`POST /api/v1/submissions`, [API.md §7](API.md#7-reports-report-wrong-info)); here only the extras: guest reports without an account. Protected by Cloudflare Turnstile (free), a honeypot field, and Laravel rate limiting (5 per hour per IP). `<ReportButton>` already posts here from Phase 4. |
 | Hazard reports | Submission `type: 'hazard'` with `{ kind: flood \| landslide \| road_closed, lat, lng, note }`. Approving it creates a row in `hazards(id, kind, location, country, area, expires_at, approved_at)`. Default expiry is 24 hours for floods and 72 hours for landslides and closures. `GET /api/v1/hazards?country=&area=` returns approved, unexpired rows only, as an additive contract (`hazards.schema.json`). Shown as a banner on Services and as pins on the Map. |
 | Owner accounts | Google sign-in through Laravel Socialite, issuing a Sanctum **token** (not a cookie, because the `workers.dev` app and the API host are different domains). The owner sends `type: 'claim'`. You confirm it by calling the shop's listed number. Approved owners send `type: 'owner_edit'` for hours and phone, and those are still reviewed. |
 | Privacy and abuse | Store a salted hash of the IP, never the IP itself, and delete it after 30 days. Delete resolved submissions after 180 days. Add a "Report this" link on hazards. Publish a privacy notice per country served: Data Privacy Act (RA 10173) for the Philippines first, GDPR before any EU area. Notices are per-country files, like `labels.json`. |
