@@ -40,6 +40,18 @@ export function kindLabel(kind: ContactKind): string {
   return KIND_LABELS[kind]
 }
 
+const ADDRESS_DEFAULTS = {
+  locality: 'Neighbourhood',
+  municipality: 'City or town',
+  province: 'Province or state',
+  postcode: 'Postal code',
+} as const
+
+// The country's word for a part of an address ("Barangay" in PH), else a plain English default.
+export function addressLabel(part: keyof typeof ADDRESS_DEFAULTS, labels: Labels | null, lang = 'en'): string {
+  return labels?.address?.[part]?.[lang] ?? ADDRESS_DEFAULTS[part]
+}
+
 export function categoryBlurb(category: Category): string {
   return CATEGORY_BLURBS[category]
 }

@@ -1,5 +1,6 @@
 import { ChevronDown, LocateFixed, LocateOff, RotateCw } from 'lucide-react'
 import { useAppData } from '../data/context.ts'
+import { shortAddress } from '../location/address.ts'
 import { usePhoneLocation } from '../location/context.ts'
 import { NEAR_KM, formatDistance } from '../rules/nearby.ts'
 import type { Area } from '../types.ts'
@@ -17,7 +18,7 @@ function byRegion(areas: Area[]): [string, Area[]][] {
 // Where the app thinks the phone is. It comes from GPS and follows the driver; the button asks for a
 // fresh fix. Only when there is no GPS (denied, missing, failed) can the person pick an area.
 export default function LocationBar() {
-  const { status, refresh } = usePhoneLocation()
+  const { status, address, refresh } = usePhoneLocation()
   const { data, area, areaKm, setArea } = useAppData()
   if (data.status !== 'ready') return null
 
@@ -25,17 +26,28 @@ export default function LocationBar() {
   const fromGps = areaKm !== null
   const locating = status === 'locating'
   const canRetry = status !== 'unavailable'
+  const street = address ? shortAddress(address.address) : ''
 
-  let label: string | null = null
-  if (fromGps && name) label = areaKm <= NEAR_KM ? `Near ${name}` : `${name} · ${formatDistance(areaKm)} away`
-  else if (locating) label = 'Finding your location'
+  // Top line says how we know; the bottom line says where. The looked-up barangay and town win;
+  // without them, the nearest listed area (and how far it is when it isn't really "here").
+  let place: string | null = null
+  if (fromGps) place = street || (areaKm <= NEAR_KM ? name ?? null : `${name}, ${formatDistance(areaKm)} away`)
+  else if (locating) place = street || 'Finding your location'
+  const full = address
+    ? [address.address.locality, address.address.municipality, address.address.province, address.address.postcode]
+        .filter(Boolean)
+        .join(', ')
+    : undefined
 
   return (
     <div className={styles.location}>
-      {label ? (
-        <p className={styles.locationText} aria-live="polite">
-          <LocateFixed size={16} strokeWidth={2} aria-hidden="true" />
-          <span>{label}</span>
+      {place ? (
+        <p className={styles.locationText} aria-live="polite" title={full}>
+          <LocateFixed size={18} strokeWidth={2} aria-hidden="true" />
+          <span className={styles.locationLines}>
+            <span className={styles.locationLabel}>{fromGps ? 'Near you' : 'Locating'}</span>
+            <span className={styles.locationPlace}>{place}</span>
+          </span>
         </p>
       ) : (
         <label className={styles.locationPick} title="Location is off. Pick the area you're in.">

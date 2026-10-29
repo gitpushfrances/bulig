@@ -158,7 +158,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  height: 40px;
+  height: 46px;
   padding-left: 12px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
@@ -181,10 +181,32 @@
   color: var(--color-primary-text);
 }
 
-.locationText span {
+.locationLines {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.locationLabel {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.locationPlace {
+  max-width: 15rem;
   overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 26rem) {
+  .locationPlace {
+    max-width: 10.5rem;
+  }
 }
 
 .locationPick {
@@ -218,8 +240,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 42px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   margin-left: 6px;
   border: 0;
   border-left: 1px solid var(--color-border);

@@ -21,6 +21,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Added
 
+- **Near you, with a real address** (branch `feat/address-near-you`): the location control reads "Near you" over the barangay and town, and Home has a **Your location** card with barangay, city or municipality, province and ZIP code and when it was updated. The address comes from OpenStreetMap Nominatim's reverse lookup (`src/location/address.ts`, with tests), cached on the phone, looked up again only after a 250 m move or a refresh. Missing parts are filled from the nearest listed area. The address words come from a new optional `address` block in `labels.json` (PH: Barangay, City or municipality, Province, ZIP code).
 - **Home, What we offer and GPS** (branch `feat/home-gps-offers`):
   - **Home** (`/`): the national hotline with Call 911, local numbers, the nearest places, What we offer cards and Saved, each linking to its tab.
   - **What we offer** (`/services`): one card per kind of service with its count and nearest distance; a card opens `/services/<category>`, nearest first. The category chips and search are gone.
@@ -53,6 +54,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Conflicts
 
+- **A rounded location now leaves the phone.** The spec and app said the position never leaves the phone. Showing the barangay and ZIP code needs an address lookup, which John asked for, so a position rounded to about 110 m goes to OpenStreetMap, only online and only after a 250 m move or a refresh. The exact position still stays on the phone. Profile, UI-UX.md and ARCHITECTURE.md now say this.
 - **Location is asked for on open.** UI-UX.md said to ask only on first use of a need button or the Map. John asked for the area to come from GPS by itself and follow the driver, so the app now asks on open and keeps watching while it is open. UI-UX.md section 6 and ARCHITECTURE.md are updated.
 - **`/` is now Home, not Emergency.** v0.2 links to `/` still land one tap from 911 (the hotline card is the first thing on Home). Emergency Help moved to `/emergency`.
 - The Figma Make prototype ("Design-Ropa-Roadside-Assistance") had login, ratings, an owner portal and an admin dashboard, and was still named Ropa. Those were left out of the spec: login and the portals belong to Phases 4 and 5, and ratings wait for John's decision (Phase 5 at the earliest). It also had no 911 button. The spec keeps 911 one tap from Home.
@@ -62,6 +64,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Security
 
+- The address lookup sends a rounded position (about 110 m) to `nominatim.openstreetmap.org` with the browser's normal referrer; no account, cookie or device ID. Nominatim allows light use only, so the app looks up at most once per 250 m moved or per refresh.
 - The test login ships in the app's JavaScript and protects nothing. It only exists so testers can try saving. Remove `src/auth/testAccount.ts` when Phase 4 sign-in lands, and never put a real password in the app.
 
 ---

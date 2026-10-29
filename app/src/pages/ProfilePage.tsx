@@ -164,8 +164,9 @@ export default function ProfilePage() {
       )}
 
       <p className={styles.footnote}>
-        Bulig uses your location only on this phone, to find your area and sort places by distance. It
-        never sends it anywhere.
+        Your exact location stays on this phone: it finds your area and sorts places by distance. To
+        show your barangay and ZIP code, Bulig sends a rounded location (about 100 m) to OpenStreetMap,
+        only when you're online and after you move or tap refresh. Nothing else is shared.
       </p>
 
       <ul className={`${styles.card} ${styles.linkList}`}>
