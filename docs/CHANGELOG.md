@@ -21,6 +21,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Added
 
+- **Ropi, the mascot** (PR #16): a golden-tan dog in a helmet, goggles, teal scarf and backpack, in four poses (`ready`, `friendly`, `thinking`, `head`). [UI-UX.md § Mascot: Ropi](UI-UX.md#mascot-ropi) says where Ropi goes (Saved empty state, no results, offline with nothing cached, welcome tip, Profile/About) and where never (Home, Hotlines, Call 911, the "What's wrong?" grid, results, place details, the Map, card taps). The images live in `app/public/assets/mascot/` as transparent 480px WebP files of about 30–40 KB each; that folder's README has the names and export rules. Ropi stands still and reacts only when tapped (a short wiggle plus floating icons drawn in code), with no movement under `prefers-reduced-motion`. **Not built yet:** the `Mascot` component and the empty-state wiring are the next step.
 - **Near you, with a real address** (branch `feat/address-near-you`): the location control reads "Near you" over the barangay and town, and Home has a **Your location** card with barangay, city or municipality, province and ZIP code and when it was updated. The address comes from OpenStreetMap Nominatim's reverse lookup (`src/location/address.ts`, with tests), cached on the phone, looked up again only after a 250 m move or a refresh. Missing parts are filled from the nearest listed area. The address words come from a new optional `address` block in `labels.json` (PH: Barangay, City or municipality, Province, ZIP code).
 - **Home, What we offer and GPS** (branch `feat/home-gps-offers`):
   - **Home** (`/`): the national hotline with Call 911, local numbers, the nearest places, What we offer cards and Saved, each linking to its tab.
@@ -40,6 +41,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- The service worker now precaches `.webp` files too (`app/vite.config.ts`, `globPatterns`), so Ropi shows offline after the first visit.
 - **Home, simpler** (branch `feat/home-bento`): the location is a single plain line in the header, "Near you · <barangay>, <town>", one text size, no box. The "Your location" card is gone. In its place Home opens with **What do you need?** and a bento grid of the seven services: Vulcanizing as the large tile with its nearest shop, the rest as small tiles with count and nearest distance (2 columns on phones, 4 from tablets, flush rows at both). The duplicate What we offer block on Home is removed, along with the card-only code (`AddressCard`, `timeAgo`, `addressLabel` and the `address` labels block).
 - Being offline shows once, as a pill in the header, instead of in each page's notices.
 - The About page no longer names a first stop; it describes Bulig for anywhere. UI-UX.md wireframes use `<town>` instead of pilot town names.
@@ -55,6 +57,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Conflicts
 
+- **Mascot against the minimal style.** Section 10 said empty states need no illustration and banned decorative or continuous animation. John asked for a mascot that reacts to touch. Both are kept: Ropi is the only illustration allowed, only on the quiet screens, and moves only for under 600ms after a tap. No idle bobbing, and never near the emergency path.
 - **A rounded location now leaves the phone.** The spec and app said the position never leaves the phone. Showing the barangay and ZIP code needs an address lookup, which John asked for, so a position rounded to about 110 m goes to OpenStreetMap, only online and only after a 250 m move or a refresh. The exact position still stays on the phone. Profile, UI-UX.md and ARCHITECTURE.md now say this.
 - **Location is asked for on open.** UI-UX.md said to ask only on first use of a need button or the Map. John asked for the area to come from GPS by itself and follow the driver, so the app now asks on open and keeps watching while it is open. UI-UX.md section 6 and ARCHITECTURE.md are updated.
 - **`/` is now Home, not Emergency.** v0.2 links to `/` still land one tap from 911 (the hotline card is the first thing on Home). Emergency Help moved to `/emergency`.
