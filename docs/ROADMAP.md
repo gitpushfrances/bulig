@@ -156,6 +156,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 
 **Tickets (all new):**
 
+- Build the API to [docs/API.md](API.md): every endpoint, payload and error the app already expects (public reads, accounts, `/me`, saved places)
 - Set up the Laravel 13 project in `api/` with PostgreSQL + PostGIS (Docker locally)
 - Database schema: countries, areas, categories, services, emergency_contacts, with `geography(Point,4326)` and audit timestamps
 - Import script that loads the current JSON into the database

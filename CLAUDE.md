@@ -5,7 +5,7 @@ Bulig ("help" in Waray/Hiligaynon) is a road-help PWA for drivers and riders in 
 ## Read before changing anything
 
 - [docs/UI-UX.md](docs/UI-UX.md): source of truth for screens, flows, tokens, the mascot (Ropi) and design acceptance checks.
-- [docs/ROADMAP.md](docs/ROADMAP.md): what ships in which phase. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it is built. [docs/WORKFLOW.md](docs/WORKFLOW.md): roles, sign-in, code-change flow.
+- [docs/ROADMAP.md](docs/ROADMAP.md): what ships in which phase. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it is built. [docs/WORKFLOW.md](docs/WORKFLOW.md): roles, sign-in, code-change flow. [docs/API.md](docs/API.md): every request and payload; add any new frontend request there in the same PR.
 - [docs/CHANGELOG.md](docs/CHANGELOG.md): add every change under **Unreleased** as you make it, using the headings at the top of that file.
 
 ## Stack and commands
