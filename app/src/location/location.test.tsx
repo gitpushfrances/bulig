@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.tsx'
@@ -55,11 +55,9 @@ describe('Location from GPS', () => {
     fakeGeo(CEBU)
     renderAt('/services/tire-repair')
 
-    const places = await screen.findByRole('list', { name: 'Places' })
-    const items = within(places).getAllByRole('listitem')
-    expect(items).toHaveLength(1)
-    expect(items[0]).toHaveTextContent('Sample Uptown Vulcanizing')
-    expect(items[0]).toHaveTextContent('810 m away')
+    const nearest = await screen.findByRole('article', { name: 'Sample Uptown Vulcanizing' })
+    expect(nearest).toHaveTextContent('810 m away')
+    expect(screen.queryByRole('list', { name: 'More vulcanizing shops' })).not.toBeInTheDocument()
   })
 
   it('asks for a fresh fix when the refresh button is tapped', async () => {

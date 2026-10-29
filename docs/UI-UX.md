@@ -17,12 +17,12 @@ Bulig covers the whole Philippines, then any country. Town names in the wirefram
 | Theme | **Graphite**: near-black, zinc greys, white; light and dark. Red only for Call 911 and emergency actions, green only for checked. See [§10 Theme: Graphite](#theme-graphite-current-2026-10-29). Ocean Depths is retired. |
 | Navigation | **No top bar** and no logo tile: content starts at the top of the screen. Five tabs: Home `/`, Services `/services`, Map `/map`, Saved `/saved`, **Profile** (shows your photo, or Ropi's head by default). **Emergency is not a tab:** a red hazard button floats on every screen and opens `/emergency`; Back returns. Bottom bar on phones, rail on tablets, sidebar (with the word "Bulig") on desktop. Offline shows a slim strip at the top. |
 | Location | GPS finds the area by itself (`watchPosition`). **Shown on Home between the bento and the 911 card** (and on Emergency) as one plain text line between hairlines: "Lahug · Cebu City · Cebu · 6000" over "Updated 2:41 PM", with a reload button right after it. Address from OpenStreetMap Nominatim. Area picker in the same spot only when GPS is off. |
-| Home | "What do you need?" bento: the seven road services plus **Others** (new and local stalls, wide tile, NEW badge), then the national hotline (Call 911), local numbers, nearest places, Saved. |
+| Home | "What do you need?" bento = the **"What's wrong?" buttons**: each tile is a problem (Flat tire, Breakdown, Out of gas, Hospital, Food, Hotel, Store, Others) over the kind of place that solves it, and opens **Nearby results**. Then the location line, the national hotline (Call 911), local numbers, nearest places, Saved. |
 | Map | MapLibre + OpenFreeMap (free, no key), recoloured to Graphite light/dark; category pins, chips, a place sheet. **In-app routes** from OSRM on OpenStreetMap roads (FOSSGIS, free, no key): a blue line, distance and time, Car or Walk, rerouting as you move, and a Google Maps button for voice navigation. Card **Directions** open `/map?to=<id>`. See [Map](#map-map). |
 | Accounts | Everything but Emergency needs an account ([Accounts and access](#accounts-and-access-decided-by-john-2026-10-30)). [Login](#login-login), [Sign up = onboarding](#sign-up--onboarding-signup) with Ropi, [Forgot password](#forgot-password-forgot-password). "Continue without an account" = Emergency only. Test logins (typed, no shortcuts): `test@`, `moderator@`, `admin@bulig.com` / `password`. Sign-ups are users kept on the phone (hashed password). |
 | Profile | Production-style settings: your photo (or Ropi), role, member since, edit profile (photo, name, mobile, home area), change password, theme (System/Light/Dark), install, help, Terms, Privacy, licences, sign out, delete account, "Bulig v0.3.0 · build <commit>". |
 | Mascot | Ropi on quiet screens only, now **talking** in speech bubbles (`RopiSays`): login (head mark / side panel), onboarding (all four poses), forgot password, guest gate, Saved empty ("Let's get started!"), empty category, offline, map offline, About, Profile avatar. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
-| Not built yet | The six "What's wrong?" buttons, Nearby results, Place details, real backend sign-in and reset emails (Phase 4). |
+| Not built yet | Nearby filter chips (need `Service.features` and `weeklyHours` data), the mini map strip on the nearest card, Place details, real backend sign-in and reset emails (Phase 4). |
 
 The change history is in [CHANGELOG.md](CHANGELOG.md) under **Unreleased**.
 
@@ -138,6 +138,17 @@ Design for the smallest supported viewport first: **360 × 740 CSS px**, with es
 - **Navigation:** fixed four-tab bottom navigation: Home, Map, Saved, Profile. Include an icon and a short label for every tab. Leave enough bottom safe-area space for device insets.
 
 ### Nearby results (`/nearby/:need`)
+
+**Built (2026-10-30).** `/nearby/<need>` and the older `/services/<category>` render the same page (`NearbyPage.tsx`); needs live in `app/src/rules/needs.ts` (eight: the six below plus `hotel` and `others`). As built:
+- **Back**, the need as the title ("Flat tire"), "3 vulcanizing shops near Cebu City, nearest first." (singular for one), and a **Map** button that opens the Map filtered to that kind of place (`/map?cat=<category>`).
+- **Nearest to you** ("First listed" without GPS, with "Turn on location to sort by distance"): one big card with a stronger border: icon and distance in the display face, NEW / SAMPLE, heart, the name at 22px, type · landmark, "Usually <hours> · hours can change, call first", "Last checked <date>", and two 52px buttons: **Call** ("Call hospital" for hospitals) and **Route** (the in-app route on the Map).
+- **More nearby:** one panel of rows: icon, name (taps open its route), type · distance · hours, and a call button.
+- **Hospital:** a red-outlined note at the bottom, "**Life-threatening?** Call 911 now.", which opens Emergency.
+- No results: Ropi `thinking` says "No <places> listed near <town> yet.", then See other services.
+- One readable column (max 44rem) on wide screens.
+- **Not built yet:** the filter chips below (they need `Service.features` and `weeklyHours` in the data), the open/closed status and "nearest usually open" line (same), and the mini map strip on the nearest card.
+
+The original spec follows.
 
 The same layout for every need, so people learn it once.
 

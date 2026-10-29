@@ -273,6 +273,13 @@
   transition: transform var(--press-ms) var(--ease-out);
 }
 
+/* Icons keep their size when a label is long. */
+.call svg,
+.secondary svg,
+.primaryButton svg {
+  flex: none;
+}
+
 .call:active,
 .secondary:active,
 .primaryButton:active {
@@ -570,6 +577,12 @@
   gap: 8px;
 }
 
+/* Under a need on Home ("Flat tire" over "Vulcanizing"): the kind of place that solves it. */
+.bentoKind {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
 .newBadge {
   flex: none;
   align-self: flex-start;
@@ -626,6 +639,95 @@
 @media (hover: hover) and (pointer: fine) {
   .bentoTile:hover {
     border-color: var(--color-primary);
+  }
+}
+
+/* ---------- Nearby results ---------- */
+
+/* One column at a readable width, even on a wide screen. */
+.readable {
+  max-width: 44rem;
+}
+
+.nearbyHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mapButton {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+/* The nearest place: the one card on the page that is bigger than the rest. */
+.nearest {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-color: var(--color-border-strong);
+}
+
+.nearestDistance {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.nearestName {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.bigActions {
+  margin-top: 8px;
+}
+
+.bigActions > .call,
+.bigActions > .secondary {
+  min-height: 52px;
+  white-space: nowrap;
+  font-size: 1.0625rem;
+}
+
+.rowLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rowTitle .newBadge {
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+
+.notice.urgentNote {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  border-color: var(--color-emergency);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.urgentNote svg {
+  flex: none;
+  color: var(--color-emergency);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rowLink:hover .rowTitle {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 }
 

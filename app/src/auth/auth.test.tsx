@@ -80,7 +80,7 @@ describe('Login', () => {
     renderAt('/services/mechanic')
 
     submitSignIn('test@bulig.com', 'password')
-    expect(await screen.findByRole('heading', { level: 1, name: 'Mechanic' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Breakdown' })).toBeInTheDocument()
   })
 
   it('signs out from Profile, back to the login', () => {
@@ -227,18 +227,18 @@ describe('Profile', () => {
 
 describe('Saving', () => {
   it('saves a place and shows it on Saved', async () => {
-    localStorage.setItem('bulig.session', 'test@bulig.com')
-    renderAt('/services/mechanic')
+    localStorage.setItem('bulig.area', 'ph-cebu-cebu-city')
+    renderAt('/nearby/breakdown')
 
-    const save = await screen.findByRole('button', { name: 'Save Sample Motor Repair' })
+    const save = await screen.findByRole('button', { name: 'Save Sample Cebu City Auto and Motor Repair' })
     fireEvent.click(save)
     expect(save).toHaveAttribute('aria-pressed', 'true')
 
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Saved' }))
     const saved = screen.getByRole('list', { name: 'Saved places' })
-    expect(within(saved).getByText('Sample Motor Repair')).toBeInTheDocument()
+    expect(within(saved).getByText('Sample Cebu City Auto and Motor Repair')).toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('bulig.saved.test@bulig.com') ?? '[]')).toEqual([
-      'ph-eastern-samar-guiuan-sample-mechanic',
+      'ph-cebu-cebu-city-sample-mechanic',
     ])
   })
 

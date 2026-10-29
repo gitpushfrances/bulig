@@ -21,7 +21,8 @@ describe('App shell', () => {
   it.each([
     ['/', 'What do you need?', 'Home'],
     ['/services', 'What we offer', 'Services'],
-    ['/services/fuel', 'Gas station', 'Services'],
+    ['/services/fuel', 'Out of gas', 'Services'],
+    ['/nearby/flat-tire', 'Flat tire', 'Services'],
     ['/map', 'Map of places near you', 'Map'],
     ['/saved', 'Saved', 'Saved'],
     ['/profile', 'Profile', 'Profile'],
