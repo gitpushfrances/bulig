@@ -350,3 +350,135 @@
     transform: scale(1.15);
   }
 }
+
+/* ---------- Route: End route, the minimized bar, Undo ---------- */
+
+/* Ending is deliberate: a quiet text button at the bottom of the open sheet, not the corner X. */
+.endRoute {
+  align-self: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-error);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* The minimized route: one slim bar. Tap opens it; swipe it sideways to end the route. */
+.routeBar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 28rem;
+  min-height: 60px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.16);
+  cursor: pointer;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform 220ms var(--ease-out),
+    opacity 220ms var(--ease-out);
+  animation: rise 200ms var(--ease-out);
+}
+
+.routeBarIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.routeBarText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.routeBarName {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routeBarMeta {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.routeBarChevron {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+/* "Route ended · Undo": a short-lived dark pill in the same spot as the bar. */
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 6px 6px 18px;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+  transform: translateX(-50%);
+  animation: toastIn 200ms var(--ease-out);
+}
+
+.toast button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+@media (min-width: 48rem) {
+  .routeBar {
+    left: 24px;
+    right: auto;
+    bottom: 24px;
+    width: 26rem;
+  }
+
+  .toast {
+    bottom: 24px;
+  }
+}

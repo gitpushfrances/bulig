@@ -1,4 +1,4 @@
-import { Car, Footprints, LocateFixed, Navigation, Phone, Route as RouteIcon, TriangleAlert, X } from 'lucide-react'
+import { LocateFixed, Phone, Route as RouteIcon, TriangleAlert, X } from 'lucide-react'
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -8,12 +8,13 @@ import { CATEGORY_ICONS } from '../components/icons.ts'
 import RopiSays from '../components/RopiSays.tsx'
 import SaveButton from '../components/SaveButton.tsx'
 import { useAppData } from '../data/context.ts'
-import { directionsHref, telHref } from '../data/format.ts'
+import { telHref } from '../data/format.ts'
 import { categoryLabel } from '../data/labels.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { usePhoneLocation } from '../location/context.ts'
 import { applyMapTheme, MAP_STYLE_URL } from '../map/mapTheme.ts'
-import { fetchRoute, formatDuration, REROUTE_DEG, type Route, type TravelMode } from '../map/route.ts'
+import { fetchRoute, REROUTE_DEG, type Route, type TravelMode } from '../map/route.ts'
+import RouteSheet, { type RouteState } from '../map/RouteSheet.tsx'
 import { formatDistance } from '../rules/nearby.ts'
 import { isNew } from '../rules/services.ts'
 import { useTheme } from '../theme.ts'
@@ -34,12 +35,33 @@ type Status = 'loading' | 'ready' | 'failed'
 const ROUTE_COLOUR = '#2563eb'
 const ROUTE_CASING = { light: '#ffffff', dark: '#09090b' }
 
-type RouteState =
-  | { kind: 'off' }
-  | { kind: 'no-location' }
-  | { kind: 'loading' }
-  | { kind: 'ready'; route: Route }
-  | { kind: 'failed' }
+// The route in progress, kept for this browser session so leaving the Map doesn't lose it.
+const ROUTE_KEY = 'bulig.route'
+interface SavedRoute {
+  to: string
+  mode: TravelMode
+}
+
+function readRoute(): SavedRoute | null {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(ROUTE_KEY) ?? 'null') as SavedRoute | null
+    return value && typeof value.to === 'string' ? { to: value.to, mode: value.mode === 'foot' ? 'foot' : 'car' } : null
+  } catch {
+    return null
+  }
+}
+
+function saveRoute(value: SavedRoute | null) {
+  try {
+    if (value) sessionStorage.setItem(ROUTE_KEY, JSON.stringify(value))
+    else sessionStorage.removeItem(ROUTE_KEY)
+  } catch {
+    // Private mode or blocked storage: the route just won't survive leaving the Map.
+  }
+}
+
+// How long "Route ended · Undo" stays.
+const UNDO_MS = 5000
 
 // Draws (or clears) the route on the map, adding its source and layers the first time.
 function drawRoute(m: MapLibreMap, path: [number, number][] | null, theme: 'light' | 'dark') {
@@ -79,9 +101,13 @@ export default function MapPage() {
     return (CATEGORIES as readonly string[]).includes(cat ?? '') ? (cat as Category) : null
   })
   // /map?to=<id> (Directions on a card): open with that place picked and its route on.
-  const [selected, setSelected] = useState<string | null>(() => params.get('to'))
-  const [routeTo, setRouteTo] = useState<string | null>(() => params.get('to'))
-  const [mode, setMode] = useState<TravelMode>('car')
+  // A ?to= link wins; otherwise pick up the route this session already had.
+  const [restored] = useState(() => (params.get('to') ? { to: params.get('to')!, mode: 'car' as TravelMode } : readRoute()))
+  const [selected, setSelected] = useState<string | null>(() => restored?.to ?? null)
+  const [routeTo, setRouteTo] = useState<string | null>(() => restored?.to ?? null)
+  const [mode, setMode] = useState<TravelMode>(() => restored?.mode ?? 'car')
+  const [minimized, setMinimized] = useState(false)
+  const [ended, setEnded] = useState<SavedRoute | null>(null)
   const [fetched, setFetched] = useState<{ key: string; trip: string; result: Route | null } | null>(null)
   const fittedFor = useRef<string | null>(null)
 
@@ -111,7 +137,8 @@ export default function MapPage() {
         m.touchZoomRotate.disableRotation()
         m.on('style.load', () => applyMapTheme(m, themeRef.current))
         m.once('load', () => !cancelled && setStatus('ready'))
-        m.on('click', () => setSelected((s) => (routeToRef.current ? s : null)))
+        // Tapping the map closes a place's sheet; a route in progress stays.
+        m.on('click', () => setSelected(routeToRef.current))
         map.current = m
       } catch {
         if (!cancelled) setStatus('failed')
@@ -191,6 +218,35 @@ export default function MapPage() {
   useEffect(() => {
     routeToRef.current = routeTo
   }, [routeTo])
+
+  useEffect(() => {
+    saveRoute(routeTo ? { to: routeTo, mode } : null)
+  }, [routeTo, mode])
+
+  // "Route ended · Undo" goes away by itself.
+  useEffect(() => {
+    if (!ended) return
+    const timer = window.setTimeout(() => setEnded(null), UNDO_MS)
+    return () => window.clearTimeout(timer)
+  }, [ended])
+
+  const startRoute = (id: string) => {
+    setRouteTo(id)
+    setSelected(id)
+    setMinimized(false)
+    setEnded(null)
+  }
+  const endRoute = () => {
+    if (routeTo) setEnded({ to: routeTo, mode })
+    setRouteTo(null)
+    setSelected(null)
+    setMinimized(false)
+  }
+  const undoEnd = () => {
+    if (!ended) return
+    setMode(ended.mode)
+    startRoute(ended.to)
+  }
 
 
   // One trip = one place and one way of travelling. Within a trip, the route is asked for again when
@@ -317,106 +373,61 @@ export default function MapPage() {
         )
       })}
 
-      {target ? (
-        <div className={styles.sheet} role="region" aria-label={`Route to ${target.item.name}`}>
+      {/* A place's sheet (tapped pin) sits over the route; closing it brings the route back. */}
+      {picked && picked.item.id !== routeTo ? (
+        <div className={styles.sheet} role="dialog" aria-label={picked.item.name}>
           <div className={styles.sheetHead}>
             <div className={styles.sheetTitle}>
-              <p className={page.meta}>Route to</p>
-              <h2 className={page.cardTitle}>{target.item.name}</h2>
+              <h2 className={page.cardTitle}>{picked.item.name}</h2>
+              <p className={page.meta}>
+                {picked.item.subtype ?? categoryLabel(picked.item.category, labels)}
+                {picked.km !== null && ` · ${formatDistance(picked.km)} away`}
+              </p>
+              <p className={page.meta}>{picked.item.landmark}</p>
             </div>
-            <button
-              type="button"
-              className={styles.close}
-              onClick={() => {
-                setRouteTo(null)
-                setSelected(null)
-              }}
-              aria-label="End route"
-            >
+            {isNew(picked.item, new Date()) && <span className={page.newBadge}>NEW</span>}
+            {picked.item.sample && <span className={page.sample}>SAMPLE</span>}
+            <SaveButton id={picked.item.id} name={picked.item.name} />
+            <button type="button" className={styles.close} onClick={() => setSelected(routeTo)} aria-label="Close">
               <X size={20} strokeWidth={2} aria-hidden="true" />
             </button>
           </div>
-
-          <p className={styles.routeInfo} aria-live="polite">
-            {route.kind === 'ready' && (
-              <>
-                <strong>
-                  {formatDistance(route.route.metres / 1000)} · {formatDuration(route.route.seconds)}
-                </strong>{' '}
-                {mode === 'car' ? 'by car or motorbike' : 'on foot'}
-              </>
-            )}
-            {route.kind === 'loading' && 'Finding the best route…'}
-            {route.kind === 'no-location' && 'Turn on location to see the route from where you are.'}
-            {route.kind === 'failed' && "Couldn't get a route right now. Google Maps can still guide you."}
-          </p>
-
-          <div className={styles.modes} role="group" aria-label="Travel by">
-            <button type="button" aria-pressed={mode === 'car'} onClick={() => setMode('car')}>
-              <Car size={18} strokeWidth={2} aria-hidden="true" />
-              Car
-            </button>
-            <button type="button" aria-pressed={mode === 'foot'} onClick={() => setMode('foot')}>
-              <Footprints size={18} strokeWidth={2} aria-hidden="true" />
-              Walk
-            </button>
-          </div>
-
           <div className={page.actions}>
-            <a
-              className={page.call}
-              href={directionsHref(target.item.lat!, target.item.lng!)}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`Start in Google Maps to ${target.item.name}`}
-            >
-              <Navigation size={18} strokeWidth={2} aria-hidden="true" />
-              Google Maps
-            </a>
-            {target.item.phone && (
-              <a className={page.secondary} href={telHref(target.item.phone)} aria-label={`Call ${target.item.name}`}>
+            {picked.item.phone && (
+              <a className={page.call} href={telHref(picked.item.phone)} aria-label={`Call ${picked.item.name}`}>
                 <Phone size={18} strokeWidth={2} aria-hidden="true" />
                 Call
               </a>
             )}
+            <button
+              type="button"
+              className={page.secondary}
+              onClick={() => startRoute(picked.item.id)}
+              aria-label={`Route to ${picked.item.name}`}
+            >
+              <RouteIcon size={18} strokeWidth={2} aria-hidden="true" />
+              {target ? 'Route here instead' : 'Route'}
+            </button>
           </div>
         </div>
+      ) : target ? (
+        <RouteSheet
+          place={target.item}
+          route={route}
+          mode={mode}
+          onMode={setMode}
+          minimized={minimized}
+          onMinimize={() => setMinimized(true)}
+          onExpand={() => setMinimized(false)}
+          onEnd={endRoute}
+        />
       ) : (
-        picked && (
-          <div className={styles.sheet} role="dialog" aria-label={picked.item.name}>
-            <div className={styles.sheetHead}>
-              <div className={styles.sheetTitle}>
-                <h2 className={page.cardTitle}>{picked.item.name}</h2>
-                <p className={page.meta}>
-                  {picked.item.subtype ?? categoryLabel(picked.item.category, labels)}
-                  {picked.km !== null && ` · ${formatDistance(picked.km)} away`}
-                </p>
-                <p className={page.meta}>{picked.item.landmark}</p>
-              </div>
-              {isNew(picked.item, new Date()) && <span className={page.newBadge}>NEW</span>}
-              {picked.item.sample && <span className={page.sample}>SAMPLE</span>}
-              <SaveButton id={picked.item.id} name={picked.item.name} />
-              <button type="button" className={styles.close} onClick={() => setSelected(null)} aria-label="Close">
-                <X size={20} strokeWidth={2} aria-hidden="true" />
-              </button>
-            </div>
-            <div className={page.actions}>
-              {picked.item.phone && (
-                <a className={page.call} href={telHref(picked.item.phone)} aria-label={`Call ${picked.item.name}`}>
-                  <Phone size={18} strokeWidth={2} aria-hidden="true" />
-                  Call
-                </a>
-              )}
-              <button
-                type="button"
-                className={page.secondary}
-                onClick={() => setRouteTo(picked.item.id)}
-                aria-label={`Route to ${picked.item.name}`}
-              >
-                <RouteIcon size={18} strokeWidth={2} aria-hidden="true" />
-                Route
-              </button>
-            </div>
+        ended && (
+          <div className={styles.toast} role="status">
+            <span>Route ended</span>
+            <button type="button" onClick={undoEnd}>
+              Undo
+            </button>
           </div>
         )
       )}
