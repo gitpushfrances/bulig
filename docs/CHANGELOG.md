@@ -21,6 +21,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Added
 
+- **Walking Ropi while loading** (branch `claude/project-thread-a5fkrh`): `RopiLoader.tsx` plays `ropi-walk.webp`, an 8-frame walk cycle cut from John's Canva video (1.2 MB MP4 → 80 KB WebP strip, background removed), above "Loading…" on Services, a category and Saved. It shows only after 400ms and stays still under reduced motion. Home and Emergency keep the plain "Loading…" line. Tests: walking on `/services`, never on `/` or `/emergency`.
 - **Ropi, the mascot** (PR #16): a golden-tan dog in a helmet, goggles, teal scarf and backpack, in four poses (`ready`, `friendly`, `thinking`, `head`). [UI-UX.md § Mascot: Ropi](UI-UX.md#mascot-ropi) says where Ropi goes (Saved empty state, no results, offline with nothing cached, welcome tip, Profile/About) and where never (Home, Hotlines, Call 911, the "What's wrong?" grid, results, place details, the Map, card taps). The images live in `app/public/assets/mascot/` as transparent 480px WebP files of about 30–40 KB each; that folder's README has the names and export rules. Ropi stands still and reacts only when tapped (a short wiggle plus floating icons drawn in code), with no movement under `prefers-reduced-motion`.
 - **Accounts, onboarding, Map and Others** (branch `feat/app-shell-map-onboarding`, 2026-10-30). Decided by John:
   - **Login** (`/login`): no header, no test shortcuts, no emergency button. Ropi's head as the mark on phones; a split screen with Ropi waving from 60rem. **Forgot password?** and **Create an account** under Sign in; **Continue without an account** (Emergency only) at the bottom. The test logins still work when typed.
@@ -76,6 +77,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Conflicts
 
+- **A looping Ropi against "moves only when tapped".** UI-UX.md said Ropi stands still unless tapped. The loading walk loops, so it is written in as the one exception: it only runs during a real wait, after 400ms, never on Home or Emergency, and not at all under reduced motion.
 - **Hotline card: Graphite against the pale-red spec.** UI-UX.md's component rules asked for a pale-red hotline card. With Graphite, the hotline is a near-black card with a red Call 911 button: it stays the strongest block on Home, and red is kept for the button alone. UI-UX.md § Theme: Graphite records the change.
 - **Welcome before Home against "nothing before 911".** A first open of `/` now shows Welcome. Kept because it shows once per phone, shared links (including `/emergency`) never redirect, and **Skip for now** is one tap to Home, where 911 comes first. Welcome first carried its own red Call 911 link; John removed it on 2026-10-29 because it cluttered the login (PR #19).
 

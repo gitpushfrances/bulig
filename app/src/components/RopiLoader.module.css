@@ -1,0 +1,35 @@
+/* Ropi walking: an 8-frame strip slid one frame at a time, so only transform moves.
+   index.css turns animations off under prefers-reduced-motion: Ropi then shows still, on the
+   first frame, straight away. */
+
+.loader {
+  display: block;
+  flex: none;
+  overflow: hidden;
+  animation: appear 0s 400ms both;
+}
+
+.strip {
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  pointer-events: none;
+  animation: walk 960ms steps(8) infinite;
+}
+
+/* Hidden for the first 400ms of loading, then shown at once. */
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes walk {
+  to {
+    transform: translateX(-100%);
+  }
+}
