@@ -113,7 +113,7 @@ Design for the smallest supported viewport first: **360 × 740 CSS px**, with es
 └────────────────────────────────┘
 ```
 
-- **Header:** show the compact Bulig wordmark and location control. The location reads **Near you** over the barangay and town (“Lahug, Cebu City”) when GPS resolves it; use a refresh affordance while a fresh fix is in progress. Tapping the location opens the area picker only when GPS is off, denied, or unavailable. Do not show a fake online indicator: offline state is explicit and labelled.
+- **Header:** show the compact Bulig wordmark and location control. The location is one plain line, **Near you · Lahug, Cebu City**, when GPS resolves it; use a refresh affordance while a fresh fix is in progress. Tapping the location opens the area picker only when GPS is off, denied, or unavailable. Do not show a fake online indicator: offline state is explicit and labelled.
 - **Emergency card:** pale-red surface, red border, dark-red heading, and a full-width red **Call 911** button. The action is visible immediately and uses `tel:911`; it never requires sign-in. Red is reserved for emergency actions, not routine service calls.
 - **Local quick calls:** show the selected area's verified MDRRMO, PNP, and BFP contacts when available. Omit missing or expired local contacts instead of rendering broken buttons. “All” opens Hotlines.
 - **What's wrong?:** six category actions in a consistent **3-column × 2-row** grid: Flat tire, Out of gas, Breakdown, Hospital, Food, Store. Each tile has one Phosphor icon and a visible text label; tapping it opens the matching Nearby Results filter. If the labels wrap at 360px, let them wrap naturally—do not shrink text below the type scale.
@@ -231,7 +231,7 @@ The tab holds:
 - Location is asked for when the app opens and then followed while it stays open (`watchPosition`), so the area updates as the driver moves. A refresh button next to the area asks for a fresh fix. There is no area search. (This replaces "ask on first use": John decided on 2026-10-29 that the area should find itself.)
 - If location is denied, missing or failing, the same spot becomes a plain area picker, and places sort by name.
 - Distances only show when location is known. The exact position never leaves the phone.
-- **Address:** Home shows a **Your location** card with the barangay, city or municipality, province and ZIP code (the words come from the country's `labels.json`). It comes from OpenStreetMap's free Nominatim reverse lookup, sent a position rounded to about 110 m, only when online, and again only after a 250 m move or a refresh. The last address is cached on the phone. A part the lookup leaves out is filled from the nearest listed area (an independent city like Cebu City has no province in OpenStreetMap); still missing, it shows a grey dash. Offline with no cache, the card says the address isn't available and the header shows the nearest listed area.
+- **Address:** the header shows one plain line, **Near you · <barangay>, <town>** ("Near you · Lahug, Cebu City"), one text size, no card or box, with the refresh button beside it. Province and postcode only appear in its tooltip. The address comes from OpenStreetMap's free Nominatim reverse lookup, sent a position rounded to about 110 m, only when online, and again only after a 250 m move or a refresh; the last one is cached on the phone. Without it, the line shows the nearest listed area.
 - Profile says plainly what is shared and when.
 
 **Ranking (Nearby results)**
@@ -504,7 +504,7 @@ Screens opened from tabs (not bottom tabs of their own):
 
 **Compatibility:** `/services` and `/about` were shared in v0.2 and must keep working. `/about` remains About. `/services` opens Nearby results with every category (“All”). If existing components still use `/services/:category`, keep those paths as aliases or redirects to the corresponding `/nearby/:need` route until all inbound links and tests are updated. Do not break a permanent link just to make the navigation cleaner.
 
-**Location control:** two lines, **Near you** over the barangay and town from the address lookup, or the nearest listed area when there is no address. If the nearest listed area is more than 30km away, show the area and its distance rather than silently implying a precise match. While refreshing, show a small progress indicator. A plain area picker replaces the location control only when GPS is off, denied, or unavailable.
+**Location control:** one line of plain text, **Near you · <barangay>, <town>** from the address lookup, or the nearest listed area when there is no address. If the nearest listed area is more than 30km away, show the area and its distance rather than silently implying a precise match. While refreshing, show a small progress indicator. A plain area picker replaces the location control only when GPS is off, denied, or unavailable.
 
 **Responsive layout:** phones use a top bar and four-tab bottom navigation. Tablets (48rem and up) may use an 88px navigation rail. Desktops (72rem and up) use a 240px labelled sidebar with content capped at a readable width. Wider screens may use two-column results, but mobile card order and emergency priority stay the same.
 

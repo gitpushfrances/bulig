@@ -40,6 +40,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Home, simpler** (branch `feat/home-bento`): the location is a single plain line in the header, "Near you · <barangay>, <town>", one text size, no box. The "Your location" card is gone. In its place Home opens with **What do you need?** and a bento grid of the seven services: Vulcanizing as the large tile with its nearest shop, the rest as small tiles with count and nearest distance (2 columns on phones, 4 from tablets, flush rows at both). The duplicate What we offer block on Home is removed, along with the card-only code (`AddressCard`, `timeAgo`, `addressLabel` and the `address` labels block).
 - Being offline shows once, as a pill in the header, instead of in each page's notices.
 - The About page no longer names a first stop; it describes Bulig for anywhere. UI-UX.md wireframes use `<town>` instead of pilot town names.
 - PWA `theme_color`, `background_color`, the `theme-color` meta tags, and the favicon and app icons use the new colours.

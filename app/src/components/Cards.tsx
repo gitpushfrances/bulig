@@ -3,8 +3,8 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { directionsHref, formatDate, telHref } from '../data/format.ts'
 import { categoryBlurb, categoryLabel, categorySlug, kindLabel } from '../data/labels.ts'
-import { formatDistance } from '../rules/nearby.ts'
-import type { Category, EmergencyContact, Labels, Service } from '../types.ts'
+import { formatDistance, type Ranked } from '../rules/nearby.ts'
+import { CATEGORIES, type Category, type EmergencyContact, type Labels, type Service } from '../types.ts'
 import styles from '../pages/Page.module.css'
 import { CATEGORY_ICONS, ICON_STROKE, KIND_ICONS } from './icons.ts'
 import SaveButton from './SaveButton.tsx'
@@ -265,5 +265,43 @@ export function NumberRow({ contact }: { contact: EmergencyContact }) {
         <Phone size={18} strokeWidth={2} aria-hidden="true" />
       </a>
     </li>
+  )
+}
+
+// Home's services at a glance: the first kind as a large tile with its nearest place, the rest as
+// small tiles. Seven tiles fill a 2-column grid on phones and a 4-column grid from tablets exactly.
+export function ServiceBento({ ranked, labels }: { ranked: Ranked<Service>[]; labels: Labels | null }) {
+  return (
+    <nav className={styles.bento} aria-label="Common services">
+      {CATEGORIES.map((category, i) => {
+        const Icon = CATEGORY_ICONS[category]
+        const inCategory = ranked.filter((r) => r.item.category === category)
+        const nearest = inCategory[0]
+        const feature = i === 0
+        return (
+          <Link
+            key={category}
+            to={`/services/${categorySlug(category)}`}
+            className={`${styles.bentoTile} ${feature ? styles.bentoFeature : ''}`}
+          >
+            <Icon className={styles.offerIcon} size={feature ? 30 : 22} strokeWidth={1.6} aria-hidden="true" />
+            <span className={styles.bentoName}>{categoryLabel(category, labels)}</span>
+            {feature && <span className={styles.offerBlurb}>{categoryBlurb(category)}</span>}
+            <span className={styles.bentoFoot}>
+              {inCategory.length === 0
+                ? 'None listed yet'
+                : `${inCategory.length} ${inCategory.length === 1 ? 'place' : 'places'}`}
+              {!feature && nearest?.km != null && <span> · {formatDistance(nearest.km)}</span>}
+            </span>
+            {feature && nearest && (
+              <span className={styles.bentoNearest}>
+                <span className={styles.bentoNearestName}>{nearest.item.name}</span>
+                <span>{nearest.km != null ? `Nearest · ${formatDistance(nearest.km)} away` : 'Nearest listed'}</span>
+              </span>
+            )}
+          </Link>
+        )
+      })}
+    </nav>
   )
 }

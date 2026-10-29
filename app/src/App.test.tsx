@@ -19,7 +19,7 @@ function tabLinks() {
 
 describe('App shell', () => {
   it.each([
-    ['/', 'Help along the way', 'Home'],
+    ['/', 'What do you need?', 'Home'],
     ['/services', 'What we offer', 'Services'],
     ['/services/fuel', 'Gas station', 'Services'],
     ['/emergency', 'Emergency Help', 'Emergency'],
