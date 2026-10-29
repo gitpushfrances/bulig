@@ -8,11 +8,108 @@
       "area": null,
       "name": "National Emergency Hotline",
       "kind": "national",
-      "phones": [
-        "911"
-      ],
+      "phones": ["911"],
       "verifiedAt": "2026-10-29",
       "source": "Emergency 911 national hotline (Executive Order No. 56, 2016)"
+    },
+    {
+      "id": "ph-metro-manila-quezon-city-police",
+      "country": "PH",
+      "area": "ph-metro-manila-quezon-city",
+      "name": "Quezon City Police Station (SAMPLE)",
+      "kind": "police",
+      "phones": ["+63 2 000 0011"],
+      "verifiedAt": "2026-10-22",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-metro-manila-quezon-city-fire",
+      "country": "PH",
+      "area": "ph-metro-manila-quezon-city",
+      "name": "Quezon City Fire Station (SAMPLE)",
+      "kind": "fire",
+      "phones": ["+63 2 000 0012"],
+      "verifiedAt": "2026-10-22",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-benguet-baguio-rescue",
+      "country": "PH",
+      "area": "ph-benguet-baguio",
+      "name": "Baguio City Rescue (SAMPLE)",
+      "kind": "rescue",
+      "phones": ["+63 74 000 0021", "+63 900 000 0021"],
+      "verifiedAt": "2026-10-18",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-camarines-sur-naga-disaster",
+      "country": "PH",
+      "area": "ph-camarines-sur-naga",
+      "name": "Naga City Disaster Office (SAMPLE)",
+      "kind": "disaster",
+      "phones": ["+63 54 000 0031"],
+      "verifiedAt": "2026-10-15",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-palawan-puerto-princesa-coast-guard",
+      "country": "PH",
+      "area": "ph-palawan-puerto-princesa",
+      "name": "Puerto Princesa Coast Guard (SAMPLE)",
+      "kind": "coast_guard",
+      "phones": ["+63 48 000 0041"],
+      "verifiedAt": "2026-10-12",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-iloilo-iloilo-city-medical",
+      "country": "PH",
+      "area": "ph-iloilo-iloilo-city",
+      "name": "Iloilo City Ambulance (SAMPLE)",
+      "kind": "medical",
+      "phones": ["+63 33 000 0051"],
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-cebu-cebu-city-police",
+      "country": "PH",
+      "area": "ph-cebu-cebu-city",
+      "name": "Cebu City Police Station (SAMPLE)",
+      "kind": "police",
+      "phones": ["+63 32 000 0061"],
+      "verifiedAt": "2026-10-21",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-cebu-cebu-city-coast-guard",
+      "country": "PH",
+      "area": "ph-cebu-cebu-city",
+      "name": "Cebu Coast Guard Station (SAMPLE)",
+      "kind": "coast_guard",
+      "phones": ["+63 32 000 0062"],
+      "verifiedAt": "2026-10-21",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-leyte-tacloban-disaster",
+      "country": "PH",
+      "area": "ph-leyte-tacloban",
+      "name": "Tacloban City Disaster Office (SAMPLE)",
+      "kind": "disaster",
+      "phones": ["+63 53 000 0071"],
+      "verifiedAt": "2026-10-19",
+      "source": "Sample data, not a real number",
+      "sample": true
     },
     {
       "id": "ph-eastern-samar-guiuan-police",
@@ -20,9 +117,7 @@
       "area": "ph-eastern-samar-guiuan",
       "name": "Guiuan Police Station (SAMPLE)",
       "kind": "police",
-      "phones": [
-        "+63 55 000 0001"
-      ],
+      "phones": ["+63 55 000 0001"],
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real number",
       "sample": true
@@ -33,10 +128,7 @@
       "area": "ph-eastern-samar-guiuan",
       "name": "Guiuan MDRRMO (SAMPLE)",
       "kind": "disaster",
-      "phones": [
-        "+63 55 000 0002",
-        "+63 900 000 0002"
-      ],
+      "phones": ["+63 55 000 0002", "+63 900 000 0002"],
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real number",
       "sample": true
@@ -47,9 +139,7 @@
       "area": "ph-eastern-samar-mercedes",
       "name": "Mercedes Fire Station (SAMPLE)",
       "kind": "fire",
-      "phones": [
-        "+63 55 000 0003"
-      ],
+      "phones": ["+63 55 000 0003"],
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real number",
       "sample": true
@@ -60,11 +150,31 @@
       "area": "ph-eastern-samar-mercedes",
       "name": "Mercedes Rescue (SAMPLE, expired on purpose)",
       "kind": "rescue",
-      "phones": [
-        "+63 55 000 0004"
-      ],
+      "phones": ["+63 55 000 0004"],
       "verifiedAt": "2025-01-15",
       "source": "Sample data: last checked over 180 days ago, so the app must hide it",
+      "sample": true
+    },
+    {
+      "id": "ph-davao-del-sur-davao-city-medical",
+      "country": "PH",
+      "area": "ph-davao-del-sur-davao-city",
+      "name": "Davao City Ambulance (SAMPLE)",
+      "kind": "medical",
+      "phones": ["+63 82 000 0081"],
+      "verifiedAt": "2026-10-23",
+      "source": "Sample data, not a real number",
+      "sample": true
+    },
+    {
+      "id": "ph-davao-del-sur-davao-city-fire",
+      "country": "PH",
+      "area": "ph-davao-del-sur-davao-city",
+      "name": "Davao City Fire Station (SAMPLE)",
+      "kind": "fire",
+      "phones": ["+63 82 000 0082"],
+      "verifiedAt": "2026-10-23",
+      "source": "Sample data, not a real number",
       "sample": true
     }
   ]

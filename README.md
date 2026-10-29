@@ -28,10 +28,12 @@ Bulig is a free, offline-first web app (PWA) for people on the road. It has two 
 | [docs/ROADMAP.md](docs/ROADMAP.md) | **When** to build each part: phases, Jira tickets, steps, "done when" lists |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **How** each part is built and what it plugs into (the four spines) |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Every change, error, conflict and big decision, newest first |
+| [docs/UI-UX.md](docs/UI-UX.md) | **How it looks and behaves**: the Ocean Depths theme, tokens, type, icons, screens and UX rules |
+| [docs/WORKFLOW.md](docs/WORKFLOW.md) | **Who does what**: areas, roles (user, moderator, admin), sign-in, how records and code changes flow |
 
 ## Stack
 
-- **Frontend:** Vite 8.3, React 19.3, TypeScript 6.0.x, React Router 8, ESLint, plain CSS Modules
+- **Frontend:** Vite 8.3, React 19.3, TypeScript 6.0.x, React Router 8, ESLint, plain CSS Modules, lucide-react icons, Lexend and Source Sans 3 (self-hosted with Fontsource)
 - **Coming in Phase 2:** vite-plugin-pwa 2.0, Vitest 5, `ajv` for schema checks
 - **Data (Phases 1 to 3):** JSON files in `app/public/data/`
 - **Hosting:** Cloudflare Worker with static assets, free plan (see [Deploy](#deploy))

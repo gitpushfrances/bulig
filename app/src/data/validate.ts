@@ -25,6 +25,8 @@ function checkItem(kind: FileKind, item: Rec): string[] {
   if (kind === 'areas') {
     need(isText(item.region), 'region')
     need(Array.isArray(item.languages) && item.languages.length > 0, 'languages')
+    need(item.level === undefined || isText(item.level), 'level')
+    need(item.parent === undefined || item.parent === null || isText(item.parent), 'parent')
     return problems
   }
 

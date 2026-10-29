@@ -1,17 +1,13 @@
 import { useAppData } from '../data/context.ts'
 import styles from '../pages/Page.module.css'
 
-// Loading, error, offline and sample-data notes, shared by Emergency and Services.
+// Loading, error and sample-data notes, shared by every page that shows records.
+// Being offline is shown once, in the header (Layout).
 export default function DataNotice({ hasSamples }: { hasSamples: boolean }) {
-  const { data, online, retry } = useAppData()
+  const { data, retry } = useAppData()
 
   return (
     <>
-      {!online && data.status === 'ready' && (
-        <p className={styles.notice} role="status">
-          Offline, showing saved data.
-        </p>
-      )}
       {data.status === 'loading' && (
         <p className={styles.notice} role="status">
           Loading…
@@ -27,8 +23,10 @@ export default function DataNotice({ hasSamples }: { hasSamples: boolean }) {
       )}
       {hasSamples && (
         <p className={`${styles.notice} ${styles.warn}`}>
-          <strong>Sample data.</strong> Places and local numbers marked SAMPLE are made up for
-          testing. Don&apos;t call them.
+          <span>
+            <strong>Sample data.</strong> Places and local numbers marked SAMPLE are made up for testing.
+            Don&apos;t call them.
+          </span>
         </p>
       )}
     </>

@@ -15,7 +15,9 @@ describe('App shell', () => {
   it.each([
     ['/', 'Emergency Help', 'Emergency'],
     ['/services', 'Services', 'Services'],
-    ['/about', 'About Bulig', 'About'],
+    ['/saved', 'Saved', 'Saved'],
+    ['/account', 'Account', 'Account'],
+    ['/about', 'About Bulig', 'Account'],
   ])('%s shows its page and marks its tab active', (path, heading, tab) => {
     renderAt(path)
 
@@ -24,11 +26,11 @@ describe('App shell', () => {
     expect(within(nav).getByRole('link', { name: tab })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('always shows the three tabs in order', () => {
+  it('always shows the four tabs in order', () => {
     renderAt('/services')
 
     const links = within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link')
-    expect(links.map((link) => link.textContent)).toEqual(['Emergency', 'Services', 'About'])
+    expect(links.map((link) => link.textContent)).toEqual(['Emergency', 'Services', 'Saved', 'Account'])
   })
 
   it('shows a not found page for unknown paths', () => {

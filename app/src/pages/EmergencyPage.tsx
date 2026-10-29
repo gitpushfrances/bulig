@@ -1,92 +1,81 @@
 import AreaPicker from '../components/AreaPicker.tsx'
+import { ContactCard, HotlineCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import { useAppData } from '../data/context.ts'
 import { FALLBACK_EMERGENCY } from '../data/countries.ts'
-import { formatDate, telHref } from '../data/format.ts'
-import { kindLabel } from '../data/labels.ts'
+import { countryName } from '../data/format.ts'
 import { visibleContacts } from '../rules/emergency.ts'
-import type { Area, EmergencyContact } from '../types.ts'
+import type { EmergencyContact } from '../types.ts'
 import styles from './Page.module.css'
-
-function ContactCard({ contact, areaName }: { contact: EmergencyContact; areaName?: string }) {
-  const national = contact.kind === 'national'
-  return (
-    <li className={`${styles.card} ${national ? styles.national : ''}`}>
-      <div className={styles.cardHead}>
-        <h2 className={styles.cardTitle}>{contact.name}</h2>
-        {contact.sample && <span className={styles.sample}>SAMPLE</span>}
-      </div>
-      <p className={styles.meta}>
-        {kindLabel(contact.kind)}
-        {areaName && ` · ${areaName}`}
-      </p>
-      <div className={styles.actions}>
-        {contact.phones.map((phone, i) => (
-          <a
-            key={phone}
-            className={i === 0 ? styles.call : styles.secondary}
-            href={telHref(phone)}
-            aria-label={`Call ${contact.name} at ${phone}`}
-          >
-            Call {phone}
-          </a>
-        ))}
-      </div>
-      {contact.verifiedAt && <p className={styles.checked}>Last checked {formatDate(contact.verifiedAt)}</p>}
-    </li>
-  )
-}
 
 export default function EmergencyPage() {
   const { country, data, area } = useAppData()
   const fallback = FALLBACK_EMERGENCY[country]
+  const ready = data.status === 'ready'
 
-  let contacts: EmergencyContact[] = []
-  let areaNames = new Map<string, string>()
-  if (data.status === 'ready') {
-    contacts = visibleContacts(data.emergency, area, new Date())
-    areaNames = new Map(data.areas.map((a: Area) => [a.id, a.name]))
-  }
+  const contacts = ready ? visibleContacts(data.emergency, area, new Date()) : []
+  const national = contacts.filter((c) => c.kind === 'national' && c.area === null)
+  const local = contacts.filter((c) => !national.includes(c))
+  const areaNames = new Map(ready ? data.areas.map((a) => [a.id, a.name]) : [])
+  const picked = area ? areaNames.get(area) : undefined
+
+  // Until data loads (or if it never does), the national number is still one tap away.
+  const hotlines: EmergencyContact[] =
+    ready || !fallback
+      ? national
+      : [
+          {
+            id: 'fallback',
+            country,
+            area: null,
+            name: 'National emergency hotline',
+            kind: 'national',
+            phones: [fallback],
+            verifiedAt: '',
+            source: 'built-in fallback',
+          },
+        ]
 
   return (
     <section className={styles.page} aria-labelledby="emergency-title">
-      <h1 id="emergency-title" className={styles.title}>
-        Emergency Help
-      </h1>
-      <p className={styles.lead}>Checked emergency numbers for where you are. No login needed.</p>
+      <div className={styles.intro}>
+        <h1 id="emergency-title" className={styles.title}>
+          Emergency Help
+        </h1>
+        <p className={styles.lead}>Checked emergency numbers for where you are. No login needed.</p>
+      </div>
 
-      <DataNotice hasSamples={contacts.some((c) => c.sample)} />
+      {hotlines.map((c) => (
+        <HotlineCard key={c.id} contact={c} countryName={countryName(country)} />
+      ))}
 
-      {/* Until data loads (or if it never does), the national number is still one tap away. */}
-      {data.status !== 'ready' && fallback && (
-        <ul className={styles.list}>
-          <ContactCard
-            contact={{
-              id: 'fallback',
-              country,
-              area: null,
-              name: 'National Emergency Hotline',
-              kind: 'national',
-              phones: [fallback],
-              verifiedAt: '',
-              source: 'built-in fallback',
-            }}
-          />
-        </ul>
-      )}
+      <DataNotice hasSamples={local.some((c) => c.sample)} />
 
-      <AreaPicker />
-
-      {data.status === 'ready' && (
-        <ul className={styles.list} aria-label="Emergency numbers">
-          {contacts.map((c) => (
-            <ContactCard
-              key={c.id}
-              contact={c}
-              areaName={area === null && c.area ? areaNames.get(c.area) : undefined}
-            />
-          ))}
-        </ul>
+      {ready && (
+        <>
+          <AreaPicker />
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>Local numbers</h2>
+            <p className={styles.count}>
+              {local.length} {local.length === 1 ? 'number' : 'numbers'} {picked ? `in ${picked}` : 'in all areas'}
+            </p>
+          </div>
+          {local.length === 0 ? (
+            <p className={styles.card}>
+              No checked local numbers here yet. The national hotline above always works.
+            </p>
+          ) : (
+            <ul className={styles.list} aria-label="Local emergency numbers">
+              {local.map((c) => (
+                <ContactCard
+                  key={c.id}
+                  contact={c}
+                  areaName={area === null && c.area ? areaNames.get(c.area) : undefined}
+                />
+              ))}
+            </ul>
+          )}
+        </>
       )}
 
       <p className={styles.footnote}>

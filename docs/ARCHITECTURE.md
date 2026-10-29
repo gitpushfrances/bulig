@@ -57,7 +57,9 @@ export interface Area {
   id: AreaId;
   country: CountryCode;
   name: string;              // "Guiuan"
-  region: string;            // "Eastern Samar"
+  region: string;            // province or region: "Eastern Samar"
+  level?: string;            // the country's word for it: "city", "municipality", "barangay"
+  parent?: AreaId | null;    // the area it sits inside (a barangay's city); null = top level
   languages: string[];       // BCP 47, first is the default UI language: ["en", "war"]
 }
 
@@ -145,7 +147,10 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 
 ### 4. Identity
 
-- Phases 1 to 4: no user accounts. Only you log in, and only to Filament.
+Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In short: **user**, **moderator** (scoped to an area and the areas inside it) and **admin**, decided by one function, `can()` in `app/src/rules/permissions.ts`.
+
+- Now (test UI): one hardcoded test login (`test@bulig.com`), role user, kept on the phone, so testers can try saving. It is not security and is removed when Phase 4 sign-in lands. Pages only call `useAuth()`.
+- Phases 1 to 4: no real user accounts. Only you log in, and only to Filament.
 - Phase 5: business owners sign in (Sanctum tokens, Google sign-in through Socialite). Road users still never need an account. They can submit reports without one, with rate limits.
 - Emergency Help never needs an account, in any phase.
 
@@ -294,6 +299,7 @@ Build only what the pilot proved people want. If they're built, these are the de
 | Phase | Change | Version |
 | --- | --- | --- |
 | 2 | `Area`, `EmergencyContact`, `Service`, `Category` and `Envelope` created, with `country` and `area` on every record | 1 |
+| 3 | `Area.level` and `Area.parent` (both optional) for city, municipality and later barangay areas | 1 |
 | 5 | `hazards.schema.json` added; `Service.ownerVerified` (optional) | 1 |
 | 7 | New areas and countries (data only); `Service.featured` (optional) | 1 |
 

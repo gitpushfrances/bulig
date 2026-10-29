@@ -17,7 +17,37 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 ## [Unreleased]
 
-Phase 3: First pilot in Guiuan + Mercedes, Philippines (target `v0.3`).
+Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pilot areas are only where verified data starts.
+
+### Added
+
+- **Ocean Depths theme** (branch `feat/ocean-theme-demo-login`): deep sea blue, teal and one bright aqua for "Call 911", in light and dark. Tokens in three layers (primitive, semantic, component) in `src/index.css`. Documented in the new [docs/UI-UX.md](UI-UX.md).
+- **Cleaner UI:** a light header, a 4-tab bar (Emergency, Services, Saved, Account) with a neutral active pill, a hotline card with the national number at display size and the country name from `Intl.DisplayNames`, cards with one Lucide icon per category and contact kind, area picker grouped by province, category chips with icons, results count, and an empty state with "Clear search and category".
+- **Fonts and icons:** Lexend and Source Sans 3 self-hosted through Fontsource (Latin files precached, so they work offline), and `lucide-react` icons.
+- **Test sign-in and saving:** `/account` signs in with one hardcoded test login, `test@bulig.com` / `password` (role user). Signed in, the bookmark on any place or local number saves it; `/saved` lists them. Signed out, the bookmark links to Account and returns afterwards. Session and saved IDs live in `localStorage` on the phone.
+- **Roles in the system:** user, moderator (per area: city, municipality, later barangay, covering the areas inside it) and admin, with `can()` and `isWithin()` in `src/rules/permissions.ts` and tests. No role screens yet. Described in the new [docs/WORKFLOW.md](WORKFLOW.md) with the record, sign-in and code-change flows.
+- **More sample data across the Philippines:** 10 areas (Quezon City, Baguio, Naga, Puerto Princesa, Iloilo City, Cebu City, Tacloban, Guiuan, Mercedes, Davao City), 15 local numbers (one expired on purpose) and 22 places in every category. All still SAMPLE with `000` phone blocks.
+- Tests for sign-in, sign-out, saving, the sign-in redirect, permissions and the area hierarchy (57 in total).
+
+### Changed
+
+- Being offline shows once, as a pill in the header, instead of in each page's notices.
+- The About page no longer names a first stop; it describes Bulig for anywhere.
+- PWA `theme_color`, `background_color`, `theme-color` meta tags and the favicon and app icons use the new colours.
+- Mobile fixes from the mobile-native skill: no tap flash, no pull-to-refresh fight, hover only on devices that hover, 16px inputs, buttons don't select on long-press.
+
+### Big changes
+
+- **Contract (additive, still version 1):** `Area` gains optional `level` and `parent`, so barangays can be added later as data. `validateEnvelope()` checks both, and a data test checks every `parent` exists. [ARCHITECTURE.md](ARCHITECTURE.md#1-data-contract) is updated.
+- **Routes:** `/saved` and `/account` are new. `/about` stays (under the Account tab).
+
+### Conflicts
+
+- **Identity arrives before Phase 4.** ARCHITECTURE.md said no user accounts until Phase 4, and Roadmap ground rule 5 says one phase at a time. The owner asked for a test sign-in and roles now, so the owner's request won. It's kept small on purpose: one test login, role rules as pure functions, no backend. [ARCHITECTURE.md](ARCHITECTURE.md#4-identity) is updated to say so.
+
+### Security
+
+- The test login ships in the app's JavaScript and protects nothing. It only exists so testers can try saving. Remove `src/auth/testAccount.ts` when Phase 4 sign-in lands, and never put a real password in the app.
 
 ---
 

@@ -1,44 +1,121 @@
-:root {
-  --bg: #fafaf9;
-  --surface: #ffffff;
-  --text: #1c1917;
-  --text-muted: #57534e;
-  --border: #e7e5e4;
-  --accent: #c2410c;
-  --accent-text: #ffffff;
-  --accent-soft: #ffedd5;
-  --focus: #2563eb;
-  --sample-bg: #e7e5e4;
-  --sample-text: #292524;
+/* Ocean Depths. Tokens come in three layers (docs/UI-UX.md, "Tokens"):
+   primitives are raw values, semantic tokens name a job, component tokens name a part.
+   Components only use semantic or component tokens, never a primitive or a raw hex. */
 
-  --font: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --radius: 12px;
+@import '@fontsource-variable/lexend/wght.css';
+@import '@fontsource-variable/source-sans-3/wght.css';
+
+:root {
+  /* 1. Primitives */
+  --ocean-990: #061a22;
+  --ocean-950: #0a2230;
+  --ocean-925: #0c2733;
+  --ocean-900: #0b2530;
+  --ocean-850: #0f3b4b;
+  --ocean-800: #0b3b4f;
+  --ocean-750: #1e4250;
+  --ocean-700: #0e7490;
+  --ocean-650: #0b5a70;
+  --ocean-400: #22d3ee;
+  --ocean-300: #67e8f9;
+  --ocean-200: #a5f3fc;
+  --ocean-100: #ddf3f7;
+  --ocean-75: #e2ecef;
+  --ocean-50: #f1f6f8;
+  --slate-700: #48616c;
+  --slate-600: #1f3640;
+  --slate-300: #a6c1ca;
+  --slate-200: #d3e1e6;
+  --slate-150: #e3eaed;
+  --slate-50: #e6f4f7;
+  --aqua-400: #2dd4bf;
+  --aqua-950: #062a33;
+  --kelp-700: #047857;
+  --kelp-300: #34d399;
+  --white: #ffffff;
+
+  --font-display: 'Lexend Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Source Sans 3 Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --press-ms: 160ms;
+
+  /* 2. Semantic, light */
+  --color-bg: var(--ocean-50);
+  --color-surface: var(--white);
+  --color-text: var(--ocean-900);
+  --color-text-muted: var(--slate-700);
+  --color-border: var(--slate-200);
+  --color-primary: var(--ocean-700);
+  --color-on-primary: var(--white);
+  --color-primary-text: var(--ocean-650);
+  --color-selected: var(--ocean-75);
+  --color-deep: var(--ocean-800);
+  --color-on-deep: var(--white);
+  --color-on-deep-muted: #cfe7ee;
+  --color-flare: var(--aqua-400);
+  --color-on-flare: var(--aqua-950);
+  --color-checked: var(--kelp-700);
+  --color-sample-bg: var(--slate-150);
+  --color-sample-text: var(--slate-600);
+  --color-status-bg: var(--ocean-100);
+  --color-status-text: var(--ocean-650);
+  --color-focus: var(--ocean-700);
+  --color-selection: #c7eef5;
+  --color-error: #b42318;
+
+  /* 3. Component */
+  --button-call-bg: var(--color-primary);
+  --button-call-text: var(--color-on-primary);
+  --hotline-bg: var(--color-deep);
+  --hotline-call-bg: var(--color-flare);
+  --hotline-call-text: var(--color-on-flare);
+  --chip-active-bg: var(--color-primary);
+  --chip-active-text: var(--color-on-primary);
+  --tab-active-bg: var(--color-selected);
+  --radius-card: 16px;
+  --radius-control: 12px;
   --gutter: 16px;
   --content-max: 48rem;
-  --tabbar-h: 64px;
+  --tabbar-h: 68px;
 
   color-scheme: light dark;
-  font: 16px/1.5 var(--font);
-  color: var(--text);
-  background: var(--bg);
+  font: 16px/1.5 var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  caret-color: var(--color-primary);
+  accent-color: var(--color-primary);
+  scrollbar-color: var(--color-border) transparent;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1c1917;
-    --surface: #292524;
-    --text: #fafaf9;
-    --text-muted: #d6d3d1;
-    --border: #44403c;
-    --accent: #fb923c;
-    --accent-text: #1c1917;
-    --accent-soft: #431407;
-    --focus: #93c5fd;
-    --sample-bg: #44403c;
-    --sample-text: #fafaf9;
+    --color-bg: var(--ocean-990);
+    --color-surface: var(--ocean-925);
+    --color-text: var(--slate-50);
+    --color-text-muted: var(--slate-300);
+    --color-border: var(--ocean-750);
+    --color-primary: var(--ocean-400);
+    --color-on-primary: #052029;
+    --color-primary-text: var(--ocean-300);
+    --color-selected: var(--ocean-850);
+    --color-deep: var(--ocean-700);
+    --color-on-deep: var(--white);
+    --color-on-deep-muted: #e0f5fa;
+    --color-flare: var(--aqua-400);
+    --color-on-flare: var(--aqua-950);
+    --color-checked: var(--kelp-300);
+    --color-sample-bg: #1e3a46;
+    --color-sample-text: var(--slate-50);
+    --color-status-bg: var(--ocean-850);
+    --color-status-text: var(--ocean-200);
+    --color-focus: var(--ocean-300);
+    --color-selection: #155e75;
+    --color-error: #fda29b;
   }
 }
 
@@ -51,7 +128,12 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: var(--bg);
+  background: var(--color-bg);
+}
+
+::selection {
+  background: var(--color-selection);
+  color: var(--color-text);
 }
 
 h1,
@@ -61,6 +143,13 @@ p {
   margin: 0;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
 img,
 svg {
   display: block;
@@ -68,11 +157,33 @@ svg {
 }
 
 a {
-  color: var(--accent);
+  color: var(--color-primary-text);
+  text-underline-offset: 3px;
+}
+
+/* 16px stops iOS from zooming into a field. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* Controls answer the finger at once and never select their own label on long-press. */
+button,
+a,
+select,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+button,
+[role='button'] {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 

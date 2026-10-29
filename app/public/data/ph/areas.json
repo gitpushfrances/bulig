@@ -3,10 +3,75 @@
   "updatedAt": "2026-10-29T00:00:00Z",
   "items": [
     {
+      "id": "ph-metro-manila-quezon-city",
+      "country": "PH",
+      "name": "Quezon City",
+      "region": "Metro Manila",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-benguet-baguio",
+      "country": "PH",
+      "name": "Baguio",
+      "region": "Benguet",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "fil", "ilo"]
+    },
+    {
+      "id": "ph-camarines-sur-naga",
+      "country": "PH",
+      "name": "Naga",
+      "region": "Camarines Sur",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "fil", "bik"]
+    },
+    {
+      "id": "ph-palawan-puerto-princesa",
+      "country": "PH",
+      "name": "Puerto Princesa",
+      "region": "Palawan",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-iloilo-iloilo-city",
+      "country": "PH",
+      "name": "Iloilo City",
+      "region": "Iloilo",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "hil"]
+    },
+    {
+      "id": "ph-cebu-cebu-city",
+      "country": "PH",
+      "name": "Cebu City",
+      "region": "Cebu",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "ceb"]
+    },
+    {
+      "id": "ph-leyte-tacloban",
+      "country": "PH",
+      "name": "Tacloban",
+      "region": "Leyte",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "war"]
+    },
+    {
       "id": "ph-eastern-samar-guiuan",
       "country": "PH",
       "name": "Guiuan",
       "region": "Eastern Samar",
+      "level": "municipality",
+      "parent": null,
       "languages": ["en", "war"]
     },
     {
@@ -14,7 +79,18 @@
       "country": "PH",
       "name": "Mercedes",
       "region": "Eastern Samar",
+      "level": "municipality",
+      "parent": null,
       "languages": ["en", "war"]
+    },
+    {
+      "id": "ph-davao-del-sur-davao-city",
+      "country": "PH",
+      "name": "Davao City",
+      "region": "Davao del Sur",
+      "level": "city",
+      "parent": null,
+      "languages": ["en", "ceb"]
     }
   ]
 }

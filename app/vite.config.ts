@@ -15,8 +15,8 @@ export default defineConfig({
         lang: 'en',
         start_url: '/',
         display: 'standalone',
-        theme_color: '#c2410c',
-        background_color: '#fafaf9',
+        theme_color: '#f1f6f8',
+        background_color: '#f1f6f8',
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
@@ -27,7 +27,9 @@ export default defineConfig({
       workbox: {
         // The data files are precached with the app shell, so the first visit is enough to work
         // offline. Each deploy changes their hash and the service worker fetches the new ones.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}', 'data/**/*.json'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}', 'data/**/*.json'],
+        // Only the Latin font files go in the offline cache; other scripts load when a page needs them.
+        globIgnores: ['**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-wght-normal-*.woff2'],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
       },
