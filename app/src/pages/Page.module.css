@@ -487,6 +487,115 @@
   padding-top: 2px;
 }
 
+/* ---------- Home bento ---------- */
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(6.75rem, auto);
+  gap: 12px;
+}
+
+.bentoTile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  transition:
+    transform var(--press-ms) var(--ease-out),
+    border-color 160ms ease;
+}
+
+.bentoTile:active {
+  transform: scale(0.98);
+}
+
+.bentoTile .offerIcon {
+  margin-bottom: 6px;
+}
+
+.bentoName {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.bentoFoot {
+  margin-top: auto;
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bentoFoot span {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.bentoFeature {
+  grid-row: span 2;
+  padding: 18px;
+  background: var(--color-selected);
+  border-color: transparent;
+}
+
+.bentoFeature .bentoName {
+  font-size: 1.25rem;
+}
+
+.bentoFeature .bentoFoot {
+  margin-top: 8px;
+}
+
+.bentoNearest {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.bentoNearestName {
+  overflow: hidden;
+  color: var(--color-text);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 48rem) {
+  .bento {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .bentoFeature {
+    grid-column: span 2;
+  }
+
+  /* Row three: the last two tiles share it evenly, so the grid closes flush. */
+  .bento > :nth-child(6),
+  .bento > :nth-child(7) {
+    grid-column: span 2;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bentoTile:hover {
+    border-color: var(--color-primary);
+  }
+}
+
 /* ---------- Compact rows (Home previews) ---------- */
 
 .panel {
@@ -558,55 +667,6 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
-  color: var(--color-text-muted);
-}
-
-/* ---------- Your location ---------- */
-
-.addressGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 16px;
-  margin: 12px 0 0;
-}
-
-@media (min-width: 48rem) {
-  .addressGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.addressGrid div {
-  min-width: 0;
-}
-
-.addressGrid dt {
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.addressGrid dd {
-  margin: 2px 0 0;
-  font-size: 1rem;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.addressGrid dd.missing {
-  color: var(--color-text-muted);
-  font-weight: 500;
-}
-
-.addressOff {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.addressOff svg {
-  flex: none;
-  margin-top: 2px;
   color: var(--color-text-muted);
 }
 

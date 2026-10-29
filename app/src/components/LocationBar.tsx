@@ -28,7 +28,7 @@ export default function LocationBar() {
   const canRetry = status !== 'unavailable'
   const street = address ? shortAddress(address.address) : ''
 
-  // Top line says how we know; the bottom line says where. The looked-up barangay and town win;
+  // One line of plain text: how we know, then where. The looked-up barangay and town win;
   // without them, the nearest listed area (and how far it is when it isn't really "here").
   let place: string | null = null
   if (fromGps) place = street || (areaKm <= NEAR_KM ? name ?? null : `${name}, ${formatDistance(areaKm)} away`)
@@ -43,10 +43,11 @@ export default function LocationBar() {
     <div className={styles.location}>
       {place ? (
         <p className={styles.locationText} aria-live="polite" title={full}>
-          <LocateFixed size={18} strokeWidth={2} aria-hidden="true" />
-          <span className={styles.locationLines}>
+          <LocateFixed size={16} strokeWidth={2} aria-hidden="true" />
+          <span className={styles.locationLine}>
             <span className={styles.locationLabel}>{fromGps ? 'Near you' : 'Locating'}</span>
-            <span className={styles.locationPlace}>{place}</span>
+            <span aria-hidden="true"> · </span>
+            <span>{place}</span>
           </span>
         </p>
       ) : (
