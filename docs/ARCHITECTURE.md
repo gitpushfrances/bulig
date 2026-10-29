@@ -63,7 +63,7 @@ export interface Area {
   languages: string[];       // BCP 47, first is the default UI language: ["en", "war"]
 }
 
-export type Category = 'tire_repair' | 'mechanic' | 'hospital' | 'fuel' | 'food' | 'store';
+export type Category = 'tire_repair' | 'mechanic' | 'fuel' | 'hospital' | 'food' | 'lodging' | 'store';
 
 export interface EmergencyContact {
   id: string;                // stable slug, e.g. "ph-eastern-samar-guiuan-mdrrmo"
@@ -208,7 +208,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 | Analytics | Cloudflare Web Analytics script tag. No cookies, no consent banner needed. |
 | Navigation | Screens and flows are specified in [UI-UX.md](UI-UX.md). Tabs: `/` Home, `/map`, `/saved`, `/profile`. Pushed screens: `/hotlines`, `/nearby/:need`, `/place/:id`, `/about`. `/services` renders Nearby results with every category, so v0.2 links still work. |
 | Needs | `app/src/rules/needs.ts` maps each need (`flat-tire`, `out-of-gas`, `breakdown`, `hospital`, `food`, `store`) to a category and its filter chips. Data, not page code, so a new need is one entry. |
-| Location | `useLocation()` wraps `navigator.geolocation.getCurrentPosition` (no `watchPosition`, to save battery). It's asked for on first use of a need button or the Map, never on open. `nearestArea(position, areas)` picks the town from `Area.lat/lng`; the picked town in `localStorage` is the fallback. |
+| Location | `LocationProvider` (`app/src/location/`) follows the phone with `navigator.geolocation.watchPosition` (coarse, fixes up to 60 s old, to save battery) from when the app opens, and `refresh()` asks for one fresh fix. `nearestArea(position, areas)` in `app/src/rules/nearby.ts` picks the area from `Area.lat/lng`; `DataProvider` uses it and falls back to the last area in `localStorage`. `byDistance()` ranks places nearest first. The position never leaves the phone. |
 | Ranking | `rankNearby(services, { need, chips, position, now })` in `app/src/rules/nearby.ts`: filter, then `emergency_room` first for hospitals, then haversine distance (no coordinates go last), or by name without a position. Returns `{ nearest, nearestOpen, rest }`. `isUsuallyOpen(service, now)` reads `weeklyHours`/`open24h` in Philippine time. Both unit-tested, including midnight-spanning hours and missing data. |
 | Home | Hotlines card from `visibleContacts()` (911 plus the town's `disaster`, `police` and `fire` lines), six need buttons, and `<MiniMap>`, which mounts after the first paint via `requestIdleCallback`, only when online with WebGL2. Otherwise it's a plain "Open map" link. |
 | Map | `MapPage` is lazy-loaded with `React.lazy`, so MapLibre only downloads when the Map tab or the mini map needs it. It renders the **same** `rankNearby()` output as the list. If WebGL2 isn't available or tiles fail, show the list instead. |
@@ -218,7 +218,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 
 **Connects to:** spine 1 (real data, same contract plus optional fields), spine 2 (the map, Home and Nearby results are views of the same data, not a second data path), and spine 3 (the report button starts the feedback pipeline).
 
-**Contract changes:** optional fields only, so `version` stays 1: `Area.lat`, `Area.lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype`. See [UI-UX.md section 9](UI-UX.md#9-data-the-ui-needs).
+**Contract changes:** a new category, `lodging` (hotels and inns), and optional fields only, so `version` stays 1: `Area.lat`, `Area.lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype`. See [UI-UX.md section 9](UI-UX.md#9-data-the-ui-needs).
 
 **Expected outcome:** 30+ real users, 3+ reports received and fixed, and usage numbers for SCRUM-15. You'll also know whether the trigger for Phase 4 (more than about 1 hour a week of manual editing, or owners asking to edit their own listings) has actually happened.
 
@@ -305,7 +305,7 @@ Build only what the pilot proved people want. If they're built, these are the de
 | Phase | Change | Version |
 | --- | --- | --- |
 | 2 | `Area`, `EmergencyContact`, `Service`, `Category` and `Envelope` created, with `country` and `area` on every record | 1 |
-| 3 | `Area.lat`, `Area.lng`, `Area.level`, `Area.parent`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional) | 1 |
+| 3 | Category `lodging`; `Area.lat`, `Area.lng`, `Area.level`, `Area.parent`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional) | 1 |
 | 5 | `hazards.schema.json` added; `Service.ownerVerified` (optional) | 1 |
 | 7 | New areas and countries (data only); `Service.featured` (optional) | 1 |
 

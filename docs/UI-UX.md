@@ -8,7 +8,7 @@ Visual references (private, John's account): [System Map](https://claude.ai/arti
 
 Bulig covers the whole Philippines, then any country. Town names in the wireframes below are placeholders, not a pilot list.
 
-**Built so far (v0.3 in progress):** the Ocean Depths look (section 10), and four tabs Emergency, Services, Saved and Profile. Emergency and Services become Home and Map when those screens land; Saved and Profile already match this spec.
+**Built so far (v0.3 in progress):** the Ocean Depths look (section 10) and five tabs: Home, Services (What we offer), Emergency, Saved and Profile. The location comes from GPS. Home shows previews of the other tabs; the Map tab and the six "What's wrong?" buttons are still to come. See section 11.
 
 ---
 
@@ -221,9 +221,9 @@ The tab holds:
 - Nothing heavy loads before 911 is on screen.
 
 **Location**
-- Don't ask for location when the app opens; most people deny a prompt with no context. Ask the first time someone taps a "What's wrong?" button or opens the Map, with one line saying why: "To show the nearest places first."
-- If location is denied or slow, use the picked town and sort by name, and say "Turn on location to sort by distance."
-- Distances only show when location is known.
+- Location is asked for when the app opens and then followed while it stays open (`watchPosition`), so the area updates as the driver moves. A refresh button next to the area asks for a fresh fix. There is no area search. (This replaces "ask on first use": John decided on 2026-10-29 that the area should find itself.)
+- If location is denied, missing or failing, the same spot becomes a plain area picker, and places sort by name.
+- Distances only show when location is known. The position never leaves the phone.
 
 **Ranking (Nearby results)**
 1. Hospital: places with `emergency_room` first.
@@ -314,3 +314,20 @@ Every text pair meets WCAG AA. **Forest Canopy** (greens) is drawn on the design
 **Skills followed** (installed in `app/.agents/skills` and `app/.claude/skills`): ui-ux-pro-max (palette direction, font pairing, accessibility and touch checklist), design-system and brand (the token layers), impeccable (the craft floor; its detector reports nothing on `src/`), design-taste-frontend (colour on data not chrome, no icons in tinted squares, a neutral active pill, honest empty states), emil-design-eng and mobile-native (press feedback and the phone fixes).
 
 **Checking a UI change.** `npm run lint`, `npx vitest run` and `npm run build` in `app/`; screenshots at 390px and 1280px, light and dark; `./.agents/skills/impeccable/scripts/impeccable detect --json src/` prints `[]`; then a real low-cost Android phone outdoors (Roadmap ground rule 3).
+
+## 11. Navigation as built
+
+| Tab | Route | What it holds |
+| --- | --- | --- |
+| Home | `/` | "Help near <area>", the national hotline with Call 911 beside the number, up to three local numbers, the three nearest places, six What we offer cards, and Saved. Each preview links to its tab. |
+| Services | `/services` | **What we offer**: one card per kind of service (vulcanizing, mechanic, gas, hospital, resto, hotel, store), each with its count and the nearest distance. The card is the filter: there are no chips. |
+| (from a card) | `/services/:category` | Every place of that kind near the area, nearest first, with distance, hours, Call and Directions. An empty category says so and links back. |
+| Emergency | `/emergency` | The national hotline, then the area's checked local numbers. |
+| Saved | `/saved` | Hearted places (nearest first) and numbers. |
+| Profile | `/profile` | Test sign-in, location privacy note, About. |
+
+**Location bar** (top right on every screen): "Near <area>" from GPS, or "<area> · 85 km away" when the nearest listed area is more than 30 km off. A spinning refresh button while a fix is in progress. A plain picker only when GPS is off.
+
+**Layout by width:** phones get a top bar and a 5-tab bottom bar; tablets (48rem and up) an 88px rail; desktops (72rem and up) a 240px labelled sidebar, content up to 72rem, Home in two columns and place lists in two columns from 60rem.
+
+**Motion and chrome:** a 200ms fade and lift when a tab or page opens (off with reduced motion). No visible scrollbars anywhere; scrolling still works.

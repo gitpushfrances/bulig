@@ -27,6 +27,7 @@ function checkItem(kind: FileKind, item: Rec): string[] {
     need(Array.isArray(item.languages) && item.languages.length > 0, 'languages')
     need(item.level === undefined || isText(item.level), 'level')
     need(item.parent === undefined || item.parent === null || isText(item.parent), 'parent')
+    need((item.lat === undefined) === (item.lng === undefined), 'lat/lng')
     return problems
   }
 

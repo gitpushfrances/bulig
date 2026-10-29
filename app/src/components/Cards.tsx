@@ -1,7 +1,10 @@
-import { CircleCheck, Clock, MapPin, Navigation, Phone } from 'lucide-react'
+import { ChevronRight, CircleCheck, Clock, MapPin, Navigation, Phone } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Link } from 'react-router'
 import { directionsHref, formatDate, telHref } from '../data/format.ts'
-import { categoryLabel, kindLabel } from '../data/labels.ts'
-import type { EmergencyContact, Labels, Service } from '../types.ts'
+import { categoryBlurb, categoryLabel, categorySlug, kindLabel } from '../data/labels.ts'
+import { formatDistance } from '../rules/nearby.ts'
+import type { Category, EmergencyContact, Labels, Service } from '../types.ts'
 import styles from '../pages/Page.module.css'
 import { CATEGORY_ICONS, ICON_STROKE, KIND_ICONS } from './icons.ts'
 import SaveButton from './SaveButton.tsx'
@@ -19,11 +22,40 @@ function Sample() {
   return <span className={styles.sample}>SAMPLE</span>
 }
 
+// A section heading with an optional "see all" link on the right.
+export function SectionHead({ title, to, more = 'See all', children }: {
+  title: string
+  to?: string
+  more?: string
+  children?: ReactNode
+}) {
+  return (
+    <div className={styles.sectionHead}>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      {children}
+      {to && (
+        <Link className={styles.more} to={to}>
+          {more}
+          <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
+        </Link>
+      )}
+    </div>
+  )
+}
+
 // The country's national line: the biggest thing on Emergency Help, never hidden.
-export function HotlineCard({ contact, countryName }: { contact: EmergencyContact; countryName: string }) {
+export function HotlineCard({
+  contact,
+  countryName,
+  compact = false,
+}: {
+  contact: EmergencyContact
+  countryName: string
+  compact?: boolean
+}) {
   const titleId = `${contact.id}-title`
   return (
-    <section className={styles.hotline} aria-labelledby={titleId}>
+    <section className={`${styles.hotline} ${compact ? styles.hotlineCompact : ''}`} aria-labelledby={titleId}>
       <div className={styles.hotlineHead}>
         <h2 id={titleId} className={styles.hotlineName}>
           <KIND_ICONS.national size={18} strokeWidth={2} aria-hidden="true" />
@@ -31,21 +63,23 @@ export function HotlineCard({ contact, countryName }: { contact: EmergencyContac
         </h2>
         <span>{countryName}</span>
       </div>
-      <p className={styles.hotlineNumber}>{contact.phones[0]}</p>
-      <div className={styles.actions}>
-        {contact.phones.map((phone, i) => (
-          <a
-            key={phone}
-            className={`${styles.call} ${i === 0 ? styles.hotlineCall : styles.hotlineSecondary}`}
-            href={telHref(phone)}
-            aria-label={`Call ${contact.name} at ${phone}`}
-          >
-            <Phone size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
-            Call {phone}
-          </a>
-        ))}
+      <div className={styles.hotlineBody}>
+        <p className={styles.hotlineNumber}>{contact.phones[0]}</p>
+        <div className={styles.hotlineActions}>
+          {contact.phones.map((phone, i) => (
+            <a
+              key={phone}
+              className={`${styles.call} ${i === 0 ? styles.hotlineCall : styles.hotlineSecondary}`}
+              href={telHref(phone)}
+              aria-label={`Call ${contact.name} at ${phone}`}
+            >
+              <Phone size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
+              Call {phone}
+            </a>
+          ))}
+        </div>
       </div>
-      {contact.verifiedAt && <Checked date={contact.verifiedAt} />}
+      {contact.verifiedAt && !compact && <Checked date={contact.verifiedAt} />}
     </section>
   )
 }
@@ -58,7 +92,7 @@ export function ContactCard({ contact, areaName }: { contact: EmergencyContact; 
         <div className={styles.cardHeading}>
           <h3 className={styles.cardTitle}>{contact.name}</h3>
           <p className={styles.meta}>
-            <Icon size={17} strokeWidth={ICON_STROKE} aria-hidden="true" />
+            <Icon size={16} strokeWidth={ICON_STROKE} aria-hidden="true" />
             {kindLabel(contact.kind)}
             {areaName && ` · ${areaName}`}
           </p>
@@ -88,10 +122,12 @@ export function ServiceCard({
   service,
   labels,
   areaName,
+  km = null,
 }: {
   service: Service
   labels: Labels | null
   areaName?: string
+  km?: number | null
 }) {
   const Icon = CATEGORY_ICONS[service.category]
   const hasMap = service.lat !== undefined && service.lng !== undefined
@@ -101,24 +137,30 @@ export function ServiceCard({
         <div className={styles.cardHeading}>
           <h3 className={styles.cardTitle}>{service.name}</h3>
           <p className={styles.meta}>
-            <Icon size={17} strokeWidth={ICON_STROKE} aria-hidden="true" />
+            <Icon size={16} strokeWidth={ICON_STROKE} aria-hidden="true" />
             {categoryLabel(service.category, labels)} · {service.landmark}
           </p>
         </div>
         {service.sample && <Sample />}
         <SaveButton id={service.id} name={service.name} />
       </div>
-      {(service.hours || areaName) && (
+      {(km !== null || service.hours || areaName) && (
         <div className={styles.details}>
+          {km !== null && (
+            <p className={`${styles.detail} ${styles.distance}`}>
+              <Navigation size={14} strokeWidth={2} aria-hidden="true" />
+              {formatDistance(km)} away
+            </p>
+          )}
           {service.hours && (
             <p className={styles.detail}>
-              <Clock size={15} strokeWidth={2} aria-hidden="true" />
-              Open {service.hours}
+              <Clock size={14} strokeWidth={2} aria-hidden="true" />
+              {service.hours}
             </p>
           )}
           {areaName && (
             <p className={styles.detail}>
-              <MapPin size={15} strokeWidth={2} aria-hidden="true" />
+              <MapPin size={14} strokeWidth={2} aria-hidden="true" />
               {areaName}
             </p>
           )}
@@ -147,6 +189,81 @@ export function ServiceCard({
         </div>
       )}
       <Checked date={service.verifiedAt} />
+    </li>
+  )
+}
+
+// One category on What we offer. The whole card opens its list.
+export function OfferCard({
+  category,
+  labels,
+  count,
+  nearestKm,
+  compact = false,
+}: {
+  category: Category
+  labels: Labels | null
+  count: number
+  nearestKm: number | null
+  compact?: boolean
+}) {
+  const Icon = CATEGORY_ICONS[category]
+  return (
+    <Link
+      to={`/services/${categorySlug(category)}`}
+      className={`${styles.offer} ${compact ? styles.offerCompact : ''} ${count === 0 ? styles.offerEmpty : ''}`}
+    >
+      <span className={styles.offerTop}>
+        <Icon className={styles.offerIcon} size={compact ? 22 : 26} strokeWidth={1.6} aria-hidden="true" />
+        <ChevronRight className={styles.offerArrow} size={18} strokeWidth={2} aria-hidden="true" />
+      </span>
+      <span className={styles.offerName}>{categoryLabel(category, labels)}</span>
+      {!compact && <span className={styles.offerBlurb}>{categoryBlurb(category)}</span>}
+      <span className={styles.offerFoot}>
+        {count === 0 ? 'None listed yet' : `${count} ${count === 1 ? 'place' : 'places'}`}
+        {count > 0 && nearestKm !== null && <span> · {formatDistance(nearestKm)}</span>}
+      </span>
+    </Link>
+  )
+}
+
+// A one-line place for previews: name, what it is, how far, and a call button.
+export function PlaceRow({ service, labels, km }: { service: Service; labels: Labels | null; km: number | null }) {
+  const Icon = CATEGORY_ICONS[service.category]
+  return (
+    <li className={styles.row}>
+      <Icon className={styles.rowIcon} size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
+      <div className={styles.rowText}>
+        <p className={styles.rowTitle}>{service.name}</p>
+        <p className={styles.rowMeta}>
+          {categoryLabel(service.category, labels)}
+          {km !== null && ` · ${formatDistance(km)}`}
+        </p>
+      </div>
+      {service.phone && (
+        <a className={styles.rowCall} href={telHref(service.phone)} aria-label={`Call ${service.name}`}>
+          <Phone size={18} strokeWidth={2} aria-hidden="true" />
+        </a>
+      )}
+    </li>
+  )
+}
+
+export function NumberRow({ contact }: { contact: EmergencyContact }) {
+  const Icon = KIND_ICONS[contact.kind]
+  const phone = contact.phones[0]
+  return (
+    <li className={styles.row}>
+      <Icon className={styles.rowIcon} size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
+      <div className={styles.rowText}>
+        <p className={styles.rowTitle}>{contact.name}</p>
+        <p className={`${styles.rowMeta} ${styles.tabular}`}>
+          {kindLabel(contact.kind)} · {phone}
+        </p>
+      </div>
+      <a className={styles.rowCall} href={telHref(phone)} aria-label={`Call ${contact.name} at ${phone}`}>
+        <Phone size={18} strokeWidth={2} aria-hidden="true" />
+      </a>
     </li>
   )
 }

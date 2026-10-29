@@ -1,3 +1,5 @@
+/* Shared page styles. Spacing runs on a 4px grid: 4 / 8 / 12 / 16 / 24 / 32. */
+
 .page {
   display: flex;
   flex-direction: column;
@@ -8,35 +10,73 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding-top: 4px;
 }
 
 .title {
-  font-size: clamp(1.625rem, 1.3rem + 1.4vw, 2.125rem);
+  font-size: clamp(1.625rem, 1.35rem + 1.2vw, 2rem);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
 .lead {
-  max-width: 65ch;
+  max-width: 62ch;
   color: var(--color-text-muted);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   line-height: 1.45;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 2px;
+  min-height: 44px;
+  margin: -8px 0 -6px -6px;
+  padding: 0 8px 0 2px;
+  border-radius: var(--radius-control);
+  color: var(--color-primary-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .sectionHead {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 12px;
-  margin-top: 8px;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 32px;
 }
 
 .sectionTitle {
-  font-size: 1.1875rem;
+  flex: 1;
+  font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin: -6px -6px -6px 0;
+  padding: 0 6px 0 8px;
+  border-radius: var(--radius-control);
+  color: var(--color-primary-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.moreEnd {
+  align-self: flex-end;
 }
 
 .count {
@@ -53,24 +93,35 @@
 }
 
 .footnote {
-  max-width: 65ch;
+  max-width: 62ch;
   color: var(--color-text-muted);
   font-size: 0.875rem;
 }
 
+/* ---------- Lists of full cards: one column on phones, two from 60rem ---------- */
+
 .list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+@media (min-width: 60rem) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
 .list > .card {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100%;
 }
 
 .cardHead {
@@ -114,10 +165,20 @@
   gap: 4px 16px;
 }
 
+.distance {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.distance svg {
+  color: var(--color-primary-text);
+}
+
 .checked {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-top: auto;
   color: var(--color-checked);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -130,7 +191,7 @@
   border-radius: 7px;
   background: var(--color-sample-bg);
   color: var(--color-sample-text);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -142,7 +203,7 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  margin: -8px -8px -8px 0;
+  margin: -10px -10px -8px 0;
   border: 0;
   border-radius: 999px;
   background: none;
@@ -156,7 +217,7 @@
 }
 
 .save:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .phoneRow {
@@ -167,12 +228,18 @@
   gap: 8px 12px;
 }
 
-.number {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 500;
+.number,
+.tabular {
   font-variant-numeric: tabular-nums;
 }
+
+.number {
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 500;
+}
+
+/* ---------- Buttons ---------- */
 
 .actions {
   display: flex;
@@ -180,7 +247,7 @@
   gap: 8px;
 }
 
-/* 48px+ tap targets: these are used one-handed, often in a hurry. */
+/* 48px tap targets: used one-handed, often in a hurry. */
 .call,
 .secondary,
 .primaryButton {
@@ -227,13 +294,15 @@
 
 .actions > .call,
 .actions > .secondary {
-  flex: 1 1 9rem;
+  flex: 1 1 8rem;
 }
+
+/* ---------- Hotline ---------- */
 
 .hotline {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   padding: 20px;
   border-radius: var(--radius-card);
   background: var(--hotline-bg);
@@ -260,21 +329,36 @@
   color: var(--color-on-deep);
 }
 
+.hotlineBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .hotlineNumber {
   font-family: var(--font-display);
-  font-size: clamp(4.5rem, 3.5rem + 5vw, 6rem);
+  font-size: clamp(4.5rem, 3.6rem + 4vw, 6rem);
   font-weight: 700;
   line-height: 0.9;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
 }
 
+.hotlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hotlineActions > a {
+  flex: 1 1 12rem;
+}
+
 .hotlineCall {
   min-height: 56px;
-  border-radius: var(--radius-control);
   background: var(--hotline-call-bg);
   color: var(--hotline-call-text);
-  font-size: 1.1875rem;
+  font-size: 1.125rem;
 }
 
 .hotlineSecondary {
@@ -287,119 +371,220 @@
   color: var(--color-on-deep-muted);
 }
 
-.filters {
+/* Home: the number and its button sit side by side. */
+.hotlineCompact .hotlineBody {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hotlineCompact .hotlineNumber {
+  font-size: 3.5rem;
+}
+
+.hotlineCompact .hotlineActions {
+  flex: 1 1 10rem;
+  max-width: 20rem;
+}
+
+/* ---------- What we offer ---------- */
+
+.offerGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
   gap: 12px;
 }
 
-.field {
+@media (min-width: 48rem) {
+  .offerGrid {
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 16px;
+  }
+}
+
+.offer {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  min-height: 9.5rem;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  transition:
+    transform var(--press-ms) var(--ease-out),
+    border-color 160ms ease;
 }
 
-.fieldLabel {
-  font-size: 0.875rem;
-  font-weight: 700;
+.offer:active {
+  transform: scale(0.98);
 }
 
-.control {
-  position: relative;
-  display: block;
+.offerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
-.controlIcon {
-  position: absolute;
-  top: 50%;
-  translate: 0 -50%;
-  pointer-events: none;
-  color: var(--color-text-muted);
-}
-
-.controlIcon.leading {
-  left: 12px;
+.offerIcon {
   color: var(--color-primary-text);
 }
 
-.controlIcon.trailing {
-  right: 12px;
-}
-
-.input {
-  min-height: 48px;
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: 16px;
-}
-
-.input::placeholder {
+.offerArrow {
   color: var(--color-text-muted);
 }
 
-.input[aria-invalid='true'] {
-  border-color: var(--color-error);
-}
-
-.withLead {
-  padding-left: 40px;
-}
-
-.withTrail {
-  padding-right: 40px;
-}
-
-select.input {
-  appearance: none;
-  -webkit-appearance: none;
+.offerName {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
   font-weight: 600;
-  cursor: pointer;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.offerBlurb {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.35;
 }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  padding: 0 16px;
+.offerFoot {
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.offerFoot span {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.offerEmpty .offerFoot {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.offerCompact {
+  min-height: 0;
+  padding: 14px;
+}
+
+.offerCompact .offerTop {
+  margin-bottom: 4px;
+}
+
+.offerCompact .offerName {
+  font-size: 1rem;
+}
+
+.offerCompact .offerFoot {
+  padding-top: 2px;
+}
+
+/* ---------- Compact rows (Home previews) ---------- */
+
+.panel {
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-card);
   background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+}
+
+.rows {
+  margin: 0;
+  padding: 0 16px;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowIcon {
+  flex: none;
+  color: var(--color-primary-text);
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.rowCall {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--button-call-bg);
+  color: var(--button-call-text);
   transition: transform var(--press-ms) var(--ease-out);
 }
 
-.chip svg {
-  color: var(--color-primary-text);
+.rowCall:active {
+  transform: scale(0.92);
 }
 
-.chip:active {
-  transform: scale(0.97);
+.panelEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  color: var(--color-text-muted);
 }
 
-.chip[aria-pressed='true'] {
-  border-color: var(--chip-active-bg);
-  background: var(--chip-active-bg);
-  color: var(--chip-active-text);
+/* ---------- Home layout ---------- */
+
+.homeGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
 }
 
-.chip[aria-pressed='true'] svg {
-  color: inherit;
+.homeColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
 }
+
+@media (min-width: 60rem) {
+  .homeGrid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 32px;
+  }
+}
+
+/* ---------- Notices, empty states, forms ---------- */
 
 .notice {
   display: flex;
@@ -430,6 +615,51 @@ select.input {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.narrow {
+  width: 100%;
+  max-width: 34rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.control {
+  position: relative;
+  display: block;
+}
+
+.input {
+  min-height: 48px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.withTrail {
+  padding-right: 48px;
 }
 
 .error {
@@ -484,13 +714,19 @@ select.input {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .chip:hover,
-  .secondary:hover {
+  .secondary:hover,
+  .offer:hover {
     border-color: var(--color-primary);
   }
 
+  .offer:hover .offerArrow {
+    color: var(--color-primary-text);
+  }
+
   .save:hover,
-  .reveal:hover {
+  .reveal:hover,
+  .more:hover,
+  .back:hover {
     background: var(--color-selected);
   }
 

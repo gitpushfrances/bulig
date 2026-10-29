@@ -15,7 +15,12 @@ export type DataState =
 export interface AppData {
   country: CountryCode
   data: DataState
-  area: AreaId | null // null = all areas
+  // From GPS when there is a fix (the nearest listed area), else the last area picked or found.
+  // null = all areas.
+  area: AreaId | null
+  // How far the phone is from that area's centre, when the area came from GPS.
+  areaKm: number | null
+  // Manual choice, used only while there is no GPS fix.
   setArea: (area: AreaId | null) => void
   online: boolean
   retry: () => void

@@ -1,18 +1,21 @@
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
-import { ContactCard, ServiceCard } from '../components/Cards.tsx'
+import { ContactCard, SectionHead, ServiceCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import { useAppData } from '../data/context.ts'
+import { useNearby } from '../data/useNearby.ts'
+import { byDistance } from '../rules/nearby.ts'
 import styles from './Page.module.css'
 
 export default function SavedPage() {
   const { account, saved } = useAuth()
   const { data } = useAppData()
+  const { position } = useNearby()
 
   const ready = data.status === 'ready'
   const areaNames = new Map(ready ? data.areas.map((a) => [a.id, a.name]) : [])
-  // Records keep the order they were saved in. A saved record that was removed simply drops out.
-  const places = ready ? saved.flatMap((id) => data.services.filter((s) => s.id === id)) : []
+  // Places come nearest first when GPS is on. A saved record that was removed simply drops out.
+  const places = byDistance(ready ? saved.flatMap((id) => data.services.filter((s) => s.id === id)) : [], position)
   const numbers = ready ? saved.flatMap((id) => data.emergency.filter((c) => c.id === id)) : []
 
   return (
@@ -33,7 +36,7 @@ export default function SavedPage() {
         </div>
       ) : (
         <>
-          <DataNotice hasSamples={[...places, ...numbers].some((r) => r.sample)} />
+          <DataNotice hasSamples={[...places.map((p) => p.item), ...numbers].some((r) => r.sample)} />
           {ready && places.length + numbers.length === 0 && (
             <div className={`${styles.card} ${styles.empty}`}>
               <p>Nothing saved yet. Tap the heart on a place or a local number to keep it here.</p>
@@ -44,12 +47,13 @@ export default function SavedPage() {
           )}
           {places.length > 0 && (
             <>
-              <h2 className={styles.sectionTitle}>Places</h2>
+              <SectionHead title="Places" />
               <ul className={styles.list} aria-label="Saved places">
-                {places.map((s) => (
+                {places.map(({ item: s, km }) => (
                   <ServiceCard
                     key={s.id}
                     service={s}
+                    km={km}
                     labels={ready ? data.labels : null}
                     areaName={areaNames.get(s.area)}
                   />
@@ -59,7 +63,7 @@ export default function SavedPage() {
           )}
           {numbers.length > 0 && (
             <>
-              <h2 className={styles.sectionTitle}>Numbers</h2>
+              <SectionHead title="Numbers" />
               <ul className={styles.list} aria-label="Saved numbers">
                 {numbers.map((c) => (
                   <ContactCard key={c.id} contact={c} areaName={c.area ? areaNames.get(c.area) : undefined} />

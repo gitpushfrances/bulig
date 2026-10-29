@@ -1,5 +1,4 @@
-import AreaPicker from '../components/AreaPicker.tsx'
-import { ContactCard, HotlineCard } from '../components/Cards.tsx'
+import { ContactCard, HotlineCard, SectionHead } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import { useAppData } from '../data/context.ts'
 import { FALLBACK_EMERGENCY } from '../data/countries.ts'
@@ -42,7 +41,10 @@ export default function EmergencyPage() {
         <h1 id="emergency-title" className={styles.title}>
           Emergency Help
         </h1>
-        <p className={styles.lead}>Checked emergency numbers for where you are. No login needed.</p>
+        <p className={styles.lead}>
+          {picked ? `Checked numbers for ${picked} and nationwide.` : 'Checked emergency numbers.'} No login
+          needed.
+        </p>
       </div>
 
       {hotlines.map((c) => (
@@ -52,18 +54,14 @@ export default function EmergencyPage() {
       <DataNotice hasSamples={local.some((c) => c.sample)} />
 
       {ready && (
-        <>
-          <AreaPicker />
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>Local numbers</h2>
+        <div className={styles.section}>
+          <SectionHead title="Local numbers">
             <p className={styles.count}>
-              {local.length} {local.length === 1 ? 'number' : 'numbers'} {picked ? `in ${picked}` : 'in all areas'}
+              {local.length} {picked ? `in ${picked}` : 'in all areas'}
             </p>
-          </div>
+          </SectionHead>
           {local.length === 0 ? (
-            <p className={styles.card}>
-              No checked local numbers here yet. The national hotline above always works.
-            </p>
+            <p className={styles.card}>No checked local numbers here yet. The national hotline always works.</p>
           ) : (
             <ul className={styles.list} aria-label="Local emergency numbers">
               {local.map((c) => (
@@ -75,12 +73,12 @@ export default function EmergencyPage() {
               ))}
             </ul>
           )}
-        </>
+        </div>
       )}
 
       <p className={styles.footnote}>
-        Bulig only shows numbers. It never calls for you, sends your location or dispatches help.
-        Numbers not checked in the last 180 days are hidden.
+        Bulig only shows numbers. It never calls for you, sends your location or dispatches help. Numbers
+        not checked in the last 180 days are hidden.
       </p>
     </section>
   )

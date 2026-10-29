@@ -9,6 +9,8 @@
       "region": "Metro Manila",
       "level": "city",
       "parent": null,
+      "lat": 14.676,
+      "lng": 121.0437,
       "languages": ["en", "fil"]
     },
     {
@@ -18,6 +20,8 @@
       "region": "Benguet",
       "level": "city",
       "parent": null,
+      "lat": 16.4023,
+      "lng": 120.596,
       "languages": ["en", "fil", "ilo"]
     },
     {
@@ -27,6 +31,8 @@
       "region": "Camarines Sur",
       "level": "city",
       "parent": null,
+      "lat": 13.6218,
+      "lng": 123.1948,
       "languages": ["en", "fil", "bik"]
     },
     {
@@ -36,6 +42,8 @@
       "region": "Palawan",
       "level": "city",
       "parent": null,
+      "lat": 9.7392,
+      "lng": 118.7353,
       "languages": ["en", "fil"]
     },
     {
@@ -45,6 +53,8 @@
       "region": "Iloilo",
       "level": "city",
       "parent": null,
+      "lat": 10.7202,
+      "lng": 122.5621,
       "languages": ["en", "hil"]
     },
     {
@@ -54,6 +64,8 @@
       "region": "Cebu",
       "level": "city",
       "parent": null,
+      "lat": 10.3157,
+      "lng": 123.8854,
       "languages": ["en", "ceb"]
     },
     {
@@ -63,6 +75,8 @@
       "region": "Leyte",
       "level": "city",
       "parent": null,
+      "lat": 11.2443,
+      "lng": 125.0039,
       "languages": ["en", "war"]
     },
     {
@@ -72,6 +86,8 @@
       "region": "Eastern Samar",
       "level": "municipality",
       "parent": null,
+      "lat": 11.0333,
+      "lng": 125.7245,
       "languages": ["en", "war"]
     },
     {
@@ -81,6 +97,8 @@
       "region": "Eastern Samar",
       "level": "municipality",
       "parent": null,
+      "lat": 11.1036,
+      "lng": 125.7175,
       "languages": ["en", "war"]
     },
     {
@@ -90,6 +108,8 @@
       "region": "Davao del Sur",
       "level": "city",
       "parent": null,
+      "lat": 7.1907,
+      "lng": 125.4553,
       "languages": ["en", "ceb"]
     }
   ]
