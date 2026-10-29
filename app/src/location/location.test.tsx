@@ -46,8 +46,7 @@ describe('Location from GPS', () => {
     renderAt('/')
 
     expect(await screen.findByText('Near you')).toBeInTheDocument()
-    expect(screen.getAllByText('Cebu City').length).toBeGreaterThan(0)
-    expect(await screen.findByRole('heading', { level: 1, name: 'Help near you' })).toBeInTheDocument()
+    expect(await screen.findByText('Cebu City')).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: 'Area' })).not.toBeInTheDocument()
     expect(localStorage.getItem('bulig.area')).toBe('ph-cebu-cebu-city')
   })
@@ -73,7 +72,7 @@ describe('Location from GPS', () => {
     expect(geo.getCurrentPosition).toHaveBeenCalledTimes(1)
   })
 
-  it('shows the barangay, municipality, province and ZIP code from the address lookup', async () => {
+  it('shows the barangay and municipality from the address lookup', async () => {
     fakeGeo(CEBU)
     const serveData = globalThis.fetch
     const lookup = vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
@@ -87,23 +86,21 @@ describe('Location from GPS', () => {
     renderAt('/')
 
     expect(await screen.findByText('Lahug, Cebu City')).toBeInTheDocument()
-    const card = screen.getByRole('region', { name: 'Your location' })
-    expect(within(card).getByText('Barangay').nextElementSibling).toHaveTextContent('Lahug')
-    expect(within(card).getByText('ZIP code').nextElementSibling).toHaveTextContent('6000')
+    // Only the barangay and town show; the rest is in the tooltip. There is no address card.
+    expect(screen.getByText('Lahug, Cebu City').closest('p')).toHaveAttribute('title', 'Lahug, Cebu City, Cebu, 6000')
+    expect(screen.queryByRole('region', { name: 'Your location' })).not.toBeInTheDocument()
     // The position is rounded to about 100 m before it leaves the phone.
     const url = String(lookup.mock.calls.find(([u]) => String(u).includes('nominatim'))?.[0])
     expect(url).toContain('lat=10.31&lon=123.89')
     expect(JSON.parse(localStorage.getItem('bulig.address') ?? '{}').address.postcode).toBe('6000')
   })
 
-  it('falls back to the nearest town when the lookup fails', async () => {
+  it('falls back to the nearest listed town when the lookup fails', async () => {
     fakeGeo(CEBU)
     renderAt('/')
 
-    const card = await screen.findByRole('region', { name: 'Your location' })
-    expect(await within(card).findByText('Approximate, from the nearest town')).toBeInTheDocument()
-    expect(within(card).getByText('Province').nextElementSibling).toHaveTextContent('Cebu')
-    expect(within(card).getByText('ZIP code').nextElementSibling).toHaveTextContent('—')
+    expect(await screen.findByText('Near you')).toBeInTheDocument()
+    expect(await screen.findByText('Cebu City')).toBeInTheDocument()
   })
 
   it('falls back to picking an area when location is denied', async () => {

@@ -1,30 +1,26 @@
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
-import { HotlineCard, NumberRow, OfferCard, PlaceRow, SectionHead } from '../components/Cards.tsx'
-import AddressCard from '../components/AddressCard.tsx'
+import { HotlineCard, NumberRow, PlaceRow, SectionHead, ServiceBento } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import { useAppData } from '../data/context.ts'
 import { FALLBACK_EMERGENCY } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { visibleContacts } from '../rules/emergency.ts'
-import { NEAR_KM, formatDistance } from '../rules/nearby.ts'
-import { CATEGORIES, type EmergencyContact } from '../types.ts'
+import type { EmergencyContact } from '../types.ts'
 import styles from './Page.module.css'
 
-// The categories shown on Home, in the order a driver needs them.
-const HOME_OFFERS = CATEGORIES.slice(0, 6)
-
+// Where you are lives in the header. Home answers "what do I need?": the services first,
+// then emergency numbers, the nearest places and what you saved.
 export default function HomePage() {
-  const { country, data, area, areaKm } = useAppData()
+  const { country, data, area } = useAppData()
   const { account, saved } = useAuth()
-  const { ready, areaName, where, ranked, labels } = useNearby()
+  const { ready, ranked, labels } = useNearby()
 
   const contacts = data.status === 'ready' ? visibleContacts(data.emergency, area, new Date()) : []
   const national = contacts.find((c) => c.kind === 'national' && c.area === null)
-  const localAll = contacts.filter((c) => c !== national)
-  const local = localAll.slice(0, 3)
+  const local = contacts.filter((c) => c !== national).slice(0, 3)
   const fallback = FALLBACK_EMERGENCY[country]
   const hotline: EmergencyContact | undefined =
     national ??
@@ -47,20 +43,11 @@ export default function HomePage() {
 
   return (
     <section className={styles.page} aria-labelledby="home-title">
-      <div className={styles.intro}>
-        <h1 id="home-title" className={styles.title}>
-          {areaKm !== null ? 'Help near you' : areaName ? `Help near ${areaName}` : 'Help along the way'}
-        </h1>
-        <p className={styles.lead}>
-          {ready && areaName && areaKm !== null && areaKm > NEAR_KM
-            ? `The nearest listed area is ${areaName}, ${formatDistance(areaKm)} away: ${ranked.length} places and ${localAll.length} local numbers there.`
-            : ready
-            ? `${ranked.length} ${ranked.length === 1 ? 'place' : 'places'} and ${localAll.length} local ${localAll.length === 1 ? 'number' : 'numbers'} ${where}.`
-            : 'Checked numbers and road services, even offline.'}
-        </p>
-      </div>
+      <h1 id="home-title" className={styles.title}>
+        What do you need?
+      </h1>
 
-      <AddressCard />
+      {ready && <ServiceBento ranked={ranked} labels={labels} />}
 
       <DataNotice hasSamples={ranked.some((r) => r.item.sample)} />
 
@@ -82,7 +69,9 @@ export default function HomePage() {
               <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
             </Link>
           </div>
+        </div>
 
+        <div className={styles.homeColumn}>
           {ready && (
             <div className={styles.section}>
               <SectionHead title="Nearest to you" to="/services" more="All services" />
@@ -96,29 +85,6 @@ export default function HomePage() {
                 ) : (
                   <p className={styles.panelEmpty}>No places listed here yet.</p>
                 )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className={styles.homeColumn}>
-          {ready && (
-            <div className={styles.section}>
-              <SectionHead title="What we offer" to="/services" />
-              <div className={styles.offerGrid}>
-                {HOME_OFFERS.map((c) => {
-                  const inCategory = ranked.filter((r) => r.item.category === c)
-                  return (
-                    <OfferCard
-                      key={c}
-                      category={c}
-                      labels={labels}
-                      count={inCategory.length}
-                      nearestKm={inCategory[0]?.km ?? null}
-                      compact
-                    />
-                  )
-                })}
               </div>
             </div>
           )}
@@ -136,7 +102,12 @@ export default function HomePage() {
               ) : savedPlaces.length ? (
                 <ul className={styles.rows} aria-label="Saved places">
                   {savedPlaces.map((s) => (
-                    <PlaceRow key={s.id} service={s} labels={labels} km={ranked.find((r) => r.item.id === s.id)?.km ?? null} />
+                    <PlaceRow
+                      key={s.id}
+                      service={s}
+                      labels={labels}
+                      km={ranked.find((r) => r.item.id === s.id)?.km ?? null}
+                    />
                   ))}
                 </ul>
               ) : (

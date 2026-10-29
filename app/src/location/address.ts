@@ -1,10 +1,8 @@
 import { distanceKm, type Position } from '../rules/nearby.ts'
 
-// The parts of an address Bulig shows, from smallest to largest. What each is called comes from the
-// country's labels.json ("Barangay", "ZIP code" in PH), never from code.
-export const ADDRESS_PARTS = ['locality', 'municipality', 'province', 'postcode'] as const
-export type AddressPart = (typeof ADDRESS_PARTS)[number]
-export type Address = Partial<Record<AddressPart, string>>
+// The parts of an address, smallest first: barangay (locality) and city or municipality show on
+// screen; province and postcode only in the location's tooltip.
+export type Address = Partial<Record<'locality' | 'municipality' | 'province' | 'postcode', string>>
 
 export interface PlacedAddress extends Position {
   address: Address
