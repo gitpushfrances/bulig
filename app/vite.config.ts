@@ -27,7 +27,7 @@ export default defineConfig({
       workbox: {
         // The data files are precached with the app shell, so the first visit is enough to work
         // offline. Each deploy changes their hash and the service worker fetches the new ones.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}', 'data/**/*.json'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,woff2}', 'data/**/*.json'],
         // Only the Latin font files go in the offline cache; other scripts load when a page needs them.
         globIgnores: ['**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-wght-normal-*.woff2'],
         navigateFallback: '/index.html',
