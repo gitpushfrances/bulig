@@ -18,7 +18,7 @@ Validation (SCRUM-8 to 19) keeps running in the background. It doesn't block any
 | --- | --- | --- | --- | --- |
 | 1 | Setup and skeleton | 1 week | v0.1 | Free |
 | 2 | Emergency + Services PWA | 2 to 3 weeks | v0.2 | Free |
-| 3 | First pilot (Guiuan + Mercedes, PH) | 5 to 7 weeks (includes the new screens from UI-UX.md) | v0.3 | Free (use the `bulig.<subdomain>.workers.dev` link) |
+| 3 | First pilot (Philippines) | 5 to 7 weeks (includes the new screens from UI-UX.md) | v0.3 | Free (use the `bulig.<subdomain>.workers.dev` link) |
 | 4 | Backend and admin (Laravel) | 4 to 6 weeks | v0.4 | Free tier (see risks) |
 | 5 | Community features | 4 to 6 weeks | v0.5 | Free |
 | 6 | Android app (Capacitor), optional | 2 weeks | v1.0 | Free APK; Play Store only once funded |
@@ -101,9 +101,11 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 ---
 
-## Phase 3: First pilot in Guiuan + Mercedes, Philippines (v0.3)
+## Phase 3: First pilot in the Philippines (v0.3)
 
-**Goal:** real people in the first pilot area use it, and you learn from them. Guiuan and Mercedes are the first area, not the only one: everything learned here becomes the checklist for opening the next area anywhere.
+**Goal:** real people in the first pilot area use it, and you learn from them. The first area is not the only one: everything learned here becomes the checklist for opening the next area anywhere.
+
+**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, report wrong info (SCRUM-30), analytics (SCRUM-31), Waray About, OPEN-AN-AREA.md (SCRUM-32).
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
@@ -111,12 +113,12 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - *(new)* Keep the Worker named `bulig` so the free link is `bulig.<subdomain>.workers.dev`. (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
 - *(new)* Add Cloudflare Web Analytics (free, no cookies) to count visits and installs
 - *(new)* Add a "Report wrong info" link that opens a short Google Form
-- *(new)* **New navigation from [UI-UX.md](UI-UX.md):** four tabs (Home, Map, Saved, Profile) replace Emergency, Services and About. `/services` and `/about` keep working.
-- *(new)* Home: town header from GPS with a picker fallback, hotlines card (911 one tap, plus MDRRMO, PNP, BFP), six "What's wrong?" buttons, mini map
-- *(new)* Nearby results screen (`/nearby/:need`): nearest place as a big card with Call and Directions, "Nearest usually open" when it's closed, then the rest as a list
-- *(new)* Map tab with MapLibre and OpenFreeMap, lazy-loaded, category pins, bottom sheet, list fallback
-- *(new)* Place details, Saved (hearts stored on the phone) and Profile (language, location, offline data, About)
-- *(new)* Data: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional, contract v1 stays)
+- ✅ **New navigation:** five tabs (Home, Services, Map, Saved, Profile), Emergency behind a floating red button on every screen. `/services` and `/about` keep working.
+- ✅ Home: "What's wrong?" tiles, the location line from GPS with a picker fallback, hotline card (911 one tap) and local numbers. (No mini map.)
+- ✅ Nearby results (`/nearby/:need`): nearest place as a big card with Call and Route, then the rest as a list. Plus "Nearest usually open", filter chips, status and feature tags.
+- ✅ Map tab with MapLibre and OpenFreeMap, lazy-loaded, category pins, bottom sheet, list fallback, plus in-app routes (OSRM, free)
+- ✅ Saved and Profile (accounts, photo, theme, install, legal), and Place details (`/place/:id`).
+- ✅ Data: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional, contract v1 stays)
 - *(new)* Write a Privacy and About page in plain English plus the pilot area's local language (Waray), set up so more languages can be added per area
 - *(new)* Write `docs/OPEN-AN-AREA.md`: the checklist for opening a new area or country (verify emergency numbers, collect services, local category names, language, privacy notice), based on what this pilot taught
 

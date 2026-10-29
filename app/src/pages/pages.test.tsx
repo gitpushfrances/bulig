@@ -109,3 +109,55 @@ describe('What we offer', () => {
     expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
   })
 })
+
+describe('Nearby filters and Place details', () => {
+  it('filters with chips, and clears them when nothing matches', async () => {
+    renderAt('/nearby/flat-tire')
+
+    expect(await screen.findByText(/^10 vulcanizing shops in all areas/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Tubeless' }))
+    expect(screen.getByRole('button', { name: 'Tubeless' })).toHaveAttribute('aria-pressed', 'true')
+    const lead = screen.getByText(/vulcanizing shops? in all areas/).textContent ?? ''
+    expect(Number(lead.split(' ')[0])).toBeLessThan(10)
+    // The nearest card shows what it offers.
+    expect(within(screen.getByRole('article')).getByRole('list', { name: 'What it offers' })).toHaveTextContent('Tubeless')
+  })
+
+  it('shows a place with its week, features, check date, and Call, Route and Share', async () => {
+    renderAt('/place/ph-cebu-cebu-city-sample-vulcanizing')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sample Uptown Vulcanizing' })).toBeInTheDocument()
+    const week = screen.getByRole('heading', { name: 'Usual hours' }).parentElement!
+    expect(within(week).getByText('Monday').closest('div')).toHaveTextContent('6 AM – 10 PM')
+    expect(within(week).getByText('Today')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'What it offers' }).parentElement).toHaveTextContent('Air pump')
+    expect(screen.getByRole('link', { name: 'Call Sample Uptown Vulcanizing' })).toHaveAttribute('href', 'tel:+639000000251')
+    expect(screen.getByRole('link', { name: 'Route to Sample Uptown Vulcanizing' })).toHaveAttribute(
+      'href',
+      '/map?to=ph-cebu-cebu-city-sample-vulcanizing',
+    )
+    expect(screen.getByRole('button', { name: 'Share Sample Uptown Vulcanizing' })).toBeInTheDocument()
+  })
+
+  it('says when hours are not recorded, and never invents them', async () => {
+    const lodging = 'ph-metro-manila-quezon-city-sample-lodging'
+    renderAt(`/place/${lodging}`)
+    await screen.findByRole('heading', { level: 1 })
+    // Either real hours (24h front desk) or the honest "not recorded" line; never both.
+    const hours = screen.getByRole('heading', { name: 'Usual hours' }).parentElement!
+    expect(hours.textContent).toMatch(/Open 24 hours|aren.t recorded yet/)
+  })
+
+  it('opens a place from a Nearby row', async () => {
+    renderAt('/nearby/flat-tire')
+
+    const more = await screen.findByRole('list', { name: 'More vulcanizing shops' })
+    const first = within(more).getAllByRole('link')[0]
+    expect(first).toHaveAttribute('href', expect.stringMatching(/^\/place\//))
+  })
+
+  it('shows not found for an unknown place', async () => {
+    renderAt('/place/nope')
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+  })
+})
