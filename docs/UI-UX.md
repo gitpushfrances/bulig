@@ -4,13 +4,27 @@ How Bulig looks, how people move through it, and why. This is the source of trut
 
 Last updated: 2026-10-29 · Owner: John · Visual direction: **Modern Utility Minimalism**.
 
-This revision keeps the Ocean Depths brand but standardises the interface around a single type family, one icon family, clear surface boundaries, and a dedicated emergency-red action. It describes the target UI to implement; it does not claim that the existing components have already been changed.
+This revision uses the Graphite theme (it replaced Ocean Depths on 2026-10-29) and standardises the interface around a single type family, one icon family, clear surface boundaries, and a dedicated emergency-red action. It describes the target UI to implement; it does not claim that the existing components have already been changed.
 
 Visual references (private, John's account): [System Map](https://claude.ai/artifact/3CX8HnRHESS9DT4oyuycKS) (flow and wireframes), [Nearby Results mockup](https://claude.ai/artifact/UH8x588qpo7yyHW9NM5VPr) (high-fidelity results screen), and [Bulig App Design](https://claude.ai/artifact/Pvr4j7BMVZZB4WfMmmKSiR) (original Ocean Depths theme). The [style board](design/style-board.png) shows the target look. Use this document's tokens and rules where the style board or an older visual reference disagrees.
 
 Bulig covers the whole Philippines, then any country. Town names in the wireframes below are placeholders, not a pilot list.
 
-**Current implementation baseline:** the v0.3 work has the earlier Ocean Depths palette and a five-tab navigation (Home, Services, Emergency, Saved, Profile). The **target UI in this document** consolidates navigation to four tabs: Home, Map, Saved, Profile. Emergency actions live on Home and the Hotlines screen; Services remains a supported route and entry point, not a bottom tab. The Map tab and the six “What's wrong?” actions still need implementation. Preserve existing routes and data contracts while moving to the target UI.
+**Where the app is now (2026-10-29, read this first in a new conversation):**
+
+| Area | Built and live on `main` |
+| --- | --- |
+| Theme | **Graphite**: near-black, zinc greys, white; light and dark. Red only for Call 911 and emergency actions, green only for checked. See [§10 Theme: Graphite](#theme-graphite-current-2026-10-29). Ocean Depths is retired. |
+| Navigation | Five tabs: Home `/`, Services `/services`, Emergency `/emergency`, Saved `/saved`, Profile `/profile` (+ `/about`). Bottom bar on phones, rail on tablets, sidebar on desktop. |
+| Location | GPS finds the area by itself (`watchPosition`) with a refresh button; header line "Near you · <barangay>, <town>" from OpenStreetMap Nominatim. Area picker only when GPS is off. |
+| Home | "What do you need?" bento of the seven services, then the national hotline (Call 911), local numbers, nearest places, Saved. |
+| Sign-in | [Welcome](#welcome-welcome) on the first open of `/`; Sign in / Create account card (also on Profile). Test logins `test@`, `moderator@`, `admin@bulig.com`, password `password`. Sign-ups are users kept on the phone (hashed password). |
+| Mascot | Ropi on quiet screens only: Welcome, About, Saved empty, empty category, offline with nothing cached, signed-in Profile. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
+| Not built yet | Map tab, the six "What's wrong?" buttons, Nearby results, Place details, real backend sign-in (Phase 4). |
+
+The change history is in [CHANGELOG.md](CHANGELOG.md) under **Unreleased**.
+
+**Current implementation baseline:** the v0.3 work has the Graphite palette (above) and a five-tab navigation (Home, Services, Emergency, Saved, Profile). The **target UI in this document** consolidates navigation to four tabs: Home, Map, Saved, Profile. Emergency actions live on Home and the Hotlines screen; Services remains a supported route and entry point, not a bottom tab. The Map tab and the six “What's wrong?” actions still need implementation. Preserve existing routes and data contracts while moving to the target UI.
 
 ---
 
@@ -196,13 +210,12 @@ Filter presets:
 
 ### Welcome (`/welcome`)
 
-- Shown once per phone: the first open of `/` redirects here while nobody is signed in and Welcome has not been seen (`bulig.welcomed`). Signing in, creating an account, or **Continue without an account** marks it seen and opens Home. Shared deep links (`/services/...`, `/emergency`, ...) never redirect.
-- No tab bar. The top bar has the Bulig mark and a red **Emergency? Call 911** link (`tel:911`), so 911 is one tap away here too.
-- Ropi `ready` (150px), "Welcome to Bulig", and one line on what Bulig does.
-- One card with two tabs, **Sign in** and **Create account** (a real tab list: arrow keys switch). The same card is on Profile while signed out.
-  - Sign in: the three test logins as chips (User, Moderator, Admin; password `password`) that fill the form, then Email, Password (with show/hide), **Sign in**.
+- Shown once per phone: the first open of `/` redirects here while nobody is signed in and Welcome has not been seen (`bulig.welcomed`). Signing in, creating an account, or **Skip for now** marks it seen and opens Home. Shared deep links (`/services/...`, `/emergency`, ...) never redirect.
+- No tab bar and **no emergency button** (John, 2026-10-29: it cluttered the login). The top bar has the Bulig mark on the left and **Skip for now** on the right, a quiet text button that opens Home, where 911 is the first thing on screen.
+- Ropi `ready` (120px), "Welcome to Bulig", and one line: "Sign in to keep the places you trust one tap away."
+- One card, max 26rem wide, with two tabs, **Sign in** and **Create account** (a real tab list: arrow keys switch). The same card is on Profile while signed out. The whole screen fits on a 390 × 844 phone without scrolling.
+  - Sign in: Email, Password (with show/hide), a full-width **Sign in**. Under a thin divider, a quiet row for testers: "Test logins · password `password`" and three chips (User, Moderator, Admin) that fill the form.
   - Create account: Name, Email, Password (at least 8 characters, hint under the field), **Create account**. Errors appear when leaving a field and clear on typing. An email that already has an account offers **Sign in instead**. "For now your account is kept on this phone only."
-- **Continue without an account** sits under the card as a plain text button.
 
 ### Profile (`/profile`)
 
@@ -444,7 +457,7 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 - One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text, never beside or over a button.
 - Add a new pose only when a real screen needs it. Every pose must keep the same face, colours, outfit and art style.
 
-**Status (2026-10-29):** built. `app/src/components/Mascot.tsx` (`variant` of `ready | friendly | thinking | head`, optional `height`, default 128px) is used on the Saved empty state, an empty category, offline with nothing cached (Services, a category, Saved; via `DataNotice`'s `ropi` prop, which Home and Emergency never pass), About (160px) and the signed-in Profile (56px circle). Welcome (150px) uses `ready` too.
+**Status (2026-10-29):** built. `app/src/components/Mascot.tsx` (`variant` of `ready | friendly | thinking | head`, optional `height`, default 128px) is used on the Saved empty state, an empty category, offline with nothing cached (Services, a category, Saved; via `DataNotice`'s `ropi` prop, which Home and Emergency never pass), About (160px) and the signed-in Profile (56px circle). Welcome (120px) uses `ready` too.
 
 **Files**
 - Stored in [`app/public/assets/mascot/`](../app/public/assets/mascot/), served from `/assets/mascot/<name>.webp`. Naming and export rules are in that folder's README.
