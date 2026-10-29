@@ -1,3 +1,6 @@
+import { ChevronLeft } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router'
+import { useAuth } from '../auth/context.ts'
 import { ContactCard, HotlineCard, SectionHead } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import { useAppData } from '../data/context.ts'
@@ -7,8 +10,14 @@ import { visibleContacts } from '../rules/emergency.ts'
 import type { EmergencyContact } from '../types.ts'
 import styles from './Page.module.css'
 
+// Open to everyone, with or without an account. Reached from the red button on every screen;
+// Back returns to wherever the person was.
 export default function EmergencyPage() {
   const { country, data, area } = useAppData()
+  const { account } = useAuth()
+  const navigate = useNavigate()
+  // 'default' means this is the first page of the visit (a shared link): there is nothing to go back to.
+  const canGoBack = useLocation().key !== 'default'
   const fallback = FALLBACK_EMERGENCY[country]
   const ready = data.status === 'ready'
 
@@ -37,6 +46,19 @@ export default function EmergencyPage() {
 
   return (
     <section className={styles.page} aria-labelledby="emergency-title">
+      {canGoBack ? (
+        <button type="button" className={styles.back} onClick={() => navigate(-1)}>
+          <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
+          Back
+        </button>
+      ) : (
+        account && (
+          <Link className={styles.back} to="/">
+            <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
+            Home
+          </Link>
+        )
+      )}
       <div className={styles.intro}>
         <h1 id="emergency-title" className={styles.title}>
           Emergency Help
@@ -74,6 +96,15 @@ export default function EmergencyPage() {
             </ul>
           )}
         </div>
+      )}
+
+      {!account && (
+        <p className={`${styles.notice} ${styles.guestNotice}`}>
+          <span>You&apos;re using Bulig without an account. Nearby services and the map need one.</span>
+          <Link className={styles.more} to="/login?next=%2F">
+            Sign in
+          </Link>
+        </p>
       )}
 
       <p className={styles.footnote}>

@@ -88,6 +88,8 @@ export interface Service {
   lat?: number;
   lng?: number;
   hours?: string;            // free text until weekly hours are validated
+  subtype?: string;          // the owner's word, shown instead of the category: "Halo-halo"
+  addedAt?: string;          // ISO date first listed; NEW badge for 60 days
   verifiedAt: string;
   source: string;
   sample?: boolean;
@@ -307,6 +309,7 @@ Build only what the pilot proved people want. If they're built, these are the de
 | 2 | `Area`, `EmergencyContact`, `Service`, `Category` and `Envelope` created, with `country` and `area` on every record | 1 |
 | 3 | Category `lodging`; `Area.lat`, `Area.lng`, `Area.level`, `Area.parent`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional) | 1 |
 | 5 | `hazards.schema.json` added; `Service.ownerVerified` (optional) | 1 |
+| 3 | Category `other` ("Others": new stalls and local finds); `Service.addedAt` (optional, ISO date first listed, drives the NEW badge for 60 days). `Service.subtype` is now shown in the UI. Added 2026-10-30. | 1 |
 | 7 | New areas and countries (data only); `Service.featured` (optional) | 1 |
 
 ## Decisions and why

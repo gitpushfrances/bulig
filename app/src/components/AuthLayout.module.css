@@ -1,0 +1,93 @@
+/* Auth screens: one calm column on phones; split with a Ropi panel from 60rem. */
+
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--color-bg);
+}
+
+.aside {
+  display: none;
+}
+
+.main {
+  display: flex;
+  justify-content: center;
+  padding: calc(32px + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px))
+    calc(32px + env(safe-area-inset-bottom, 0px)) max(var(--gutter), env(safe-area-inset-left, 0px));
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 24rem;
+}
+
+.mainWide .column {
+  max-width: 28rem;
+}
+
+.mark {
+  display: flex;
+  justify-content: center;
+}
+
+/* Short phones: a little less air above the mark. */
+@media (max-height: 44rem) {
+  .main {
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  }
+}
+
+@media (min-width: 60rem) {
+  .screen {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .aside {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-selected);
+  }
+
+  .asideInner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .brand {
+    margin-top: 16px;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .tagline {
+    color: var(--color-text-muted);
+    font-size: 1.0625rem;
+  }
+
+  .main {
+    align-items: center;
+    padding: 48px 40px;
+  }
+
+  .single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mark {
+    display: none;
+  }
+}

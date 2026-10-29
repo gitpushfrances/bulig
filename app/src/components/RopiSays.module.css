@@ -1,0 +1,63 @@
+/* Ropi talking: the bubble sits above Ropi, its tail pointing down at Ropi's head. */
+
+.says {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bubble {
+  position: relative;
+  max-width: 30ch;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* The tail: a small rotated square that shares the bubble's border. */
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transform: rotate(45deg);
+}
+
+.bubble strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+/* Side by side: Ropi on the left, the bubble to the right with its tail pointing left. */
+.side {
+  flex-direction: row-reverse;
+  justify-content: center;
+  align-items: center;
+}
+
+.side .bubble {
+  text-align: left;
+}
+
+.side .bubble::after {
+  left: -7px;
+  top: 50%;
+  bottom: auto;
+  margin: -6px 0 0;
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}

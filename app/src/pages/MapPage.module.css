@@ -1,0 +1,303 @@
+/* The Map fills the space between the top bar and the tab bar. Overlays float on it:
+   category chips on top, controls on the right, a place sheet at the bottom. */
+
+.wrap {
+  position: relative;
+  height: calc(100vh - var(--topbar-h) - var(--bottombar-h));
+  height: calc(100dvh - var(--topbar-h) - var(--bottombar-h));
+  min-height: 22rem;
+  overflow: hidden;
+  background: var(--color-selected);
+}
+
+/* MapLibre's stylesheet makes the map element position: relative, so size it explicitly. */
+.map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  background: var(--color-selected);
+}
+
+/* ---------- Category chips: one scrolling row ---------- */
+
+.chips {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  padding: 0 var(--gutter);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+
+.chips button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: start;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform var(--press-ms) var(--ease-out);
+}
+
+.chips button:active {
+  transform: scale(0.96);
+}
+
+.chips button[aria-pressed='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ---------- Controls: emergency first, then my location ---------- */
+
+.controls {
+  position: absolute;
+  top: 64px;
+  right: var(--gutter);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control,
+.sos {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.16),
+    0 4px 12px rgb(0 0 0 / 0.12);
+  transition: transform var(--press-ms) var(--ease-out);
+}
+
+.control {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.sos {
+  background: var(--color-emergency);
+  color: var(--color-on-emergency);
+}
+
+.control:active,
+.sos:active {
+  transform: scale(0.94);
+}
+
+/* ---------- Pins and the person ---------- */
+
+.pin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 6px;
+  padding: 0;
+  border: 2px solid var(--color-surface);
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  transition: transform 160ms var(--ease-out);
+}
+
+/* The point under the pin. */
+.pin::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+  border-right: 2px solid var(--color-surface);
+  border-bottom: 2px solid var(--color-surface);
+}
+
+.pinOn {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-text);
+  transform: scale(1.15);
+}
+
+.pinOn::after {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+/* Blue is kept for "you are here" only, with the one recurring map cue: a soft halo. */
+.me {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: #2563eb;
+  box-shadow: 0 0 0 0 rgb(37 99 235 / 0.35);
+  animation: halo 2s var(--ease-out) infinite;
+}
+
+@keyframes halo {
+  to {
+    box-shadow: 0 0 0 18px rgb(37 99 235 / 0);
+  }
+}
+
+/* ---------- The place sheet ---------- */
+
+.sheet {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 28rem;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.18);
+  animation: rise 200ms var(--ease-out);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.sheetHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.sheetTitle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px 0 -4px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+/* Attribution stays readable and out of the sheet's way. */
+.wrap :global(.maplibregl-ctrl.maplibregl-ctrl-attrib),
+.wrap :global(.maplibregl-ctrl-attrib.maplibregl-compact) {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+}
+
+.wrap :global(.maplibregl-ctrl-attrib a),
+.wrap :global(.maplibregl-ctrl-attrib-button) {
+  color: var(--color-text);
+}
+
+.wrap :global(.maplibregl-ctrl-attrib-button) {
+  background-color: var(--color-surface);
+  filter: none;
+}
+
+:global([data-theme='dark']) .wrap :global(.maplibregl-ctrl-attrib-button) {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme='light'])) .wrap :global(.maplibregl-ctrl-attrib-button) {
+    filter: invert(1);
+  }
+}
+
+.fallback {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 16px var(--gutter) 32px;
+}
+
+@media (min-width: 48rem) {
+  .chips {
+    top: 16px;
+    padding: 0 24px;
+  }
+
+  .controls {
+    top: 72px;
+    right: 24px;
+  }
+
+  .sheet {
+    left: 24px;
+    right: auto;
+    bottom: 24px;
+    width: 26rem;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chips button:hover,
+  .control:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  .pin:hover {
+    transform: scale(1.08);
+  }
+
+  .pinOn:hover {
+    transform: scale(1.15);
+  }
+}

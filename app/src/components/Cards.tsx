@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { directionsHref, formatDate, telHref } from '../data/format.ts'
 import { categoryBlurb, categoryLabel, categorySlug, kindLabel } from '../data/labels.ts'
 import { formatDistance, type Ranked } from '../rules/nearby.ts'
+import { isNew } from '../rules/services.ts'
 import { CATEGORIES, type Category, type EmergencyContact, type Labels, type Service } from '../types.ts'
 import styles from '../pages/Page.module.css'
 import { CATEGORY_ICONS, ICON_STROKE, KIND_ICONS } from './icons.ts'
@@ -20,6 +21,16 @@ function Checked({ date }: { date: string }) {
 
 function Sample() {
   return <span className={styles.sample}>SAMPLE</span>
+}
+
+// New stalls get noticed. A badge only: it never moves a place up the list.
+function New() {
+  return <span className={styles.newBadge}>NEW</span>
+}
+
+// The owner's own word ("Halo-halo") when there is one, else the category name.
+function kindOf(service: Service, labels: Labels | null): string {
+  return service.subtype ?? categoryLabel(service.category, labels)
 }
 
 // A section heading with an optional "see all" link on the right.
@@ -138,9 +149,10 @@ export function ServiceCard({
           <h3 className={styles.cardTitle}>{service.name}</h3>
           <p className={styles.meta}>
             <Icon size={16} strokeWidth={ICON_STROKE} aria-hidden="true" />
-            {categoryLabel(service.category, labels)} · {service.landmark}
+            {kindOf(service, labels)} · {service.landmark}
           </p>
         </div>
+        {isNew(service, new Date()) && <New />}
         {service.sample && <Sample />}
         <SaveButton id={service.id} name={service.name} />
       </div>
@@ -236,7 +248,7 @@ export function PlaceRow({ service, labels, km }: { service: Service; labels: La
       <div className={styles.rowText}>
         <p className={styles.rowTitle}>{service.name}</p>
         <p className={styles.rowMeta}>
-          {categoryLabel(service.category, labels)}
+          {kindOf(service, labels)}
           {km !== null && ` · ${formatDistance(km)}`}
         </p>
       </div>
@@ -269,7 +281,8 @@ export function NumberRow({ contact }: { contact: EmergencyContact }) {
 }
 
 // Home's services at a glance: the first kind as a large tile with its nearest place, the rest as
-// small tiles. Seven tiles fill a 2-column grid on phones and a 4-column grid from tablets exactly.
+// small tiles. Others (new and local stalls) closes the grid as a wide tile. Eight tiles fill a
+// 2-column grid on phones and a 4-column grid from tablets exactly.
 export function ServiceBento({ ranked, labels }: { ranked: Ranked<Service>[]; labels: Labels | null }) {
   return (
     <nav className={styles.bento} aria-label="Common services">
@@ -278,15 +291,20 @@ export function ServiceBento({ ranked, labels }: { ranked: Ranked<Service>[]; la
         const inCategory = ranked.filter((r) => r.item.category === category)
         const nearest = inCategory[0]
         const feature = i === 0
+        const wide = category === 'other'
+        const fresh = wide && inCategory.some((r) => isNew(r.item, new Date()))
         return (
           <Link
             key={category}
             to={`/services/${categorySlug(category)}`}
-            className={`${styles.bentoTile} ${feature ? styles.bentoFeature : ''}`}
+            className={`${styles.bentoTile} ${feature ? styles.bentoFeature : ''} ${wide ? styles.bentoWide : ''}`}
           >
             <Icon className={styles.offerIcon} size={feature ? 30 : 22} strokeWidth={1.6} aria-hidden="true" />
-            <span className={styles.bentoName}>{categoryLabel(category, labels)}</span>
-            {feature && <span className={styles.offerBlurb}>{categoryBlurb(category)}</span>}
+            <span className={styles.bentoName}>
+              {categoryLabel(category, labels)}
+              {fresh && <New />}
+            </span>
+            {(feature || wide) && <span className={styles.offerBlurb}>{categoryBlurb(category)}</span>}
             <span className={styles.bentoFoot}>
               {inCategory.length === 0
                 ? 'None listed yet'

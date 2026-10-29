@@ -1,7 +1,7 @@
 import { useAppData } from '../data/context.ts'
 import styles from '../pages/Page.module.css'
-import Mascot from './Mascot.tsx'
 import RopiLoader from './RopiLoader.tsx'
+import RopiSays from './RopiSays.tsx'
 
 interface Props {
   hasSamples: boolean
@@ -30,8 +30,10 @@ export default function DataNotice({ hasSamples, ropi = false }: Props) {
       )}
       {data.status === 'error' && ropi && !online && (
         <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`} role="alert">
-          <Mascot variant="thinking" />
-          <p>No signal, and nothing saved here yet. Connect once and Bulig keeps this for offline use.</p>
+          <RopiSays variant="thinking">
+            <strong>No signal, and nothing saved here yet.</strong> Connect once and Bulig keeps this for offline
+            use.
+          </RopiSays>
           <button type="button" className={styles.secondary} onClick={retry}>
             Try again
           </button>

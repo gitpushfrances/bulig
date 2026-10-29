@@ -47,7 +47,7 @@ flowchart TD
 
 | Phase | How it works |
 | --- | --- |
-| **Now (test UI)** | On Welcome (first open) and the Profile tab. Three hardcoded test logins, all with the password `password`, in [`app/src/auth/testAccount.ts`](../app/src/auth/testAccount.ts): `test@bulig.com` (**user**), `moderator@bulig.com` (**moderator** for Cebu City), `admin@bulig.com` (**admin**). **Create account** makes a **user** kept on this phone only ([`localAccounts.ts`](../app/src/auth/localAccounts.ts)): name, email and a salted SHA-256 hash of the password in `bulig.accounts`, never the password itself. Moderators and admins are never self-registered. The session and saved places are kept in `localStorage` on the phone. |
+| **Now (test UI)** | On `/login` and `/signup` (the onboarding). Everything except Emergency needs an account; "Continue without an account" gives Emergency only. Three hardcoded test logins, all with the password `password`, in [`app/src/auth/testAccount.ts`](../app/src/auth/testAccount.ts): `test@bulig.com` (**user**), `moderator@bulig.com` (**moderator** for Cebu City), `admin@bulig.com` (**admin**). **Create account** makes a **user** kept on this phone only ([`localAccounts.ts`](../app/src/auth/localAccounts.ts)): name, email and a salted SHA-256 hash of the password in `bulig.accounts`, never the password itself. Moderators and admins are never self-registered. The session and saved places are kept in `localStorage` on the phone. |
 | **Phase 4** | Laravel Sanctum accounts. Admins and moderators sign in to Filament; the API checks roles with the same rules as `can()`. |
 | **Phase 5** | Travellers and business owners sign in (Google through Socialite, Sanctum tokens). Saved places sync to the account. |
 
@@ -59,10 +59,10 @@ Saving flow:
 sequenceDiagram
   participant T as Traveller
   participant S as Services page
-  participant A as Profile page
+  participant A as Login page
   T->>S: Taps the heart on a place
   alt signed out
-    S->>A: Opens /profile?next=/services
+    S->>A: Opens /login?next=/services
     T->>A: Signs in
     A->>S: Returns to /services
   end
