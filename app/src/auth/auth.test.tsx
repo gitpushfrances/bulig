@@ -11,36 +11,49 @@ function renderAt(path: string) {
   )
 }
 
-function signIn(email: string, password: string) {
+function submitSignIn(email: string, password: string) {
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
   fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 }
 
+function fillRegister(name: string, email: string, password: string) {
+  fireEvent.click(screen.getByRole('tab', { name: 'Create account' }))
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: name } })
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
+  fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+}
+
 describe('Test sign-in', () => {
-  it('signs in with the test login and shows the role', () => {
+  it('signs in with the test login and shows the role', async () => {
     renderAt('/profile')
 
-    signIn(' Test@Bulig.com ', 'password')
-    expect(screen.getByRole('heading', { name: 'Test traveller' })).toBeInTheDocument()
+    submitSignIn(' Test@Bulig.com ', 'password')
+    expect(await screen.findByRole('heading', { name: 'Test traveller' })).toBeInTheDocument()
     expect(screen.getByText(/Role: User/)).toBeInTheDocument()
     expect(localStorage.getItem('bulig.session')).toBe('test@bulig.com')
   })
 
-  it('says what went wrong for a bad password and stays signed out', () => {
+  it('says what went wrong for a bad password and stays signed out', async () => {
     renderAt('/profile')
 
-    signIn('test@bulig.com', 'wrong')
-    expect(screen.getByRole('alert')).toHaveTextContent("don't match")
+    submitSignIn('test@bulig.com', 'wrong')
+    expect(await screen.findByRole('alert')).toHaveTextContent("don't match")
     expect(localStorage.getItem('bulig.session')).toBeNull()
   })
 
-  it('fills in the test login for testers', () => {
+  it.each([
+    ['User', 'Test traveller'],
+    ['Moderator', 'Test moderator'],
+    ['Admin', 'Test admin'],
+  ])('fills in the %s test login', async (role, name) => {
     renderAt('/profile')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Fill in test login' }))
+    fireEvent.click(screen.getByRole('button', { name: `Fill in test login: ${role}` }))
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
-    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name })).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(`Role: ${role}`))).toBeInTheDocument()
   })
 
   it('signs out and forgets the session', () => {
@@ -50,6 +63,79 @@ describe('Test sign-in', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument()
     expect(localStorage.getItem('bulig.session')).toBeNull()
+  })
+})
+
+describe('Create account', () => {
+  it('creates a user on this phone, signs in, and never stores the password', async () => {
+    renderAt('/profile')
+
+    fillRegister('Ana Reyes', 'Ana@Example.com', 'long enough')
+    expect(await screen.findByRole('heading', { name: 'Ana Reyes' })).toBeInTheDocument()
+    expect(screen.getByText(/Role: User/)).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.session')).toBe('ana@example.com')
+    expect(localStorage.getItem('bulig.accounts')).not.toContain('long enough')
+
+    // Signs back in with the same password after signing out.
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    submitSignIn('ana@example.com', 'long enough')
+    expect(await screen.findByRole('heading', { name: 'Ana Reyes' })).toBeInTheDocument()
+  })
+
+  it('checks each field and blocks a short password', () => {
+    renderAt('/profile')
+
+    fillRegister('', 'not-an-email', 'short')
+    expect(screen.getByText('Enter your name.')).toBeInTheDocument()
+    expect(screen.getByText('Enter an email like name@example.com.')).toBeInTheDocument()
+    expect(screen.getByText('Use at least 8 characters.')).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.accounts')).toBeNull()
+  })
+
+  it('refuses an email that already has an account, and offers sign in', async () => {
+    renderAt('/profile')
+
+    fillRegister('Someone', 'test@bulig.com', 'long enough')
+    expect(await screen.findByRole('alert')).toHaveTextContent('already has an account')
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in instead' }))
+    expect(screen.getByRole('tab', { name: 'Sign in' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByLabelText('Email')).toHaveValue('test@bulig.com')
+  })
+})
+
+describe('Welcome', () => {
+  it('greets a first-time visitor on /, with 911 one tap away', () => {
+    localStorage.removeItem('bulig.welcomed')
+    renderAt('/')
+
+    expect(screen.getByRole('heading', { name: 'Welcome to Bulig' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Call 911/ })).toHaveAttribute('href', 'tel:911')
+    expect(screen.getByTestId('mascot')).toHaveAttribute('data-variant', 'ready')
+  })
+
+  it('goes to Home after skipping, and does not come back', async () => {
+    localStorage.removeItem('bulig.welcomed')
+    renderAt('/')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue without an account' }))
+    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.welcomed')).toBe('1')
+  })
+
+  it('goes to Home after signing in', async () => {
+    localStorage.removeItem('bulig.welcomed')
+    renderAt('/')
+
+    submitSignIn('admin@bulig.com', 'password')
+    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+  })
+
+  it('never stops a shared link', async () => {
+    localStorage.removeItem('bulig.welcomed')
+    renderAt('/emergency')
+
+    expect(await screen.findByRole('region', { name: 'National Emergency Hotline' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Welcome to Bulig' })).not.toBeInTheDocument()
   })
 })
 

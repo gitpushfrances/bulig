@@ -1,22 +1,27 @@
-import type { Account } from './types.ts'
+import type { Account, Role } from './types.ts'
 
-// TEST LOGIN ONLY, until real sign-in arrives with the backend (docs/WORKFLOW.md, "Sign-in").
-// It ships inside the app's JavaScript, so it protects nothing: anyone can read it. It only
-// lets testers try saving places. Never put a real password here.
-export const TEST_LOGIN = { email: 'test@bulig.com', password: 'password' }
+// TEST LOGINS ONLY, until real sign-in arrives with the backend (docs/WORKFLOW.md, "Sign-in").
+// They ship inside the app's JavaScript, so they protect nothing: anyone can read them. They only
+// let testers try each role. Never put a real password here.
+export const TEST_PASSWORD = 'password'
 
-const TEST_ACCOUNT: Account = {
-  email: TEST_LOGIN.email,
-  name: 'Test traveller',
-  role: 'user',
-  areas: [],
+export const TEST_ACCOUNTS: Record<Role, Account> = {
+  user: { email: 'test@bulig.com', name: 'Test traveller', role: 'user', areas: [] },
+  moderator: { email: 'moderator@bulig.com', name: 'Test moderator', role: 'moderator', areas: ['ph-cebu-cebu-city'] },
+  admin: { email: 'admin@bulig.com', name: 'Test admin', role: 'admin', areas: [] },
 }
 
-export function checkLogin(email: string, password: string): Account | null {
-  const sameEmail = email.trim().toLowerCase() === TEST_LOGIN.email
-  return sameEmail && password === TEST_LOGIN.password ? TEST_ACCOUNT : null
+export const TEST_LOGIN = { email: TEST_ACCOUNTS.user.email, password: TEST_PASSWORD }
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase()
 }
 
 export function accountFor(email: string | null): Account | null {
-  return email === TEST_ACCOUNT.email ? TEST_ACCOUNT : null
+  return Object.values(TEST_ACCOUNTS).find((a) => a.email === email) ?? null
+}
+
+export function checkLogin(email: string, password: string): Account | null {
+  const account = accountFor(normalizeEmail(email))
+  return account && password === TEST_PASSWORD ? account : null
 }
