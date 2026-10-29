@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-30T00:00:00Z",
+  "updatedAt": "2026-10-30T12:00:00Z",
   "items": [
     {
       "id": "ph-metro-manila-quezon-city-sample-vulcanizing",
@@ -15,7 +15,14 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-22",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "tubeless": true,
+        "motorcycle": true
+      }
     },
     {
       "id": "ph-metro-manila-quezon-city-sample-hospital",
@@ -30,7 +37,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-22",
       "source": "Sample data, not a real hospital",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-metro-manila-quezon-city-sample-fuel",
@@ -44,7 +55,11 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-22",
       "source": "Sample data, not a real station",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-benguet-baguio-sample-mechanic",
@@ -59,7 +74,56 @@
       "hours": "8am to 6pm",
       "verifiedAt": "2026-10-18",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "car_truck": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-benguet-baguio-sample-food",
@@ -72,7 +136,51 @@
       "hours": "6am to 9pm",
       "verifiedAt": "2026-10-18",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-store",
@@ -85,7 +193,51 @@
       "hours": "7am to 8pm",
       "verifiedAt": "2026-10-15",
       "source": "Sample data, not a real store",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "20:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "20:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "20:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "20:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "20:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "20:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "20:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-vulcanizing",
@@ -100,7 +252,57 @@
       "hours": "6am to 7pm",
       "verifiedAt": "2026-10-15",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "tubeless": true,
+        "motorcycle": true
+      }
     },
     {
       "id": "ph-palawan-puerto-princesa-sample-fuel",
@@ -114,7 +316,55 @@
       "hours": "5am to 10pm",
       "verifiedAt": "2026-10-12",
       "source": "Sample data, not a real station",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "05:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "05:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "05:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "05:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "05:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "05:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "05:00",
+            "22:00"
+          ]
+        ]
+      },
+      "features": {
+        "bottled_fuel": true,
+        "air_pump": true
+      }
     },
     {
       "id": "ph-palawan-puerto-princesa-sample-hospital",
@@ -129,7 +379,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-12",
       "source": "Sample data, not a real hospital",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-food",
@@ -142,7 +396,51 @@
       "hours": "7am to 7pm",
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-mechanic",
@@ -157,7 +455,49 @@
       "hours": "8am to 5pm, closed Sunday",
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "mon": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "car_truck": true
+      }
     },
     {
       "id": "ph-cebu-cebu-city-sample-vulcanizing",
@@ -172,7 +512,57 @@
       "hours": "6am to 10pm",
       "verifiedAt": "2026-10-21",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "22:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-cebu-cebu-city-sample-store",
@@ -184,7 +574,8 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-21",
       "source": "Sample data, not a real store",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-leyte-tacloban-sample-hospital",
@@ -199,7 +590,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-19",
       "source": "Sample data, not a real hospital",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-leyte-tacloban-sample-fuel",
@@ -213,7 +608,54 @@
       "hours": "5am to 11pm",
       "verifiedAt": "2026-10-19",
       "source": "Sample data, not a real station",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "05:00",
+            "23:00"
+          ]
+        ],
+        "mon": [
+          [
+            "05:00",
+            "23:00"
+          ]
+        ],
+        "tue": [
+          [
+            "05:00",
+            "23:00"
+          ]
+        ],
+        "wed": [
+          [
+            "05:00",
+            "23:00"
+          ]
+        ],
+        "thu": [
+          [
+            "05:00",
+            "23:00"
+          ]
+        ],
+        "fri": [
+          [
+            "05:00",
+            "23:00"
+          ]
+        ],
+        "sat": [
+          [
+            "05:00",
+            "23:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-eastern-samar-guiuan-sample-vulcanizing",
@@ -228,7 +670,58 @@
       "hours": "7am to 6pm",
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "tubeless": true,
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-eastern-samar-mercedes-sample-vulcanizing",
@@ -242,7 +735,13 @@
       "lng": 125.7175,
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "tubeless": true,
+        "motorcycle": true
+      }
     },
     {
       "id": "ph-eastern-samar-guiuan-sample-mechanic",
@@ -255,7 +754,49 @@
       "hours": "8am to 5pm, closed Sunday",
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "mon": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "17:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-eastern-samar-guiuan-sample-fuel",
@@ -269,7 +810,11 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-20",
       "source": "Sample data, not a real station",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-eastern-samar-mercedes-sample-food",
@@ -296,7 +841,54 @@
       "hours": "7am to 7pm",
       "verifiedAt": "2026-10-23",
       "source": "Sample data, not a real shop",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "19:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true
+      }
     },
     {
       "id": "ph-davao-del-sur-davao-city-sample-food",
@@ -309,7 +901,51 @@
       "hours": "10am to midnight",
       "verifiedAt": "2026-10-23",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "10:00",
+            "24:00"
+          ]
+        ],
+        "mon": [
+          [
+            "10:00",
+            "24:00"
+          ]
+        ],
+        "tue": [
+          [
+            "10:00",
+            "24:00"
+          ]
+        ],
+        "wed": [
+          [
+            "10:00",
+            "24:00"
+          ]
+        ],
+        "thu": [
+          [
+            "10:00",
+            "24:00"
+          ]
+        ],
+        "fri": [
+          [
+            "10:00",
+            "24:00"
+          ]
+        ],
+        "sat": [
+          [
+            "10:00",
+            "24:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-metro-manila-quezon-city-sample-lodging",
@@ -324,7 +960,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-22",
       "source": "Sample data, not a real hotel",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-benguet-baguio-sample-lodging",
@@ -339,7 +976,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-18",
       "source": "Sample data, not a real hotel",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-cebu-cebu-city-sample-lodging",
@@ -354,7 +992,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-21",
       "source": "Sample data, not a real hotel",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-leyte-tacloban-sample-lodging",
@@ -384,7 +1023,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-12",
       "source": "Sample data, not a real hotel",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-davao-del-sur-davao-city-sample-lodging",
@@ -399,7 +1039,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-23",
       "source": "Sample data, not a real hotel",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-metro-manila-quezon-city-sample-mechanic",
@@ -414,7 +1055,55 @@
       "hours": "8am to 6pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "car_truck": true
+      }
     },
     {
       "id": "ph-metro-manila-quezon-city-sample-food",
@@ -429,7 +1118,51 @@
       "hours": "6am to 9pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-metro-manila-quezon-city-sample-store",
@@ -444,7 +1177,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-benguet-baguio-sample-tire-repair",
@@ -459,7 +1236,58 @@
       "hours": "6am to 8pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "tubeless": true,
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-benguet-baguio-sample-fuel",
@@ -474,7 +1302,11 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-benguet-baguio-sample-hospital",
@@ -489,7 +1321,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-benguet-baguio-sample-store",
@@ -504,7 +1340,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-mechanic",
@@ -519,7 +1399,55 @@
       "hours": "8am to 6pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-fuel",
@@ -534,7 +1462,11 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-hospital",
@@ -549,7 +1481,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-food",
@@ -564,7 +1500,51 @@
       "hours": "6am to 9pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-lodging",
@@ -579,7 +1559,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-palawan-puerto-princesa-sample-tire-repair",
@@ -594,7 +1575,57 @@
       "hours": "6am to 8pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "tubeless": true,
+        "motorcycle": true
+      }
     },
     {
       "id": "ph-palawan-puerto-princesa-sample-mechanic",
@@ -609,7 +1640,55 @@
       "hours": "8am to 6pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-palawan-puerto-princesa-sample-food",
@@ -624,7 +1703,51 @@
       "hours": "6am to 9pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-palawan-puerto-princesa-sample-store",
@@ -639,7 +1762,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-tire-repair",
@@ -654,7 +1821,57 @@
       "hours": "6am to 8pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "motorcycle": true,
+        "comes_to_you": false
+      }
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-fuel",
@@ -669,7 +1886,12 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "bottled_fuel": true,
+        "air_pump": true
+      }
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-hospital",
@@ -684,7 +1906,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-lodging",
@@ -699,7 +1925,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-store",
@@ -714,7 +1941,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-cebu-cebu-city-sample-mechanic",
@@ -729,7 +2000,56 @@
       "hours": "8am to 6pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "car_truck": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-cebu-cebu-city-sample-fuel",
@@ -744,7 +2064,11 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-cebu-cebu-city-sample-hospital",
@@ -759,7 +2083,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-cebu-cebu-city-sample-food",
@@ -774,7 +2102,51 @@
       "hours": "6am to 9pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-leyte-tacloban-sample-tire-repair",
@@ -789,7 +2161,57 @@
       "hours": "6am to 8pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-leyte-tacloban-sample-mechanic",
@@ -804,7 +2226,55 @@
       "hours": "8am to 6pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "car_truck": true
+      }
     },
     {
       "id": "ph-leyte-tacloban-sample-food",
@@ -819,7 +2289,51 @@
       "hours": "6am to 9pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-leyte-tacloban-sample-store",
@@ -834,7 +2348,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-eastern-samar-guiuan-sample-hospital",
@@ -849,7 +2407,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-eastern-samar-guiuan-sample-food",
@@ -864,7 +2426,51 @@
       "hours": "6am to 9pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-eastern-samar-guiuan-sample-lodging",
@@ -879,7 +2485,8 @@
       "hours": "24 hours front desk",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true
     },
     {
       "id": "ph-eastern-samar-guiuan-sample-store",
@@ -894,7 +2501,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-eastern-samar-mercedes-sample-mechanic",
@@ -909,7 +2560,56 @@
       "hours": "8am to 6pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "motorcycle": true,
+        "car_truck": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-eastern-samar-mercedes-sample-fuel",
@@ -924,7 +2624,11 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-eastern-samar-mercedes-sample-hospital",
@@ -939,7 +2643,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-eastern-samar-mercedes-sample-store",
@@ -954,7 +2662,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-davao-del-sur-davao-city-sample-tire-repair",
@@ -969,7 +2721,57 @@
       "hours": "6am to 8pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "20:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true,
+        "motorcycle": true,
+        "comes_to_you": true
+      }
     },
     {
       "id": "ph-davao-del-sur-davao-city-sample-fuel",
@@ -984,7 +2786,11 @@
       "hours": "24 hours",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "air_pump": true
+      }
     },
     {
       "id": "ph-davao-del-sur-davao-city-sample-hospital",
@@ -999,7 +2805,11 @@
       "hours": "24 hours, emergency room",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "open24h": true,
+      "features": {
+        "emergency_room": true
+      }
     },
     {
       "id": "ph-davao-del-sur-davao-city-sample-store",
@@ -1014,7 +2824,51 @@
       "hours": "7am to 10pm",
       "verifiedAt": "2026-10-24",
       "source": "Sample data, not a real place",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "22:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-cebu-cebu-city-sample-halo-halo",
@@ -1031,7 +2885,51 @@
       "addedAt": "2026-10-20",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "10:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "10:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "10:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "10:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "10:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "10:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "10:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-metro-manila-quezon-city-sample-bbq",
@@ -1048,7 +2946,51 @@
       "addedAt": "2026-10-12",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "16:00",
+            "23:00"
+          ]
+        ],
+        "mon": [
+          [
+            "16:00",
+            "23:00"
+          ]
+        ],
+        "tue": [
+          [
+            "16:00",
+            "23:00"
+          ]
+        ],
+        "wed": [
+          [
+            "16:00",
+            "23:00"
+          ]
+        ],
+        "thu": [
+          [
+            "16:00",
+            "23:00"
+          ]
+        ],
+        "fri": [
+          [
+            "16:00",
+            "23:00"
+          ]
+        ],
+        "sat": [
+          [
+            "16:00",
+            "23:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-davao-del-sur-davao-city-sample-fishball",
@@ -1065,7 +3007,51 @@
       "addedAt": "2026-10-25",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "15:00",
+            "21:00"
+          ]
+        ],
+        "mon": [
+          [
+            "15:00",
+            "21:00"
+          ]
+        ],
+        "tue": [
+          [
+            "15:00",
+            "21:00"
+          ]
+        ],
+        "wed": [
+          [
+            "15:00",
+            "21:00"
+          ]
+        ],
+        "thu": [
+          [
+            "15:00",
+            "21:00"
+          ]
+        ],
+        "fri": [
+          [
+            "15:00",
+            "21:00"
+          ]
+        ],
+        "sat": [
+          [
+            "15:00",
+            "21:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-benguet-baguio-sample-coffee",
@@ -1082,7 +3068,51 @@
       "addedAt": "2026-09-28",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "mon": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "tue": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "wed": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "thu": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "fri": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ],
+        "sat": [
+          [
+            "06:00",
+            "19:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-palawan-puerto-princesa-sample-buko",
@@ -1099,7 +3129,51 @@
       "addedAt": "2026-10-05",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "18:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-iloilo-iloilo-city-sample-lechon-manok",
@@ -1116,7 +3190,51 @@
       "addedAt": "2026-08-15",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "09:00",
+            "20:00"
+          ]
+        ],
+        "mon": [
+          [
+            "09:00",
+            "20:00"
+          ]
+        ],
+        "tue": [
+          [
+            "09:00",
+            "20:00"
+          ]
+        ],
+        "wed": [
+          [
+            "09:00",
+            "20:00"
+          ]
+        ],
+        "thu": [
+          [
+            "09:00",
+            "20:00"
+          ]
+        ],
+        "fri": [
+          [
+            "09:00",
+            "20:00"
+          ]
+        ],
+        "sat": [
+          [
+            "09:00",
+            "20:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-camarines-sur-naga-sample-banana-cue",
@@ -1133,7 +3251,51 @@
       "addedAt": "2026-10-18",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "13:00",
+            "19:00"
+          ]
+        ],
+        "mon": [
+          [
+            "13:00",
+            "19:00"
+          ]
+        ],
+        "tue": [
+          [
+            "13:00",
+            "19:00"
+          ]
+        ],
+        "wed": [
+          [
+            "13:00",
+            "19:00"
+          ]
+        ],
+        "thu": [
+          [
+            "13:00",
+            "19:00"
+          ]
+        ],
+        "fri": [
+          [
+            "13:00",
+            "19:00"
+          ]
+        ],
+        "sat": [
+          [
+            "13:00",
+            "19:00"
+          ]
+        ]
+      }
     },
     {
       "id": "ph-leyte-tacloban-sample-pancit",
@@ -1150,7 +3312,51 @@
       "addedAt": "2026-07-30",
       "verifiedAt": "2026-10-26",
       "source": "Sample data, not a real stall",
-      "sample": true
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "15:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "15:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "15:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "15:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "15:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "15:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "15:00"
+          ]
+        ]
+      }
     }
   ]
 }

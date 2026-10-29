@@ -9,6 +9,7 @@ import RopiSays from '../components/RopiSays.tsx'
 import SaveButton from '../components/SaveButton.tsx'
 import { useAppData } from '../data/context.ts'
 import { telHref } from '../data/format.ts'
+import { placeHref } from '../data/links.ts'
 import { categoryLabel } from '../data/labels.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { usePhoneLocation } from '../location/context.ts'
@@ -408,6 +409,9 @@ export default function MapPage() {
               <RouteIcon size={18} strokeWidth={2} aria-hidden="true" />
               {target ? 'Route here instead' : 'Route'}
             </button>
+            <Link className={page.secondary} to={placeHref(picked.item)} aria-label={`Details for ${picked.item.name}`}>
+              Details
+            </Link>
           </div>
         </div>
       ) : target ? (

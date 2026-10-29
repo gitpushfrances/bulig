@@ -2,6 +2,7 @@ import { ChevronRight, CircleCheck, Clock, MapPin, Navigation, Phone } from 'luc
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { formatDate, telHref } from '../data/format.ts'
+import { placeHref } from '../data/links.ts'
 import { categoryBlurb, categoryLabel, kindLabel } from '../data/labels.ts'
 import { formatDistance, type Ranked } from '../rules/nearby.ts'
 import { isNew } from '../rules/services.ts'
@@ -147,7 +148,11 @@ export function ServiceCard({
     <li className={styles.card}>
       <div className={styles.cardHead}>
         <div className={styles.cardHeading}>
-          <h3 className={styles.cardTitle}>{service.name}</h3>
+          <h3 className={styles.cardTitle}>
+            <Link className={styles.nameLink} to={placeHref(service)}>
+              {service.name}
+            </Link>
+          </h3>
           <p className={styles.meta}>
             <Icon size={16} strokeWidth={ICON_STROKE} aria-hidden="true" />
             {kindOf(service, labels)} · {service.landmark}

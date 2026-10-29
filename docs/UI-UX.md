@@ -22,7 +22,7 @@ Bulig covers the whole Philippines, then any country. Town names in the wirefram
 | Accounts | Everything but Emergency needs an account ([Accounts and access](#accounts-and-access-decided-by-john-2026-10-30)). [Login](#login-login), [Sign up = onboarding](#sign-up--onboarding-signup) with Ropi, [Forgot password](#forgot-password-forgot-password). "Continue without an account" = Emergency only. Test logins (typed, no shortcuts): `test@`, `moderator@`, `admin@bulig.com` / `password`. Sign-ups are users kept on the phone (hashed password). |
 | Profile | Production-style settings: your photo (or Ropi), role, member since, edit profile (photo, name, mobile, home area), change password, theme (System/Light/Dark), install, help, Terms, Privacy, licences, sign out, delete account, "Bulig v0.3.0 · build <commit>". |
 | Mascot | Ropi on quiet screens only, now **talking** in speech bubbles (`RopiSays`): login (head mark / side panel), onboarding (all four poses), forgot password, guest gate, Saved empty ("Let's get started!"), empty category, offline, map offline, About, Profile avatar. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
-| Not built yet | Nearby filter chips (need `Service.features` and `weeklyHours` data), the mini map strip on the nearest card, Place details, real backend sign-in and reset emails (Phase 4). |
+| Not built yet | The mini map strip on the nearest card, Report wrong info (SCRUM-30), real backend sign-in and reset emails (Phase 4). |
 
 The change history is in [CHANGELOG.md](CHANGELOG.md) under **Unreleased**.
 
@@ -146,7 +146,8 @@ Design for the smallest supported viewport first: **360 × 740 CSS px**, with es
 - **Hospital:** a red-outlined note at the bottom, "**Life-threatening?** Call 911 now.", which opens Emergency.
 - No results: Ropi `thinking` says "No <places> listed near <town> yet.", then See other services.
 - One readable column (max 44rem) on wide screens.
-- **Not built yet:** the filter chips below (they need `Service.features` and `weeklyHours` in the data), the open/closed status and "nearest usually open" line (same), and the mini map strip on the nearest card.
+- **Built (2026-10-30, second pass):** the **filter chips** per need (table below; a feature chip keeps places where it is confirmed, "Usually open now" keeps places usually open at this moment; several chips combine), the **status** line ("Usually open at this time · until 10 PM" in green, "Usually closed at this time · opens 6 AM tomorrow" in neutral grey, "Usually open 24 hours"), **feature tags** (✓ confirmed, "· Not confirmed" dashed when unknown, hidden when confirmed not offered), the amber-free grey **"Nearest usually open at this time: <name>, 1.1 km ›"** line under a closed nearest place, **hospitals with an emergency room first**, "No places match these filters" with **Clear filters**, and rows that open **Place details**. Rules: `app/src/rules/hours.ts` (`openStatus`, `describeStatus`, `hoursForDay`) and `rankForNeed()` in `needs.ts`, with tests.
+- **Not built yet:** the mini map strip on the nearest card.
 
 The original spec follows.
 
@@ -216,6 +217,10 @@ Filter presets:
 - Offline, or without WebGL: Ropi `thinking` says "The map needs a connection" and the tab shows the nearest places as a list.
 
 ### Place details (`/place/:id`)
+
+**Built (2026-10-30).** `PlacePage.tsx`: Back; kind · area; the name with NEW / SAMPLE and the heart; distance and landmark; the status line; 52px **Call** ("Call hospital"), **Route** and **Share** (the phone's share sheet, or "Link copied"); the number in text; **Usual hours** for the week from Monday with **Today** marked, and "Hours can change, especially on holidays. Call first." (or the reported text and "Usual hours aren't recorded yet. Call to check."); **What it offers** (✓ confirmed, struck through "No …" when confirmed not offered, unknown left out); **Checked** with the source; and "Open in Google Maps". Opened from Nearby rows and names, Saved card names, and **Details** on a map pin's sheet. The Services tab stays selected. Not yet: Report wrong info (SCRUM-30).
+
+The original spec:
 
 - Name, category, barangay, distance, heart (save), SAMPLE badge.
 - A compact verified row: "Checked <date> · <how>", for example "Field visit" or "Phone call", using a success icon/text rather than a large green panel.

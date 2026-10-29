@@ -105,7 +105,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Goal:** real people in the first pilot area use it, and you learn from them. The first area is not the only one: everything learned here becomes the checklist for opening the next area anywhere.
 
-**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). **Still to do:** real data, features and weekly hours (for chips and "usually open"), Place details, report wrong info, analytics, Waray About, OPEN-AN-AREA.md.
+**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, report wrong info (SCRUM-30), analytics (SCRUM-31), Waray About, OPEN-AN-AREA.md (SCRUM-32).
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
@@ -115,10 +115,10 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - *(new)* Add a "Report wrong info" link that opens a short Google Form
 - ✅ **New navigation:** five tabs (Home, Services, Map, Saved, Profile), Emergency behind a floating red button on every screen. `/services` and `/about` keep working.
 - ✅ Home: "What's wrong?" tiles, the location line from GPS with a picker fallback, hotline card (911 one tap) and local numbers. (No mini map.)
-- ✅ Nearby results (`/nearby/:need`): nearest place as a big card with Call and Route, then the rest as a list. To do: "Nearest usually open" (needs weekly hours) and filter chips (need features).
+- ✅ Nearby results (`/nearby/:need`): nearest place as a big card with Call and Route, then the rest as a list. Plus "Nearest usually open", filter chips, status and feature tags.
 - ✅ Map tab with MapLibre and OpenFreeMap, lazy-loaded, category pins, bottom sheet, list fallback, plus in-app routes (OSRM, free)
-- ✅ Saved and Profile (accounts, photo, theme, install, legal). To do: Place details.
-- *(new)* Data: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional, contract v1 stays)
+- ✅ Saved and Profile (accounts, photo, theme, install, legal), and Place details (`/place/:id`).
+- ✅ Data: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional, contract v1 stays)
 - *(new)* Write a Privacy and About page in plain English plus the pilot area's local language (Waray), set up so more languages can be added per area
 - *(new)* Write `docs/OPEN-AN-AREA.md`: the checklist for opening a new area or country (verify emergency numbers, collect services, local category names, language, privacy notice), based on what this pilot taught
 

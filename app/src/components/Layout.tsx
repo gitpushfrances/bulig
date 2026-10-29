@@ -16,7 +16,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { to: '/', label: 'Home', icon: House },
-  { to: '/services', label: 'Services', icon: LayoutGrid, also: ['/nearby'] },
+  { to: '/services', label: 'Services', icon: LayoutGrid, also: ['/nearby', '/place'] },
   { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/saved', label: 'Saved', icon: Heart },
   { to: '/profile', label: 'Profile', also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
