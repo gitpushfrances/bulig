@@ -84,7 +84,8 @@ export function HotlineCard({
               key={phone}
               className={`${styles.call} ${i === 0 ? styles.hotlineCall : styles.hotlineSecondary}`}
               href={telHref(phone)}
-              aria-label={`Call ${contact.name} at ${phone}`}
+              // The visible words come first, so "Call 911" works for voice control too.
+              aria-label={`Call ${phone}, ${contact.name}`}
             >
               <Phone size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
               Call {phone}

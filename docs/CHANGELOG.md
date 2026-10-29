@@ -19,6 +19,10 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pilot areas are only where verified data starts.
 
+### Fixed
+
+- **Lighthouse fixes** (SCRUM-28, 2026-10-30): Emergency's guest note no longer pushes content while the numbers load (layout shift 0.195 → 0.071, Performance 85 → 93); the Call 911 button's accessible name starts with its visible words ("Call 911, National Emergency Hotline", WCAG 2.5.3); Ropi's head no longer squashes in its circle; `public/robots.txt` added (SEO 91 → 100). Scores now (mobile): Login 95 / 100 / 93 / 100, Emergency 93 / 100 / 96 / 100 (Performance / Accessibility / Best Practices / SEO). The remaining Best Practices note is the location request on open, which UI-UX.md asks for.
+
 ### Added
 
 - **Opening hours, features, filters and Place details** (branch `feat/hours-features-place`, 2026-10-30; SCRUM-29 and the hours/features ticket):

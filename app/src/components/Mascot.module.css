@@ -31,6 +31,7 @@
 }
 
 .head .image {
+  flex: none;
   width: 100%;
   height: auto;
   margin-top: 8%;
