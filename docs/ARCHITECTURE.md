@@ -114,7 +114,7 @@ export interface Envelope<T> { version: 1; updatedAt: string; items: T[] }
 
 ### 2. Data source adapter
 
-Pages never fetch data themselves. They call one hook, which calls one interface.
+Pages never fetch data themselves. They call one hook, which calls one interface. Every request on the wire, with payloads and errors, is in [API.md](API.md).
 
 ```ts
 // app/src/data/DataSource.ts
@@ -151,9 +151,9 @@ The app side is one component, `<ReportButton recordId=... />`. In Phase 3 it op
 
 Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In short: **user**, **moderator** (scoped to an area and the areas inside it) and **admin**, decided by one function, `can()` in `app/src/rules/permissions.ts`.
 
-- Now (test UI): one hardcoded test login (`test@bulig.com`), role user, kept on the phone, so testers can try saving. It is not security and is removed when Phase 4 sign-in lands. Pages only call `useAuth()`.
-- Phases 1 to 4: no real user accounts. Only you log in, and only to Filament.
-- Phase 5: business owners sign in (Sanctum tokens, Google sign-in through Socialite). Road users still never need an account. They can submit reports without one, with rate limits.
+- **Now (test UI):** everything except Emergency needs an account (John, 2026-10-30). Three test logins (`test@`, `moderator@`, `admin@bulig.com`) plus accounts made on the phone (`auth/localAccounts.ts`, salted SHA-256 hash). Guests ("Continue without an account") get Emergency only. Not security: it goes when Phase 4 sign-in lands.
+- **Phase 4:** real accounts on the API with Sanctum tokens: register, login, logout, forgot and reset password, `/me` (profile, photo, password, delete) and `/me/saved`. Every request and payload is in [API.md](API.md). Admins and moderators also sign in to Filament.
+- **Phase 5:** Google sign-in (Socialite), business owners claiming listings, in-app reports (`POST /submissions`).
 - Emergency Help never needs an account, in any phase.
 
 ---
@@ -235,6 +235,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 | Laravel app | `api/` with Laravel 13, PHP 8.5 and PostgreSQL + PostGIS (`postgis/postgis` in Docker locally). Sessions, cache and queue all use the database driver, so there's no Redis. |
 | Schema | `countries(code, name)`, `areas(id, country, name, region, languages jsonb)`, `category_labels(category, country, lang, label)`, `services(... , location geography(Point,4326) null, verified_at, source, deleted_at)`, `emergency_contacts(... , phones jsonb, verified_at, source)`, `submissions(id, type, record_type, record_id, payload jsonb, status, reviewed_at, created_at)`. IDs stay the same slugs as the JSON. |
 | Import | `php artisan bulig:import-json` reads the Phase 3 JSON files. Running it twice changes nothing (upsert by ID). |
+| API contract | Build every endpoint to [API.md](API.md): public reads (areas, emergency contacts, services, labels), auth (register, login, logout, forgot and reset password), `/me` (profile, photo, password, delete) and `/me/saved`. Generate `contracts/openapi.yaml` from it at the start of the phase and test the responses against it. |
 | Read API | `GET /api/v1/emergency-contacts` and `GET /api/v1/services`, with a required `?country=` and an optional `?area=`. They return the contract v1 envelope through API Resource classes, with `Cache-Control: public, max-age=3600`. Emergency only returns contacts with `verified_at` in the last 180 days, except `national` lines, matching `visibleContacts()`. |
 | Contract tests | Pest tests validate both responses against `contracts/*.schema.json`. The 180-day rule is tested on the server too. |
 | Admin | Filament 5 resources for services, emergency contacts and submissions. Only you have a user account. A "Needs re-check" filter shows records last verified more than 150 days ago. A "Mark verified" action sets `verified_at` and `source`. |
