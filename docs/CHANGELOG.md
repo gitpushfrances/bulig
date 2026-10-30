@@ -19,6 +19,10 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pilot areas are only where verified data starts.
 
+### Changed
+
+- **App icon is the Bulig logo** (branch `feat/brand-icon`, 2026-10-30): the favicon, home-screen, maskable and Apple icons now show the teal pin with the road and hand, on white, instead of the near-black "B" tile. The source logo lives in `app/brand/` (outside `public/`, so the 1 MB file is not shipped or precached); `pwa-assets.config.ts` generates the icons from `app/brand/bulig-icon.png`. `favicon.svg` is removed.
+
 ### Fixed
 
 - **Lighthouse fixes** (SCRUM-28, 2026-10-30): Emergency's guest note no longer pushes content while the numbers load (layout shift 0.195 → 0.071, Performance 85 → 93); the Call 911 button's accessible name starts with its visible words ("Call 911, National Emergency Hotline", WCAG 2.5.3); Ropi's head no longer squashes in its circle; `public/robots.txt` added (SEO 91 → 100). Scores now (mobile): Login 95 / 100 / 93 / 100, Emergency 93 / 100 / 96 / 100 (Performance / Accessibility / Best Practices / SEO). The remaining Best Practices note is the location request on open, which UI-UX.md asks for.

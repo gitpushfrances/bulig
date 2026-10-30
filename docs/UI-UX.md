@@ -469,7 +469,7 @@ Measured contrast (WCAG): light text on page `16.97:1`; secondary text on white 
 - Ordinary Call buttons are the primary near-black (white in dark mode). Only Call 911 and emergency actions are red, so red always means emergency.
 - The national hotline is a near-black card with a red Call 911 button. It replaces the earlier pale-red card in "Component rules"; the hotline must stay the strongest block on Home.
 - Shape: cards 14px corners, controls 10px. Borders separate surfaces; no shadows except the selected segmented tab's 1px ring.
-- `theme-color`, the PWA manifest and the app icons use `#FAFAFA` / `#09090B` and a near-black tile.
+- `theme-color`, the PWA manifest and the app icons use `#FAFAFA` / `#09090B`. The app icons are the Bulig logo (teal pin, road and hand) on white, generated from `app/brand/bulig-icon.png`.
 
 ### Map pins
 
