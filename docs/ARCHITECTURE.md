@@ -14,6 +14,8 @@ Design rule: **no new moving parts unless a phase can't ship without them.** Eac
 
 Everything below has a free plan that covers the pilot, and none needs a card except where marked. Decided with John on 2026-10-30; the reasoning and sources are in the [₱0 stack doc](https://claude.ai/artifact/Xj4RDhtc5hR2QaroQKQ45U).
 
+**Alpha and beta run on Render + Neon** (John, 2026-10-30: no credit card, so no Oracle; laptop too small for Docker Desktop, which Render doesn't need because it builds the `Dockerfile` in its own cloud). The goal of alpha and beta is to learn whether Bulig clicks, not uptime. Once selected alpha and beta users approve it, move to a paid server (a Singapore VPS, about USD 6 to 12 a month) or Oracle once there's a card. Three rules keep that move to about a day: all config in `.env`; nothing stored on the server's disk (photos in R2 or Cloudinary, data in Postgres); plain Postgres + PostGIS with no Neon-only features, so moving is one `pg_dump` and restore.
+
 | Layer | Tool | Phase | Free limit | Note |
 | --- | --- | --- | --- | --- |
 | App | React 19 + TypeScript 6 + Vite 8 PWA | 1+ | free | Decided; not reopened |
@@ -26,18 +28,18 @@ Everything below has a free plan that covers the pilot, and none needs a card ex
 | Roles and permissions | `spatie/laravel-permission` + Filament Shield | 4+ | free | New roles are rows, not code ([Spine 4](#4-identity)) |
 | Admin and moderator panel | Filament 5 | 4+ | free | |
 | Audit trail | `spatie/laravel-activitylog` | 4+ | free | Who changed what, before and after |
-| Live dashboard | Laravel Pulse | 4+ | free | Active users, slow requests, errors, queue |
-| Database | PostgreSQL 17 + PostGIS on the server; Neon (Singapore) only if hosting falls back to Render | 4+ | Neon: 1 GB, 100 CU-hours/month | Neon sleeps after 5 min; anything that polls it burns the hours |
-| Server | Oracle Always Free Ampere VM, Singapore (card needed at signup); fallback Render free, Singapore | 4+ | Oracle 4 cores, 24 GB; Render 512 MB, sleeps after 15 min | |
-| HTTPS without a domain | Cloudflare Tunnel | 4+ | free | |
-| Photos (places, update proofs) | Cloudflare R2 (checkout may ask for a card) | 4+ | 10 GB, free downloads | One bucket, two prefixes: `public/` and `private/` |
+| Live dashboard | Laravel Pulse | 4+ | free | Active users, slow requests, errors. On alpha/beta: no `pulse:check` daemon |
+| Database | Alpha/beta: Neon (Singapore), PostgreSQL 17 + PostGIS; a `dev` branch for the laptop. After approval: Postgres on the paid server | 4+ | Neon: 0.5 GB storage and 100 CU-hours a month per project, no card (check the current plan page) | Neon sleeps after 5 min; anything that polls it (a queue worker, `pulse:check`) burns the hours. The laptop's `dev` branch uses the same 100 hours |
+| Server | Alpha/beta: Render free web service (Docker, Singapore), deployed from GitHub. After approval: paid Singapore VPS, or Oracle Always Free once there's a card | 4+ | Render: 512 MB, sleeps after 15 min (30 to 50 s wake-up), no card | No cron, workers or disk on free; see Queue row |
+| HTTPS without a domain | Render's own `*.onrender.com` HTTPS (alpha/beta); Cloudflare Tunnel on a VPS later | 4+ | free | |
+| Photos (places, update proofs) | Cloudflare R2 (checkout asks for a payment method: try PayPal or a Maya/GoTyme virtual Visa); if none works, Cloudinary free (no card) | 4+ | R2: 10 GB, free downloads | One bucket, two prefixes: `public/` and `private/`. Laravel's `filesystems` disk hides which one |
 | Email | Gmail SMTP with an app password; Resend once `bulig.app` is bought | 4+ | Gmail ~500/day; Resend 100/day, 3,000/month | Resend without a domain only emails your own inbox |
-| Cache | Cloudflare edge cache on public reads + Laravel `file` cache | 4+ | free | No Redis |
-| Rate limits | Laravel `RateLimiter` (`throttle`) + one Cloudflare rule on `/api/v1/auth/*` | 4+ | free | Limits in [API.md §1](API.md#1-conventions) |
-| Queue and scheduler | Laravel `database` queue, `schedule:run` from cron | 4+ | free | On Render: GitHub Actions schedule instead of cron |
+| Cache | Laravel `file` cache + the phone's service worker (alpha/beta, since `onrender.com` can't sit behind Cloudflare without a domain); Cloudflare edge cache once `api.bulig.app` exists | 4+ | free | No Redis. Never the `database` cache on Neon |
+| Rate limits | Laravel `RateLimiter` (`throttle`, file cache, one instance); one Cloudflare rule on `/api/v1/auth/*` once behind the domain | 4+ | free | Limits in [API.md §1](API.md#1-conventions) |
+| Queue and scheduler | Alpha/beta: `QUEUE_CONNECTION=sync` (emails send during the request) and a GitHub Actions schedule calling a secret-protected `POST /internal/schedule` hourly. Later: `database` queue worker + cron | 4+ | free | A polling queue worker would keep Neon awake all month |
 | Uptime and status page | UptimeRobot (pings `GET /health`, public status page) | 4+ | 50 monitors, 5-min checks | |
 | Errors | Sentry free plan | 4+ | free plan | |
-| Backups | Nightly `pg_dump` to R2 `private/backups/` | 4+ | inside R2's 10 GB | Keep 14 days |
+| Backups | Nightly `pg_dump` from GitHub Actions to R2 `private/backups/`; if photos had to go to Cloudinary (no R2), the dump is kept as a GitHub Actions artifact instead | 4+ | inside R2's 10 GB; artifacts count toward GitHub's free storage | Keep 14 days |
 | Tests and CI | Vitest, Pest 5, GitHub Actions | 1+ | 2,000 min/month (private repo) | |
 | Domain (first paid item) | `bulig.app` at Cloudflare Registrar | when funded | about USD 14/year | Unlocks Resend and `api.bulig.app` |
 
@@ -56,7 +58,7 @@ flowchart LR
     SW["Service worker cache"]
     UI --> Rules --> DS --> SW
   end
-  SW -- "GET (cached)" --> CF["Cloudflare edge cache\n+ Tunnel"]
+  SW -- "GET (cached)" --> CF["Alpha/beta: Render onrender.com\nLater: Cloudflare edge cache + VPS"]
   UI -- "Update details, photos,\napp issues" --> CF
   CF --> API["Laravel API /api/v1"]
   API --> DB[("PostgreSQL + PostGIS")]
@@ -297,7 +299,7 @@ A moderator's own edits go live straight away but are written to the activity lo
 
 | Feature | How |
 | --- | --- |
-| Laravel app | `api/` with Laravel 13, PHP 8.5 and PostgreSQL + PostGIS (`postgis/postgis` in Docker locally). Sessions, cache and queue all use the database driver, so there's no Redis. |
+| Laravel app | `api/` with Laravel 13, PHP 8.5 and PostgreSQL + PostGIS (locally: Laravel Herd + a Neon `dev` branch, no Docker on the laptop). No Redis. On alpha/beta (Render free + Neon): `CACHE_STORE=file` and `QUEUE_CONNECTION=sync` (see Stack), and `SESSION_DRIVER=database` for the Filament panel, because Render's disk is wiped when the service sleeps or redeploys, so file sessions would sign moderators out. App users use Sanctum tokens, not sessions. On the paid server later, cache and queue move to the database driver with a queue worker. |
 | Schema | `countries(code, name)`, `areas(id, country, name, region, languages jsonb)`, `category_labels(category, country, lang, label)`, `services(... , location geography(Point,4326) null, verified_at, source, deleted_at)`, `emergency_contacts(... , phones jsonb, verified_at, source)`, `submissions(id, user_id, type, record_type, record_id, area_id, changes jsonb, note, photo_ids jsonb, status, reviewer_id, review_note, approved_fields jsonb, reviewed_at, created_at)`, `uploads(id, user_id, r2_key, width, height, bytes, status, created_at)`, `service_prices` and `issues` (below), plus the package tables for roles, activity log, Pulse and settings. IDs stay the same slugs as the JSON. |
 | Import | `php artisan bulig:import-json` reads the Phase 3 JSON files. Running it twice changes nothing (upsert by ID). |
 | API contract | Build every endpoint to [API.md](API.md): public reads (areas, emergency contacts, services, labels), auth (register, login, logout, forgot and reset password), `/me` (profile, photo, password, delete) and `/me/saved`. Generate `contracts/openapi.yaml` from it at the start of the phase and test the responses against it. |
@@ -312,9 +314,9 @@ A moderator's own edits go live straight away but are written to the activity lo
 | Activity log | `spatie/laravel-activitylog` on places, emergency contacts, users, roles and settings. Each entry stores who, when, and old and new values. Admins can filter it per record or per person. |
 | Settings | One Filament settings page (`spatie/laravel-settings`), admin only: announcement banner text, maintenance message, submissions on or off, daily submission limit, photo size limit, price "stale after" days. The app reads the public ones from `GET /settings` (cached). |
 | App issues | Users report app problems from Profile ("Something's not working"). `issues(id, user_id, kind, message, page, app_version, device, status, assignee_id, created_at)`, with status `open`, `in_progress`, `fixed`, `wont_fix`. Moderators and admins see and work them in the panel; a "Copy to GitHub" action opens a prefilled GitHub issue for code fixes. The reporter sees the status in Profile. |
-| Status | `GET /health` checks the database and R2 and returns `200` or `503`. UptimeRobot pings it every 5 minutes, emails John, and hosts the free public status page linked from Profile → Help. |
+| Status | `GET /health` checks the database and R2 and returns `200` or `503`. UptimeRobot pings it every 5 minutes, emails John, and hosts the free public status page linked from Profile → Help. On Neon, `/health` reuses its database result for 30 minutes, so the pings don't keep Neon awake all month. |
 | Frontend switch | Add `ApiSource` and build with `VITE_DATA_SOURCE=api`. Keep the JSON files as the fallback build. |
-| Hosting | Oracle Always Free VM (Singapore), Nginx, PHP-FPM, PostgreSQL + PostGIS, one `queue:work` process and cron for `schedule:run`, Cloudflare Tunnel for HTTPS, CORS allowing only the app's origin, nightly `pg_dump` to R2. Fallback: Render free (Singapore) + Neon (Singapore), with GitHub Actions running the schedule. |
+| Hosting | Alpha/beta: Render free web service in Singapore from `api/Dockerfile` (`serversideup/php` FPM + Nginx image), Neon in Singapore, `sync` queue, GitHub Actions for the schedule and a nightly `pg_dump` to R2, CORS allowing only the app's origin. After alpha/beta approval: a paid Singapore VPS (or Oracle with a card) with Nginx, PHP-FPM, Postgres + PostGIS, a queue worker, cron and Cloudflare Tunnel. Same code, new `.env`. |
 
 **Connects to:** spine 1 (the same schema files now test the server), spine 2 (`ApiSource` replaces `JsonSource` and no page changes), spine 3 (Update details lands in `submissions`, so every community change goes through one queue), and spine 4 (roles and areas decide what each panel user sees).
 

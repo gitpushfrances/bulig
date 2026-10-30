@@ -34,8 +34,8 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - **Data (Phases 1 to 3):** JSON files in `app/public/data/<country>/`, one folder per country (`ph/` first)
 - **Hosting:** Cloudflare Worker with static assets, free plan (`app/wrangler.jsonc`)
 - **Map (optional):** MapLibre GL JS 6.16 + OpenFreeMap tiles
-- **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5 (+ Shield), spatie/laravel-permission, spatie/laravel-activitylog, Laravel Pulse, Pest 5. No Redis: Cloudflare edge cache, Laravel file cache, `database` queue, built-in rate limiter
-- **Free services (Phase 4+):** Oracle Always Free VM in Singapore (fallback Render + Neon), Cloudflare Tunnel, Cloudflare R2 for photos and backups, Gmail SMTP then Resend, UptimeRobot status page, Sentry. Full table with limits: [ARCHITECTURE.md, Stack](ARCHITECTURE.md#stack-0-until-funded)
+- **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5 (+ Shield), spatie/laravel-permission, spatie/laravel-activitylog, Laravel Pulse, Pest 5. No Redis: Laravel file cache, `sync` queue on alpha/beta (`database` queue later), built-in rate limiter; Cloudflare edge cache once there's a domain
+- **Free services (Phase 4+):** alpha and beta on Render free + Neon, both Singapore (no card; a paid server only after alpha/beta users approve), Cloudflare R2 for photos and backups, Gmail SMTP then Resend, UptimeRobot status page, Sentry. Full table with limits: [ARCHITECTURE.md, Stack](ARCHITECTURE.md#stack-0-until-funded)
 - **Native (Phase 6):** Capacitor 8
 
 ## Ground rules for every phase
@@ -158,7 +158,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 **Tickets (all new):**
 
 - Build the API to [docs/API.md](API.md): every endpoint, payload and error the app already expects (public reads, accounts, `/me`, saved places)
-- Set up the Laravel 13 project in `api/` with PostgreSQL + PostGIS (Docker locally)
+- Set up the Laravel 13 project in `api/` with PostgreSQL + PostGIS (Herd + a Neon `dev` branch locally, no Docker)
 - Database schema: countries, areas, categories, services, emergency_contacts, with `geography(Point,4326)` and audit timestamps
 - Import script that loads the current JSON into the database
 - Read API: `GET /api/v1/services?country=&area=&category=&near=lat,lng` and `GET /api/v1/emergency-contacts?country=&area=`
@@ -174,17 +174,18 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 
 **Steps**
 
-1. Install Herd (PHP 8.5, Composer) and Docker Desktop with `postgis/postgis`.
+1. Install Herd (PHP 8.5, Composer). Create a free Neon project in Singapore with PostGIS and a `dev` branch for your laptop; no Docker Desktop needed.
 2. Run `laravel new api` in the repo root, then add Sanctum (`php artisan install:api`) and Filament.
 3. Write the migrations, the import script, and API resources. Cache responses so the API stays cheap.
 4. Test with Pest. The emergency rules from Phase 2 have to hold on the server as well.
-5. Hosting, free option: an Oracle Cloud Always Free Ampere VM (2 OCPU, 12 GB RAM, 200 GB storage). **Choose Singapore as your home region when you sign up; you can't change it later.** Run Nginx, PHP-FPM and PostgreSQL there, with a nightly `pg_dump` to Cloudflare R2 (free up to 10 GB).
-6. Without a domain, put the API behind a free Cloudflare Tunnel (`cloudflared`), which gives HTTPS without opening ports. Move to `api.bulig.app` once the domain is bought.
+5. Hosting for alpha and beta: add `api/Dockerfile` and deploy it as a Render free web service in Singapore, connected to GitHub (Render builds it in the cloud). Point it at Neon's main branch. Use `QUEUE_CONNECTION=sync` and the `file` cache, and run the hourly schedule and nightly `pg_dump` to R2 from GitHub Actions. Render gives HTTPS on `*.onrender.com`.
+6. After alpha and beta users approve: move to a paid Singapore VPS (or Oracle once there's a card) with Postgres on the server, a queue worker and cron. Move to `api.bulig.app` once the domain is bought.
 7. Switch the frontend over behind a setting, so you can flip back to JSON if the API breaks.
 
 **Risks**
 
-- Oracle reclaims Always Free VMs that stay idle for 7 days, measured as CPU, network and memory all below 20%. A quiet pilot app could hit that. Keep the nightly backups, and be ready to move to a paid Singapore VPS (roughly USD 6 to 12 a month) if Oracle reclaims the VM.
+- Render free sleeps after 15 minutes idle; the first request then takes 30 to 50 seconds. The app shows cached data meanwhile. Fine for alpha, not for a public launch.
+- Neon free gives 100 CU-hours a month. Anything that keeps it awake (a queue worker, a cron ping every few minutes) runs it out mid-month. Your laptop's `dev` branch uses the same hours, so stop `php artisan serve` and close database tools when you're done. Watch usage weekly in the Neon dashboard.
 - The free plan has no support and no uptime promise. Emergency Help must keep working from the cached data even when the API is down.
 
 **Done when**
