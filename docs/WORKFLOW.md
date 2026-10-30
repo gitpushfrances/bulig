@@ -25,9 +25,11 @@ Three roles. What each may do is decided in one function, `can()` in [`app/src/r
 
 | Role | Who | May do | Scope |
 | --- | --- | --- | --- |
-| **User** | Anyone who signs in | Save places and numbers; report wrong info | Everywhere |
-| **Moderator** | A trusted local person, one or more per area (a barangay, city or municipality) | Everything a user can, plus review reports and mark records checked | Only their areas, and the areas inside them |
-| **Admin** | The Bulig team | Everything: manage areas, moderators and every record | Everywhere |
+| **User** | Anyone who signs in | Save places and numbers; send Update details (prices, hours, services, closed, new place) with photos; report an app problem; see the status of what they sent | Everywhere |
+| **Moderator** | A trusted local person, one or more per area (a barangay, city or municipality). Until there are some, John (admin) does this for the whole country | Everything a user can, plus approve or reject updates field by field, add and edit places and photos, mark records checked, work on app problems | Only their areas, and the areas inside them |
+| **Admin** | The Bulig team | Everything: users and moderators (add, edit, suspend, role, areas), every record and photo, emergency contacts, areas, system settings, live dashboard, activity log | Everywhere |
+
+From Phase 4, roles are data on the server (`spatie/laravel-permission`), so a new role (owner, LGU partner) is added in the panel without a deploy. Details: [ARCHITECTURE.md, Spine 4](ARCHITECTURE.md#4-identity).
 
 - **No account at all** still gets everything a traveller needs: Emergency Help, Services, Call and Directions. Emergency Help never asks for an account, in any phase.
 - A moderator of a city also covers every barangay inside it (`isWithin()` walks up the `parent` chain).
@@ -35,9 +37,9 @@ Three roles. What each may do is decided in one function, `can()` in [`app/src/r
 
 ```mermaid
 flowchart TD
-  R["Someone reports wrong info\n(no account needed)"] --> Q["Report queue for that area"]
+  R["A signed-in user sends Update details\n(new price, hours, closed...) + photo"] --> Q["Review queue for that area"]
   Q --> MOD{"Moderator for the area\n(or admin)"}
-  MOD -- "calls the number, checks it" --> V["Mark checked:\nverifiedAt + source updated"]
+  MOD -- "photo matches, or calls to check" --> V["Approve ticked fields:\nrecord, verifiedAt + source updated"]
   MOD -- "can't confirm" --> H["Leave it; it hides itself\nafter 180 days unchecked"]
   V --> APP["App shows it with\n'Last checked' date"]
   ADM["Admin"] -. "adds areas,\nappoints moderators" .-> MOD
@@ -76,7 +78,7 @@ sequenceDiagram
 2. **Check:** someone calls the number or visits. Only then does `verifiedAt` change.
 3. **Publish:** Phases 1 to 3, edit `app/public/data/<cc>/*.json` by pull request (CI validates every file). Phase 4 on, a moderator or admin marks it checked in Filament.
 4. **Expire:** local emergency numbers not checked in 180 days are hidden on the phone (`visibleContacts()`). The national number never hides.
-5. **Report:** "Report wrong info" (Phase 3) feeds the queue above.
+5. **Report:** "Update details" (Phase 4, in the app) feeds the queue above.
 
 ## Changing the app
 
