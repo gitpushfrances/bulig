@@ -185,7 +185,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 **Risks**
 
 - Render free sleeps after 15 minutes idle; the first request then takes 30 to 50 seconds. The app shows cached data meanwhile. Fine for alpha, not for a public launch.
-- Neon free gives 100 CU-hours a month. Anything that keeps it awake (a queue worker, a cron ping every few minutes) runs it out mid-month. Watch usage weekly in the Neon dashboard.
+- Neon free gives 100 CU-hours a month. Anything that keeps it awake (a queue worker, a cron ping every few minutes) runs it out mid-month. Your laptop's `dev` branch uses the same hours, so stop `php artisan serve` and close database tools when you're done. Watch usage weekly in the Neon dashboard.
 - The free plan has no support and no uptime promise. Emergency Help must keep working from the cached data even when the API is down.
 
 **Done when**

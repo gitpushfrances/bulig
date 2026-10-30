@@ -29,7 +29,7 @@ Everything below has a free plan that covers the pilot, and none needs a card ex
 | Admin and moderator panel | Filament 5 | 4+ | free | |
 | Audit trail | `spatie/laravel-activitylog` | 4+ | free | Who changed what, before and after |
 | Live dashboard | Laravel Pulse | 4+ | free | Active users, slow requests, errors. On alpha/beta: no `pulse:check` daemon |
-| Database | Alpha/beta: Neon (Singapore), PostgreSQL 17 + PostGIS; a `dev` branch for the laptop. After approval: Postgres on the paid server | 4+ | Neon: 1 GB, 100 CU-hours/month, no card | Neon sleeps after 5 min; anything that polls it (a queue worker, `pulse:check`) burns the hours |
+| Database | Alpha/beta: Neon (Singapore), PostgreSQL 17 + PostGIS; a `dev` branch for the laptop. After approval: Postgres on the paid server | 4+ | Neon: 0.5 GB storage and 100 CU-hours a month per project, no card (check the current plan page) | Neon sleeps after 5 min; anything that polls it (a queue worker, `pulse:check`) burns the hours. The laptop's `dev` branch uses the same 100 hours |
 | Server | Alpha/beta: Render free web service (Docker, Singapore), deployed from GitHub. After approval: paid Singapore VPS, or Oracle Always Free once there's a card | 4+ | Render: 512 MB, sleeps after 15 min (30 to 50 s wake-up), no card | No cron, workers or disk on free; see Queue row |
 | HTTPS without a domain | Render's own `*.onrender.com` HTTPS (alpha/beta); Cloudflare Tunnel on a VPS later | 4+ | free | |
 | Photos (places, update proofs) | Cloudflare R2 (checkout asks for a payment method: try PayPal or a Maya/GoTyme virtual Visa); if none works, Cloudinary free (no card) | 4+ | R2: 10 GB, free downloads | One bucket, two prefixes: `public/` and `private/`. Laravel's `filesystems` disk hides which one |
@@ -39,7 +39,7 @@ Everything below has a free plan that covers the pilot, and none needs a card ex
 | Queue and scheduler | Alpha/beta: `QUEUE_CONNECTION=sync` (emails send during the request) and a GitHub Actions schedule calling a secret-protected `POST /internal/schedule` hourly. Later: `database` queue worker + cron | 4+ | free | A polling queue worker would keep Neon awake all month |
 | Uptime and status page | UptimeRobot (pings `GET /health`, public status page) | 4+ | 50 monitors, 5-min checks | |
 | Errors | Sentry free plan | 4+ | free plan | |
-| Backups | Nightly `pg_dump` to R2 `private/backups/` | 4+ | inside R2's 10 GB | Keep 14 days |
+| Backups | Nightly `pg_dump` from GitHub Actions to R2 `private/backups/`; if photos had to go to Cloudinary (no R2), the dump is kept as a GitHub Actions artifact instead | 4+ | inside R2's 10 GB; artifacts count toward GitHub's free storage | Keep 14 days |
 | Tests and CI | Vitest, Pest 5, GitHub Actions | 1+ | 2,000 min/month (private repo) | |
 | Domain (first paid item) | `bulig.app` at Cloudflare Registrar | when funded | about USD 14/year | Unlocks Resend and `api.bulig.app` |
 
@@ -299,7 +299,7 @@ A moderator's own edits go live straight away but are written to the activity lo
 
 | Feature | How |
 | --- | --- |
-| Laravel app | `api/` with Laravel 13, PHP 8.5 and PostgreSQL + PostGIS (locally: Laravel Herd + a Neon `dev` branch, no Docker on the laptop). Sessions, cache and queue all use the database driver, so there's no Redis. |
+| Laravel app | `api/` with Laravel 13, PHP 8.5 and PostgreSQL + PostGIS (locally: Laravel Herd + a Neon `dev` branch, no Docker on the laptop). No Redis. On alpha/beta (Render free + Neon): `CACHE_STORE=file` and `QUEUE_CONNECTION=sync` (see Stack), and `SESSION_DRIVER=database` for the Filament panel, because Render's disk is wiped when the service sleeps or redeploys, so file sessions would sign moderators out. App users use Sanctum tokens, not sessions. On the paid server later, cache and queue move to the database driver with a queue worker. |
 | Schema | `countries(code, name)`, `areas(id, country, name, region, languages jsonb)`, `category_labels(category, country, lang, label)`, `services(... , location geography(Point,4326) null, verified_at, source, deleted_at)`, `emergency_contacts(... , phones jsonb, verified_at, source)`, `submissions(id, user_id, type, record_type, record_id, area_id, changes jsonb, note, photo_ids jsonb, status, reviewer_id, review_note, approved_fields jsonb, reviewed_at, created_at)`, `uploads(id, user_id, r2_key, width, height, bytes, status, created_at)`, `service_prices` and `issues` (below), plus the package tables for roles, activity log, Pulse and settings. IDs stay the same slugs as the JSON. |
 | Import | `php artisan bulig:import-json` reads the Phase 3 JSON files. Running it twice changes nothing (upsert by ID). |
 | API contract | Build every endpoint to [API.md](API.md): public reads (areas, emergency contacts, services, labels), auth (register, login, logout, forgot and reset password), `/me` (profile, photo, password, delete) and `/me/saved`. Generate `contracts/openapi.yaml` from it at the start of the phase and test the responses against it. |
