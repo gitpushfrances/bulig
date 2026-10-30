@@ -21,6 +21,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Live link is now `app.bulig.workers.dev`** (branch `chore/app-bulig-url`, 2026-10-30): the Cloudflare account subdomain changed from `johnfrancesquiminaleseder` to `bulig`, and the Worker was renamed from `bulig` to `app` (`app/wrangler.jsonc`). The old link and old preview links stop working; phones that installed from the old link must reinstall, and test accounts kept on the phone do not carry over. Preview links are now `<branch>-app.bulig.workers.dev`.
 - **App icon is the Bulig logo** (branch `feat/brand-icon`, 2026-10-30): the favicon, home-screen, maskable and Apple icons now show the teal pin with the road and hand, on white, instead of the near-black "B" tile. The source logo lives in `app/brand/` (outside `public/`, so the 1 MB file is not shipped or precached); `pwa-assets.config.ts` generates the icons from `app/brand/bulig-icon.png`. `favicon.svg` is removed.
 
 ### Fixed

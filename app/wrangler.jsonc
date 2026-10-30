@@ -2,7 +2,8 @@
 // Dashboard settings: root directory `app`, build `npm run build`, deploy `npx wrangler deploy`.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "bulig",
+  // The Worker is named app on the bulig account subdomain, so the live link is app.bulig.workers.dev.
+  "name": "app",
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./dist",
