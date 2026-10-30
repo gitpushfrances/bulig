@@ -22,7 +22,7 @@ Bulig covers the whole Philippines, then any country. Town names in the wirefram
 | Accounts | Everything but Emergency needs an account ([Accounts and access](#accounts-and-access-decided-by-john-2026-10-30)). [Login](#login-login), [Sign up = onboarding](#sign-up--onboarding-signup) with Ropi, [Forgot password](#forgot-password-forgot-password). "Continue without an account" = Emergency only. Test logins (typed, no shortcuts): `test@`, `moderator@`, `admin@bulig.com` / `password`. Sign-ups are users kept on the phone (hashed password). |
 | Profile | Production-style settings: your photo (or Ropi), role, member since, edit profile (photo, name, mobile, home area), change password, theme (System/Light/Dark), install, help, Terms, Privacy, licences, sign out, delete account, "Bulig v0.3.0 · build <commit>". |
 | Mascot | Ropi on quiet screens only, now **talking** in speech bubbles (`RopiSays`): login (head mark / side panel), onboarding (all four poses), forgot password, guest gate, Saved empty ("Let's get started!"), empty category, offline, map offline, About, Profile avatar. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
-| Not built yet | The mini map strip on the nearest card, Report wrong info (SCRUM-30), real backend sign-in and reset emails (Phase 4). |
+| Not built yet | The mini map strip on the nearest card, Update details (SCRUM-30), real backend sign-in and reset emails (Phase 4). |
 
 The change history is in [CHANGELOG.md](CHANGELOG.md) under **Unreleased**.
 
@@ -60,7 +60,7 @@ Four bottom tabs, each with a Phosphor icon and a visible label:
 | Home | `/` | Hotlines card, "What's wrong?" buttons, mini map |
 | Map | `/map` | Every place as a pin around you, with filters |
 | Saved | `/saved` | Places and numbers the person hearted, kept with their sign-in on the phone |
-| Profile | `/profile` | Sign-in (a test login for now), language, location, offline data, report wrong info, About |
+| Profile | `/profile` | Sign-in (a test login for now), language, location, offline data, my updates (Phase 4), "Something's not working" (Phase 4), About |
 
 Screens opened from a tab (no tab of their own):
 
@@ -93,7 +93,7 @@ flowchart TD
   P --> Y
   P --> G
   P -->|Heart| V[Saved on this phone]
-  P -->|Report wrong info, Phase 4| F[In-app report form]
+  P -->|Update details, Phase 4| F[What changed + photo, reviewed by a moderator]
 ```
 
 Bulig never sends help and never shares the exact location (only a rounded one, for the address; see section 6). Every outcome is the person's own phone making a call or opening directions.
@@ -218,7 +218,7 @@ Filter presets:
 
 ### Place details (`/place/:id`)
 
-**Built (2026-10-30).** `PlacePage.tsx`: Back; kind · area; the name with NEW / SAMPLE and the heart; distance and landmark; the status line; 52px **Call** ("Call hospital"), **Route** and **Share** (the phone's share sheet, or "Link copied"); the number in text; **Usual hours** for the week from Monday with **Today** marked, and "Hours can change, especially on holidays. Call first." (or the reported text and "Usual hours aren't recorded yet. Call to check."); **What it offers** (✓ confirmed, struck through "No …" when confirmed not offered, unknown left out); **Checked** with the source; and "Open in Google Maps". Opened from Nearby rows and names, Saved card names, and **Details** on a map pin's sheet. The Services tab stays selected. Not yet: Report wrong info (SCRUM-30, Phase 4, in the app).
+**Built (2026-10-30).** `PlacePage.tsx`: Back; kind · area; the name with NEW / SAMPLE and the heart; distance and landmark; the status line; 52px **Call** ("Call hospital"), **Route** and **Share** (the phone's share sheet, or "Link copied"); the number in text; **Usual hours** for the week from Monday with **Today** marked, and "Hours can change, especially on holidays. Call first." (or the reported text and "Usual hours aren't recorded yet. Call to check."); **What it offers** (✓ confirmed, struck through "No …" when confirmed not offered, unknown left out); **Checked** with the source; and "Open in Google Maps". Opened from Nearby rows and names, Saved card names, and **Details** on a map pin's sheet. The Services tab stays selected. Not yet: Update details (SCRUM-30, Phase 4, in the app).
 
 The original spec:
 
@@ -226,7 +226,8 @@ The original spec:
 - A compact verified row: "Checked <date> · <how>", for example "Field visit" or "Phone call", using a success icon/text rather than a large green panel.
 - Services with Yes or "Not confirmed": tube-type, tubeless, air pump, motorcycle, car/truck, comes to you (whichever apply to the category).
 - Usual hours for each day, with the check date and "Hours can change. Call first."
-- "Report wrong info" (Phase 4): an in-app form that posts to `POST /submissions` with this place's ID. No Google Form.
+- "Update details" (Phase 4): a secondary button under the hours. The form asks "What changed?" (Prices, Hours, Services offered, Phone, Location, Closed for good, Something else), shows the current value next to each field it opens, then "Add a photo" (the price board or sign; required for prices, up to 3) and "When did you see this?" (today by default). Send → "Thanks. A moderator checks it before it shows." The person's submissions and their status are in Profile. Posts to `POST /uploads` and `POST /submissions` ([API.md §7](API.md#7-community-updates-update-details)). No Google Form, no Ropi on this form.
+- Prices (Phase 4, fuel and later services): "RON 91 ₱82.00 · seen 30 Oct by a Bulig user". Greyed after 7 days, hidden after 30. Never "today's price" or "current price".
 - A sticky bottom bar with Call and Directions.
 
 ### Saved (`/saved`)
@@ -557,7 +558,7 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 - Use safe-area padding for notches and bottom navigation. Do not suppress accessibility focus outlines; style a visible 3px focus ring from the palette.
 - Do not disable browser zoom or hide scrollbars in a way that removes platform affordances. Keep scrolling available when a screen does not fit.
 - Forms have visible labels. Validate on blur or submit, explain how to fix an error, and announce the error. Set appropriate `type`, `autocomplete`, `inputmode`, and `enterkeyhint`.
-- Buttons start with a verb and describe the result: “Call 911”, “Call”, “Directions”, “Clear filters”, “Report wrong info”.
+- Buttons start with a verb and describe the result: “Call 911”, “Call”, “Directions”, “Clear filters”, “Update details”.
 
 ### Design acceptance checks
 
@@ -580,7 +581,7 @@ This is the **target navigation**, not a claim that all routes have already been
 | Home | `/` | Compact location header, emergency-red Call 911 card, valid quick local hotlines, six What’s wrong? actions, optional mini-map preview, safety note |
 | Map | `/map` | Full-screen map, category filter chips, pins using the fixed map palette, user location dot, bottom sheet for a selected place; list fallback if map is unavailable |
 | Saved | `/saved` | Saved places and contacts sorted by distance when location is known |
-| Profile | `/profile` | Test sign-in, language, location permissions/privacy, offline data, report wrong info, About |
+| Profile | `/profile` | Test sign-in, language, location permissions/privacy, offline data, my updates and "Something's not working" (Phase 4), About |
 
 Screens opened from tabs (not bottom tabs of their own):
 

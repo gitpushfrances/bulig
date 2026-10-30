@@ -18,7 +18,7 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 4. [Accounts](#4-accounts): register, login, logout, forgot and reset password
 5. [Me](#5-me): profile, photo, password, delete account
 6. [Saved places](#6-saved-places)
-7. [Reports](#7-reports-report-wrong-info) (Report wrong info)
+7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health)
 8. [Shared objects](#8-shared-objects)
 9. [Services the app calls directly](#9-services-the-app-calls-directly-not-the-backend) (not the backend)
 10. [What moves from the phone to the server](#10-what-moves-from-the-phone-to-the-server)
@@ -41,7 +41,7 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
 | CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
-| Rate limits | Auth endpoints 10/min per IP and per email; reports 10/hour per user; everything else 120/min per token or IP. |
+| Rate limits | Auth endpoints 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; everything else 120/min per token or IP. |
 | Versioning | `/api/v1`. A breaking change means `/api/v2` (see [§11](#11-changing-this-contract)). The data envelopes keep `"version": 1`. |
 
 ---
@@ -68,9 +68,15 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 | 16 | List saved | `GET /me/saved` | 🔒 | 4 | `bulig.saved.<email>` (array of record IDs) |
 | 17 | Save a place or number | `PUT /me/saved/{recordId}` | 🔒 | 4 | `toggleSaved(id)` (heart) |
 | 18 | Unsave | `DELETE /me/saved/{recordId}` | 🔒 | 4 | `toggleSaved(id)` (heart) |
-| 19 | Report wrong info | `POST /submissions` | 🔒 | 4 | Not built yet (SCRUM-30); no Google Form |
+| 19 | Update details (includes "report wrong info") | `POST /submissions` | 🔒 | 4 | Not built yet (SCRUM-30); no Google Form |
+| 20 | Upload a photo for an update | `POST /uploads` | 🔒 | 4 | Not built |
+| 21 | My submissions and their status | `GET /me/submissions` | 🔒 | 4 | Not built |
+| 22 | Report an app problem | `POST /issues` | 🔒 | 4 | Not built (Profile → Help today has no form) |
+| 23 | My app problems and their status | `GET /me/issues` | 🔒 | 4 | Not built |
+| 24 | Public settings (banner, submissions on/off) | `GET /settings` | — | 4 | Not built |
+| 25 | Health check (UptimeRobot, not the app) | `GET /health` | — | 4 | Not called by the app |
 
-Admin and moderator screens (Filament, Phase 4) are server-side and not part of this contract.
+Admin and moderator screens (Filament at `/panel`, Phase 4) are server-side and not part of this contract: review queue, places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
 
 ---
 
@@ -201,6 +207,8 @@ Road services and local businesses. The app ranks them on the phone (distance, c
 | `features` | no | `tubeless, tube_type, air_pump, comes_to_you, motorcycle, car_truck, bottled_fuel, emergency_room` → `true` confirmed, `false` confirmed not offered, missing = not confirmed. |
 | `subtype` | no | The owner's word, shown instead of the category ("Halo-halo"). |
 | `addedAt` | no | Date first listed; the app shows **NEW** for 60 days. |
+| `prices` | no | Phase 4. Newest approved price per item: `[{ "item": "ron91", "amount": 82.0, "currency": "PHP", "unit": "L", "seenAt": "2026-10-30" }]`. `item` keys and their words come from `labels.json`. The app shows "seen <date> by a Bulig user", greys it after 7 days and hides it after 30. Never "current price". |
+| `photos` | no | Phase 4. Approved public photo URLs (R2 `public/`), first is the cover. |
 | `sample` | no | Test data only. |
 
 ### 3.4 `GET /labels?country=PH`
@@ -376,33 +384,79 @@ Idempotent: saving twice is fine. No body. **204.** **Errors:** `404` unknown re
 
 ---
 
-## 7. Reports (Report wrong info)
+## 7. Community updates (Update details)
 
-Phase 4 (SCRUM-30): in the app, through this endpoint. There is no Google Form step (John, 2026-10-30), so there are no reports before the backend. Nothing submitted is public until a moderator approves it (ARCHITECTURE.md, Spine 3). Emergency contacts can be reported but never edited by the public.
+Phase 4 (SCRUM-30). One form on Place details, **Update details**, covers both "this is wrong" and "this changed": new prices, hours, services offered, phone, location, closed for good, or a new place. Nothing submitted is public until a moderator for that area (or an admin) approves it, field by field (ARCHITECTURE.md, Spine 3). Emergency contacts can be flagged but never edited by the public.
 
-### 7.1 `POST /submissions` 🔒
+### 7.1 `POST /uploads` 🔒
 
-**Request**
+Upload one photo before sending the update, so a weak signal only retries the photo, not the whole form. `multipart/form-data`, one field `photo`. The app shrinks it first to WebP (JPEG on old Safari), max 1280 px on the long side, about 300 KB. The server rejects anything over 2 MB, re-encodes it, strips location and camera data, and stores it privately.
+
+**201:** `{ "id": "upl_01JC…", "expiresAt": "2026-11-29T00:00:00Z" }`. An upload not attached to a submission within 24 hours is deleted. **Errors:** `413` too large, `415` not an image, `429` (30 a day).
+
+### 7.2 `POST /submissions` 🔒
+
+**Request** (only the fields that changed go in `changes`)
 
 ```json
 {
   "recordType": "service",
-  "recordId": "ph-cebu-cebu-city-sample-vulcanizing",
-  "reason": "wrong_hours",
-  "note": "Closes at 8 PM now, not 10.",
-  "position": { "lat": 10.316, "lng": 123.885 }
+  "recordId": "ph-eastern-samar-guiuan-sample-fuel",
+  "reason": "changed",
+  "changes": {
+    "prices": [
+      { "item": "ron91", "amount": 82.0 },
+      { "item": "diesel", "amount": 71.5 }
+    ],
+    "features": { "air_pump": true }
+  },
+  "seenAt": "2026-10-30",
+  "photoIds": ["upl_01JC…"],
+  "note": "Price board this morning. They have an air pump now.",
+  "position": { "lat": 11.035, "lng": 125.722 }
 }
 ```
 
 | Field | Rules |
 | --- | --- |
-| `recordType` | `service` or `emergency_contact` |
-| `recordId` | an existing ID |
-| `reason` | `number_not_working`, `closed_for_good`, `wrong_location`, `wrong_hours`, `wrong_details`, `duplicate`, `other` |
+| `recordType` | `service` or `emergency_contact` (emergency contacts: `reason` only, no `changes`) |
+| `recordId` | an existing ID; omit for `reason: "new_place"` |
+| `reason` | `changed`, `number_not_working`, `closed_for_good`, `wrong_location`, `duplicate`, `new_place`, `other` |
+| `changes` | required for `changed` and `new_place`. Allowed keys: `name`, `phone`, `landmark`, `lat`, `lng`, `weeklyHours`, `open24h`, `features`, `subtype`, `prices`, and for `new_place` also `category` and `area`. Same rules as the Service fields in [§3.3](#33-get-servicescountryphareaareaidcategorycategory). `prices[].amount` is 0.01 to 100000; `item` must exist in `labels.json` for that country. |
+| `seenAt` | the date the person saw it, today or up to 7 days ago; defaults to today |
+| `photoIds` | 0 to 3 IDs from `POST /uploads`. **At least 1 is required** when `changes.prices` is present or `reason` is `new_place`. |
 | `note` | optional, up to 500 characters |
 | `position` | optional, only if the person agrees; rounded to 3 decimals (~110 m) by the app |
 
-**201:** `{ "id": "sub_01JBY…", "status": "pending" }`. **Errors:** `422`, `429` (10 an hour).
+**201:** `{ "id": "sub_01JBY…", "status": "pending" }`. **Errors:** `422` (field rules, or a missing photo with prices), `423` submissions are switched off in settings, `429` (daily limit).
+
+### 7.3 `GET /me/submissions` 🔒
+
+The signed-in user's submissions, newest first, 20 per page (`?page=`).
+
+**200:** `{ "items": [{ "id": "sub_01JBY…", "recordId": "…", "recordName": "Guiuan Sample Fuel", "reason": "changed", "status": "approved", "approvedFields": ["prices"], "reviewNote": null, "createdAt": "2026-10-30T01:12:00Z", "reviewedAt": "2026-10-30T05:40:00Z" }], "nextPage": null }`. `status`: `pending`, `approved` (all fields), `partly_approved`, `rejected` (with `reviewNote`, the reason the reviewer picked).
+
+### 7.4 `POST /issues` 🔒
+
+A problem with the app itself, not with a place. From Profile → Help → "Something's not working".
+
+**Request:** `{ "kind": "bug", "message": "Map stays blank after I allow location.", "page": "/map", "appVersion": "0.4.0", "device": "Android 13, Chrome 131" }`. `kind`: `bug`, `wrong_translation`, `slow`, `other`. `message` 10 to 1000 characters. The app fills `page`, `appVersion` and `device`; the person can see them before sending.
+
+**201:** `{ "id": "iss_01JC…", "status": "open" }`. **Errors:** `422`, `429` (5 a day).
+
+### 7.5 `GET /me/issues` 🔒
+
+**200:** `{ "items": [{ "id": "iss_01JC…", "kind": "bug", "message": "…", "status": "in_progress", "createdAt": "…", "updatedAt": "…" }] }`. `status`: `open`, `in_progress`, `fixed`, `wont_fix`.
+
+### 7.6 `GET /settings`
+
+Public settings an admin sets in the panel. `Cache-Control: public, max-age=300`.
+
+**200:** `{ "announcement": null, "submissionsOpen": true, "priceStaleDays": 7, "priceHideDays": 30, "statusPageUrl": "https://stats.uptimerobot.com/…" }`. The app shows `announcement` as a dismissible banner on Home, **never on Emergency**.
+
+### 7.7 `GET /health`
+
+For UptimeRobot only. **200** `{ "ok": true }` when the database and R2 answer; **503** `{ "ok": false, "failing": ["db"] }` otherwise. No auth, no cache, no details beyond that.
 
 ---
 
@@ -462,6 +516,7 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.theme` | System / Light / Dark | Stays on the phone |
 | `bulig.route` (sessionStorage) | The route in progress | Stays on the phone |
 | Test logins (`auth/testAccount.ts`) | `test@`, `moderator@`, `admin@bulig.com` | **Removed.** Seed real accounts in Filament |
+| `bulig.drafts.<recordId>` (new in Phase 4) | An unsent Update details form | Stays on the phone until sent |
 
 Only `AuthProvider` (`app/src/auth/`) and the data source (`app/src/data/`) change; pages keep calling `useAuth()` and `useAppData()`.
 

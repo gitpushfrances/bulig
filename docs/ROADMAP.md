@@ -34,7 +34,8 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - **Data (Phases 1 to 3):** JSON files in `app/public/data/<country>/`, one folder per country (`ph/` first)
 - **Hosting:** Cloudflare Worker with static assets, free plan (`app/wrangler.jsonc`)
 - **Map (optional):** MapLibre GL JS 6.16 + OpenFreeMap tiles
-- **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5, Pest 5
+- **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5 (+ Shield), spatie/laravel-permission, spatie/laravel-activitylog, Laravel Pulse, Pest 5. No Redis: Cloudflare edge cache, Laravel file cache, `database` queue, built-in rate limiter
+- **Free services (Phase 4+):** Oracle Always Free VM in Singapore (fallback Render + Neon), Cloudflare Tunnel, Cloudflare R2 for photos and backups, Gmail SMTP then Resend, UptimeRobot status page, Sentry. Full table with limits: [ARCHITECTURE.md, Stack](ARCHITECTURE.md#stack-0-until-funded)
 - **Native (Phase 6):** Capacitor 8
 
 ## Ground rules for every phase
@@ -105,7 +106,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Goal:** real people in the first pilot area use it, and you learn from them. The first area is not the only one: everything learned here becomes the checklist for opening the next area anywhere.
 
-**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, report wrong info (SCRUM-30), analytics (SCRUM-31), Waray About, OPEN-AN-AREA.md (SCRUM-32).
+**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), Waray About, OPEN-AN-AREA.md (SCRUM-32).
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
@@ -161,7 +162,12 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 - Database schema: countries, areas, categories, services, emergency_contacts, with `geography(Point,4326)` and audit timestamps
 - Import script that loads the current JSON into the database
 - Read API: `GET /api/v1/services?country=&area=&category=&near=lat,lng` and `GET /api/v1/emergency-contacts?country=&area=`
-- Filament admin, with only you as the user, for full editing and a "verified" workflow
+- Filament panel for admins and moderators: places with photos, emergency contacts (admin only), areas, users, a "verified" workflow; moderators see only their areas
+- **Update details** (SCRUM-30): one form on Place details for new prices, hours, services, phone, location, closed, or a new place, with up to 3 photos (required for prices); `POST /uploads` and `POST /submissions` ([API.md §7](API.md#7-community-updates-update-details))
+- Review queue: current vs proposed values field by field, photos, approve ticked fields or reject with a reason; dated price history (`service_prices`); users see their submission status in Profile
+- Admin: users and moderators (add, edit, suspend, role, areas), "online now", activity log, system settings, Laravel Pulse dashboard
+- App issues: "Something's not working" in Profile → `issues` table that moderators and admins work in the panel
+- Status: `GET /health` + UptimeRobot alerts and public status page
 - Switch the frontend from JSON files to the API, while keeping the service worker cache as the offline fallback
 - Deploy the API and set up nightly backups
 - Pest tests for the API and for the emergency-number rules
@@ -184,6 +190,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 **Done when**
 
 - [ ] You edit a shop in Filament and the change shows in the app within 1 hour
+- [ ] A price update with a photo, sent from a real phone, is approved by a moderator and shows in the app with its "seen" date within 1 hour
 - [ ] Emergency and Services still work in airplane mode
 - [ ] A backup restored to your laptop matches production
 - [ ] The JSON files are retired, or kept only as the fallback

@@ -2,13 +2,46 @@
 
 How each phase of the [Roadmap](ROADMAP.md) is built, how it connects to the phases before it, and what it should deliver.
 
-Last updated: 2026-10-29 · Owner: John · Status: draft for review
+Last updated: 2026-10-30 · Owner: John · Status: draft for review
 
 ## How to use this file
 
 The Roadmap says **when** to build each part. This file says **how** to build it and **what it plugs into**. Read the "Four spines" section once. Every phase after that is a small addition to one of those spines.
 
 Design rule: **no new moving parts unless a phase can't ship without them.** Each connection here is a plain function, one interface, one table, or one endpoint. No microservices, no Redis, no realtime, no state library.
+
+## Stack (₱0 until funded)
+
+Everything below has a free plan that covers the pilot, and none needs a card except where marked. Decided with John on 2026-10-30; the reasoning and sources are in the [₱0 stack doc](https://claude.ai/artifact/Xj4RDhtc5hR2QaroQKQ45U).
+
+| Layer | Tool | Phase | Free limit | Note |
+| --- | --- | --- | --- | --- |
+| App | React 19 + TypeScript 6 + Vite 8 PWA | 1+ | free | Decided; not reopened |
+| App hosting | Cloudflare Worker, static assets (`app.bulig.workers.dev`) | 1+ | 100k requests/day | |
+| Map, address, routes | MapLibre + OpenFreeMap, Nominatim, OSRM | 3+ | free, no SLA | |
+| Offline | Service worker (vite-plugin-pwa) | 2+ | free | Emergency never depends on the API |
+| Analytics | Cloudflare Web Analytics | 3+ | free, no cookies | |
+| API | Laravel 13, PHP 8.5 | 4+ | free | |
+| Sign-in | Laravel Sanctum tokens | 4+ | free | Not Clerk: Clerk's production mode needs a domain you own |
+| Roles and permissions | `spatie/laravel-permission` + Filament Shield | 4+ | free | New roles are rows, not code ([Spine 4](#4-identity)) |
+| Admin and moderator panel | Filament 5 | 4+ | free | |
+| Audit trail | `spatie/laravel-activitylog` | 4+ | free | Who changed what, before and after |
+| Live dashboard | Laravel Pulse | 4+ | free | Active users, slow requests, errors, queue |
+| Database | PostgreSQL 17 + PostGIS on the server; Neon (Singapore) only if hosting falls back to Render | 4+ | Neon: 1 GB, 100 CU-hours/month | Neon sleeps after 5 min; anything that polls it burns the hours |
+| Server | Oracle Always Free Ampere VM, Singapore (card needed at signup); fallback Render free, Singapore | 4+ | Oracle 4 cores, 24 GB; Render 512 MB, sleeps after 15 min | |
+| HTTPS without a domain | Cloudflare Tunnel | 4+ | free | |
+| Photos (places, update proofs) | Cloudflare R2 (checkout may ask for a card) | 4+ | 10 GB, free downloads | One bucket, two prefixes: `public/` and `private/` |
+| Email | Gmail SMTP with an app password; Resend once `bulig.app` is bought | 4+ | Gmail ~500/day; Resend 100/day, 3,000/month | Resend without a domain only emails your own inbox |
+| Cache | Cloudflare edge cache on public reads + Laravel `file` cache | 4+ | free | No Redis |
+| Rate limits | Laravel `RateLimiter` (`throttle`) + one Cloudflare rule on `/api/v1/auth/*` | 4+ | free | Limits in [API.md §1](API.md#1-conventions) |
+| Queue and scheduler | Laravel `database` queue, `schedule:run` from cron | 4+ | free | On Render: GitHub Actions schedule instead of cron |
+| Uptime and status page | UptimeRobot (pings `GET /health`, public status page) | 4+ | 50 monitors, 5-min checks | |
+| Errors | Sentry free plan | 4+ | free plan | |
+| Backups | Nightly `pg_dump` to R2 `private/backups/` | 4+ | inside R2's 10 GB | Keep 14 days |
+| Tests and CI | Vitest, Pest 5, GitHub Actions | 1+ | 2,000 min/month (private repo) | |
+| Domain (first paid item) | `bulig.app` at Cloudflare Registrar | when funded | about USD 14/year | Unlocks Resend and `api.bulig.app` |
+
+**Redis comes in only** when the database cache or queue measurably slows the API, or there is more than one API server.
 
 ---
 
@@ -17,17 +50,21 @@ Design rule: **no new moving parts unless a phase can't ship without them.** Eac
 ```mermaid
 flowchart LR
   subgraph Phone["Phone (PWA, later Capacitor)"]
-    UI["Pages: Emergency, Services, Map, About"]
-    Rules["Pure rules:\nvisibleContacts()\nfilterServices()"]
+    UI["Pages: Emergency, Home, Nearby,\nPlace details, Map, Saved, Profile"]
+    Rules["Pure rules:\nvisibleContacts()\nrankForNeed()"]
     DS["DataSource\n(JsonSource | ApiSource)"]
     SW["Service worker cache"]
     UI --> Rules --> DS --> SW
   end
-  SW -- "GET (cached)" --> API["Laravel API /api/v1"]
-  UI -- "POST submissions" --> API
+  SW -- "GET (cached)" --> CF["Cloudflare edge cache\n+ Tunnel"]
+  UI -- "Update details, photos,\napp issues" --> CF
+  CF --> API["Laravel API /api/v1"]
   API --> DB[("PostgreSQL + PostGIS")]
-  Admin["Filament admin (John)"] --> DB
-  Owner["Business owner (signed in)"] -- "POST edits" --> API
+  API --> R2[("Cloudflare R2\nphotos, backups")]
+  API -- "queue" --> Mail["Gmail SMTP,\nlater Resend"]
+  Panel["Filament panel:\nmoderators (their areas)\nadmins (everything)"] --> DB
+  Panel --> R2
+  Up["UptimeRobot\nstatus page"] -- "GET /health" --> CF
 ```
 
 Before Phase 4, the right side is just static JSON files served by the Cloudflare Worker (static assets). The left side doesn't change.
@@ -133,21 +170,37 @@ export interface DataSource {
 
 **The emergency rules always run on the phone**, in `visibleContacts(contacts, now)`. Cached data gets older while the phone is offline, so only the phone knows how stale it really is. The server also refuses to serve unverified contacts, but the phone is the last line of defence.
 
-### 3. Feedback pipeline
+### 3. Community updates pipeline
 
-Corrections, hazard reports and owner edits are one pipeline that grows over time, not three features.
+Every change that doesn't come from a moderator or admin goes through **one form, one endpoint and one review queue**. A driver who fuelled this morning and saw a new price, a shop with a new air pump, a closed hospital ward, a new carinderia: all of them are an **Update details** on a place, posted to `POST /api/v1/submissions` ([API.md §7](API.md#7-community-updates-update-details)). Business owners use the same form from Phase 5.
 
-| Phase | Where reports come in | Where you review them | What goes public |
+```mermaid
+flowchart TD
+  U["Signed-in user on Place details\\ntaps Update details"] --> F["Picks what changed: prices, hours,\\nservices offered, phone, location,\\nclosed for good, other.\\nOnly the changed fields are sent."]
+  F --> PH["Adds 1-3 photos (price board, sign).\\nRequired for prices; optional otherwise.\\nPhone shrinks to WebP, max 1280 px"]
+  PH --> Q["submissions: status pending\\nphotos in R2 private/"]
+  Q --> M{"Moderator for that area\\n(or admin)"}
+  M -- "approve all or some fields" --> A["Record updated in one transaction.\\nverifiedAt = date seen,\\nsource = 'Bulig user, photo checked'.\\nPrices get a dated row."]
+  M -- "reject, with a reason" --> R["Submitter sees the reason.\\nPhotos deleted after 30 days"]
+  M -- "needs a call" --> C["Moderator calls the place,\\nthen approves or rejects"]
+  A --> L["Activity log: who approved what,\\nbefore and after"]
+  A --> APP["App shows the new values\\nwithin 1 hour (edge cache)"]
+```
+
+| Phase | What comes in | Who reviews | What goes public |
 | --- | --- | --- | --- |
-| 3 | None (sample data; you fix records in the JSON files by hand) | | |
-| 4 | In-app form, `POST /api/v1/submissions` ([API.md §7](API.md#7-reports-report-wrong-info)) | `submissions` table in Filament | You approve, and the record updates |
-| 5 | Same, plus hazard reports and owner edits | Same `submissions` table | Same approval step |
+| 3 | Nothing (sample data; John fixes the JSON by hand) | | |
+| 4 | Update details from users: prices, hours, services, phone, location, closed, new place, with photos | Moderator for the area, or an admin | Only the fields a reviewer approves |
+| 5 | Same form, plus hazard reports and owner edits | Same queue | Same approval step |
 
-John dropped the Google Form on 2026-10-30: reports go straight into the app once the backend exists.
+**Rules in every phase**
 
-The app side is one component, `<ReportButton recordId=... />` on Place details (and later on contact cards). It opens an in-app form that posts to the API, from Phase 4. No other page changes.
-
-**Rule in every phase:** nothing a member of the public submits is shown until you approve it. Emergency contacts can't be edited through this pipeline at all.
+- Nothing a member of the public submits is shown until a moderator or admin approves it. There is no auto-approve, even for frequent reporters (revisit only when the queue takes over 2 hours a week).
+- **Emergency contacts can't be edited through this pipeline.** A user can flag one ("number not working"); only an admin changes it, after calling it.
+- **Prices are never "current".** Each price is stored with the date it was seen and shown as "₱82.00 · seen 30 Oct by a Bulig user". The app greys a price out after 7 days and hides it after 30, because fuel prices in the Philippines change most weeks.
+- Each submission shows the reviewer the current value next to the proposed one, field by field, with the photos. Approving applies only the ticked fields.
+- Photos have their location and camera data stripped on the server before anyone sees them. A reviewer can blur or reject a photo that shows faces or plate numbers. Only approved photos ever move to `public/`.
+- Abuse: 10 submissions a day per user. A user whose last 10 submissions were mostly rejected is flagged in the panel, and an admin can suspend them. Rejected submissions count; approved ones don't earn anything (no points or rewards yet).
 
 ### 4. Identity
 
@@ -157,6 +210,16 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 - **Phase 4:** real accounts on the API with Sanctum tokens: register, login, logout, forgot and reset password, `/me` (profile, photo, password, delete) and `/me/saved`. Every request and payload is in [API.md](API.md). Admins and moderators also sign in to Filament.
 - **Phase 5:** Google sign-in (Socialite), business owners claiming listings, in-app reports (`POST /submissions`).
 - Emergency Help never needs an account, in any phase.
+
+**Roles from Phase 4.** Roles live on the server as data (`spatie/laravel-permission`), so adding one later (owner, LGU partner, regional lead) is a new row with a set of permissions, not new code. The app's `can()` keeps working from the `role` the API returns.
+
+| Role | Can do | Scope |
+| --- | --- | --- |
+| **User** | Save places; send Update details with photos; report an app problem; see the status of their own submissions | Everywhere |
+| **Moderator** | Everything a user can, plus: review and approve or reject submissions, add and edit places and their photos, mark records checked, see and work on app problems | Their areas and the areas inside them. Until there are more moderators, John is admin and covers the whole country |
+| **Admin** | Everything: users and moderators (add, edit, suspend, change role, assign areas), every place and photo, emergency contacts, areas, system settings, the live dashboard and the activity log | Everywhere |
+
+A moderator's own edits go live straight away but are written to the activity log with before and after values, so an admin can see and revert them. Emergency contacts are admin-only.
 
 ---
 
@@ -208,7 +271,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 | Feature | How |
 | --- | --- |
 | Real data | Replace the sample files with verified records from SCRUM-17 and SCRUM-18. A CI test fails if any record still has `"sample": true`. |
-| Report wrong info | Moved to Phase 4: in the app, `POST /submissions` (no Google Form). |
+| Report wrong info | Moved to Phase 4 as **Update details**: in the app, `POST /submissions` (no Google Form). |
 | Analytics | Cloudflare Web Analytics script tag. No cookies, no consent banner needed. |
 | Navigation | **Built.** Five tabs: `/` Home, `/services`, `/map`, `/saved`, `/profile` (the tab shows the photo, or Ropi). Emergency (`/emergency`) is not a tab: a floating red button opens it from every screen and Back returns. No top bar. Pushed screens: `/nearby/:need`, `/profile/edit`, `/profile/password`, `/help`, `/terms`, `/privacy`, `/licenses`, `/about`. `/services/:category` renders Nearby results, so v0.2 links still work. Screens in [UI-UX.md](UI-UX.md). |
 | Needs | **Built.** `app/src/rules/needs.ts` maps each need (`flat-tire`, `breakdown`, `out-of-gas`, `hospital`, `food`, `hotel`, `store`, `others`) to a category, its words and whether it is urgent. Data, not page code, so a new need is one entry. Filter chips per need wait for `Service.features` data. |
@@ -235,20 +298,29 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 | Feature | How |
 | --- | --- |
 | Laravel app | `api/` with Laravel 13, PHP 8.5 and PostgreSQL + PostGIS (`postgis/postgis` in Docker locally). Sessions, cache and queue all use the database driver, so there's no Redis. |
-| Schema | `countries(code, name)`, `areas(id, country, name, region, languages jsonb)`, `category_labels(category, country, lang, label)`, `services(... , location geography(Point,4326) null, verified_at, source, deleted_at)`, `emergency_contacts(... , phones jsonb, verified_at, source)`, `submissions(id, type, record_type, record_id, payload jsonb, status, reviewed_at, created_at)`. IDs stay the same slugs as the JSON. |
+| Schema | `countries(code, name)`, `areas(id, country, name, region, languages jsonb)`, `category_labels(category, country, lang, label)`, `services(... , location geography(Point,4326) null, verified_at, source, deleted_at)`, `emergency_contacts(... , phones jsonb, verified_at, source)`, `submissions(id, user_id, type, record_type, record_id, area_id, changes jsonb, note, photo_ids jsonb, status, reviewer_id, review_note, approved_fields jsonb, reviewed_at, created_at)`, `uploads(id, user_id, r2_key, width, height, bytes, status, created_at)`, `service_prices` and `issues` (below), plus the package tables for roles, activity log, Pulse and settings. IDs stay the same slugs as the JSON. |
 | Import | `php artisan bulig:import-json` reads the Phase 3 JSON files. Running it twice changes nothing (upsert by ID). |
 | API contract | Build every endpoint to [API.md](API.md): public reads (areas, emergency contacts, services, labels), auth (register, login, logout, forgot and reset password), `/me` (profile, photo, password, delete) and `/me/saved`. Generate `contracts/openapi.yaml` from it at the start of the phase and test the responses against it. |
 | Read API | `GET /api/v1/emergency-contacts` and `GET /api/v1/services`, with a required `?country=` and an optional `?area=`. They return the contract v1 envelope through API Resource classes, with `Cache-Control: public, max-age=3600`. Emergency only returns contacts with `verified_at` in the last 180 days, except `national` lines, matching `visibleContacts()`. |
 | Contract tests | Pest tests validate both responses against `contracts/*.schema.json`. The 180-day rule is tested on the server too. |
-| Admin | Filament 5 resources for services, emergency contacts and submissions. Only you have a user account. A "Needs re-check" filter shows records last verified more than 150 days ago. A "Mark verified" action sets `verified_at` and `source`. |
+| Panel | Filament 5 at `/panel` with Filament Shield. Admins and moderators sign in with the same account they use in the app. Resources: places (with photos), emergency contacts (admin only), areas, users, submissions, app issues, settings. A "Needs re-check" filter shows records last verified more than 150 days ago; "Mark verified" sets `verified_at` and `source`. Moderators only see records and submissions in their areas (a global scope on `area`). |
+| Review queue | The submissions resource lists pending items oldest first, per area. Opening one shows current vs proposed values field by field, the photos, the submitter's history (approved / rejected count) and the place on a small map. Actions: approve ticked fields, reject with a reason, "Called, still pending". Approving runs one database transaction that updates the place, writes a `service_prices` row for each price, and logs the change. |
+| Prices | `service_prices(id, service_id, item, amount, currency, unit, seen_at, submission_id, approved_by)`. History is kept, never overwritten; the API returns the newest approved price per item. Items come from `labels.json` per country (`ron91`, `ron95`, `diesel`, `lpg_11kg`, and later service items like `tire_patch`). |
+| Photos | Phone shrinks each photo to WebP, max 1280 px and about 300 KB, then posts it to `POST /uploads`. Laravel re-encodes it with Intervention Image (strips location and camera data) and stores it in R2 `private/`. Reviewers see it through a 10-minute signed URL. Approved place photos are copied to `public/` and served from R2's public URL. Pending and rejected photos are deleted after 30 days by a scheduled job. |
+| Users and moderators | Admin pages list every user with role, areas, status (active, suspended), last seen (`personal_access_tokens.last_used_at`), submissions approved / rejected. Admins can edit details, reset a password (sends the reset email), suspend, change role and assign areas. "Online now" = last seen in the last 15 minutes. No live tracking beyond that. |
+| Live dashboard | Laravel Pulse at `/panel/pulse` (admins only): requests per minute, slow requests and queries, exceptions, queue backlog, most active users. It samples instead of logging every request, so it stays small. |
+| Activity log | `spatie/laravel-activitylog` on places, emergency contacts, users, roles and settings. Each entry stores who, when, and old and new values. Admins can filter it per record or per person. |
+| Settings | One Filament settings page (`spatie/laravel-settings`), admin only: announcement banner text, maintenance message, submissions on or off, daily submission limit, photo size limit, price "stale after" days. The app reads the public ones from `GET /settings` (cached). |
+| App issues | Users report app problems from Profile ("Something's not working"). `issues(id, user_id, kind, message, page, app_version, device, status, assignee_id, created_at)`, with status `open`, `in_progress`, `fixed`, `wont_fix`. Moderators and admins see and work them in the panel; a "Copy to GitHub" action opens a prefilled GitHub issue for code fixes. The reporter sees the status in Profile. |
+| Status | `GET /health` checks the database and R2 and returns `200` or `503`. UptimeRobot pings it every 5 minutes, emails John, and hosts the free public status page linked from Profile → Help. |
 | Frontend switch | Add `ApiSource` and build with `VITE_DATA_SOURCE=api`. Keep the JSON files as the fallback build. |
-| Hosting | Oracle Always Free VM (Singapore), Nginx and PHP-FPM, Cloudflare Tunnel for HTTPS, CORS allowing only the app's `workers.dev` origin, nightly `pg_dump` to Cloudflare R2. |
+| Hosting | Oracle Always Free VM (Singapore), Nginx, PHP-FPM, PostgreSQL + PostGIS, one `queue:work` process and cron for `schedule:run`, Cloudflare Tunnel for HTTPS, CORS allowing only the app's origin, nightly `pg_dump` to R2. Fallback: Render free (Singapore) + Neon (Singapore), with GitHub Actions running the schedule. |
 
-**Connects to:** spine 1 (the same schema files now test the server), spine 2 (`ApiSource` replaces `JsonSource` and no page changes), and spine 3 (in-app reports land in `submissions`, so every report is tracked in one place).
+**Connects to:** spine 1 (the same schema files now test the server), spine 2 (`ApiSource` replaces `JsonSource` and no page changes), spine 3 (Update details lands in `submissions`, so every community change goes through one queue), and spine 4 (roles and areas decide what each panel user sees).
 
-**Contract changes:** none. If the API needs a change to the shape, that's a design bug to fix in the API, not in the app.
+**Contract changes:** additive only: optional `Service.prices` and `Service.photos` (see the contract change log). Everything else that exists keeps its shape. If the API needs a change to the shape, that's a design bug to fix in the API, not in the app.
 
-**Expected outcome:** you edit a shop in Filament and the app shows it within 1 hour. Airplane mode still works. A restored backup matches production. Manual JSON editing stops.
+**Expected outcome:** a user's price update with a photo is approved by a moderator and shows in the app within 1 hour, with its "seen" date. You edit a shop in Filament and the app shows it within 1 hour. Airplane mode still works. A restored backup matches production. Manual JSON editing stops.
 
 ---
 
@@ -258,7 +330,7 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 
 | Feature | How |
 | --- | --- |
-| In-app corrections | Built in Phase 4 (`POST /api/v1/submissions`, [API.md §7](API.md#7-reports-report-wrong-info)); here only the extras: guest reports without an account. Protected by Cloudflare Turnstile (free), a honeypot field, and Laravel rate limiting (5 per hour per IP). `<ReportButton>` already posts here from Phase 4. |
+| Update details | Built in Phase 4 (`POST /api/v1/submissions`, [API.md §7](API.md#7-community-updates-update-details)); here only the extras: guest reports without an account. Protected by Cloudflare Turnstile (free), a honeypot field, and Laravel rate limiting (5 per hour per IP). `<ReportButton>` already posts here from Phase 4. |
 | Hazard reports | Submission `type: 'hazard'` with `{ kind: flood \| landslide \| road_closed, lat, lng, note }`. Approving it creates a row in `hazards(id, kind, location, country, area, expires_at, approved_at)`. Default expiry is 24 hours for floods and 72 hours for landslides and closures. `GET /api/v1/hazards?country=&area=` returns approved, unexpired rows only, as an additive contract (`hazards.schema.json`). Shown as a banner on Services and as pins on the Map. |
 | Owner accounts | Google sign-in through Laravel Socialite, issuing a Sanctum **token** (not a cookie, because the `workers.dev` app and the API host are different domains). The owner sends `type: 'claim'`. You confirm it by calling the shop's listed number. Approved owners send `type: 'owner_edit'` for hours and phone, and those are still reviewed. |
 | Privacy and abuse | Store a salted hash of the IP, never the IP itself, and delete it after 30 days. Delete resolved submissions after 180 days. Add a "Report this" link on hazards. Publish a privacy notice per country served: Data Privacy Act (RA 10173) for the Philippines first, GDPR before any EU area. Notices are per-country files, like `labels.json`. |
@@ -314,12 +386,18 @@ Build only what the pilot proved people want. If they're built, these are the de
 | 5 | `hazards.schema.json` added; `Service.ownerVerified` (optional) | 1 |
 | 3 | `Service.features` (`Partial<Record<Feature, boolean>>`), `Service.weeklyHours` (`{ mon: [["07:00","18:00"]] }`, overnight ranges allowed, `"24:00"` = midnight) and `Service.open24h`, all optional and validated; sample data converted from the free-text `hours` (kept for display). Added 2026-10-30. | 1 |
 | 3 | Category `other` ("Others": new stalls and local finds); `Service.addedAt` (optional, ISO date first listed, drives the NEW badge for 60 days). `Service.subtype` is now shown in the UI. Added 2026-10-30. | 1 |
+| 4 | `Service.prices` (optional: `[{ item, amount, currency, unit, seenAt }]`, newest approved per item) and `Service.photos` (optional: approved public photo URLs). Planned 2026-10-30. | 1 |
 | 7 | New areas and countries (data only); `Service.featured` (optional) | 1 |
 
 ## Decisions and why
 
 - **Client-side filtering, one country at a time.** The phone only holds the picked country's files. The pilot is a few hundred records (under 100 KB). If one country grows past about 1 MB, split its files by region; the contract doesn't change. Filtering on the phone is what makes offline mode work, and it keeps the API to a few read endpoints.
 - **Emergency rules run on both sides.** The server stops bad data from going out. The phone handles data that went stale while it was offline.
-- **One `submissions` table.** One moderation queue to check, one place for rate limits, and one retention rule.
+- **One `submissions` table.** One moderation queue to check, one place for rate limits, and one retention rule. "Report wrong info" and "Update details" are the same form: a report is an update that says what's wrong without a new value.
+- **Every public change is reviewed by a person.** Crowd data is only as good as its worst submitter, and a wrong price or a "closed" flag on the only vulcanizing shop for 20 km hurts someone. The cost is a review queue; the pilot is small enough for that.
+- **Prices are dated sightings, not live prices.** Bulig can't know today's price. It can say what a user saw and when.
+- **Roles as data.** `spatie/laravel-permission` lets an admin add a role later without a deploy.
+- **No Redis, no websockets.** "Online now" is a last-seen time; caching is Cloudflare plus files; the queue is a table. Each of these is one config line to swap if the pilot ever outgrows it.
+- **Status page from UptimeRobot, not built in-house.** If the server is down, a status page on the same server is down too.
 - **Tokens instead of cookies for owners.** Sanctum's cookie mode needs the app and the API on the same domain, and the `workers.dev` app with a tunnel host isn't. Once `bulig.app` and `api.bulig.app` are bought, cookie auth becomes an option.
 - **No maps SDK for directions.** A Google Maps link is free, works everywhere, and needs no API key.
