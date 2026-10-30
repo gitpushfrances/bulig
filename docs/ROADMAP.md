@@ -18,7 +18,7 @@ Validation (SCRUM-8 to 19) keeps running in the background. It doesn't block any
 | --- | --- | --- | --- | --- |
 | 1 | Setup and skeleton | 1 week | v0.1 | Free |
 | 2 | Emergency + Services PWA | 2 to 3 weeks | v0.2 | Free |
-| 3 | First pilot (Philippines) | 5 to 7 weeks (includes the new screens from UI-UX.md) | v0.3 | Free (use the `bulig.<subdomain>.workers.dev` link) |
+| 3 | First pilot (Philippines) | 5 to 7 weeks (includes the new screens from UI-UX.md) | v0.3 | Free (use the `app.bulig.workers.dev` link) |
 | 4 | Backend and admin (Laravel) | 4 to 6 weeks | v0.4 | Free tier (see risks) |
 | 5 | Community features | 4 to 6 weeks | v0.5 | Free |
 | 6 | Android app (Capacitor), optional | 2 weeks | v1.0 | Free APK; Play Store only once funded |
@@ -110,7 +110,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
 - *(new)* Load verified real data and remove all sample records
-- *(new)* Keep the Worker named `bulig` so the free link is `bulig.<subdomain>.workers.dev`. (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
+- *(new)* The Worker is named `app` on the `bulig` account subdomain, so the free link is `app.bulig.workers.dev` (changed 2026-10-30). (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
 - *(new)* Add Cloudflare Web Analytics (free, no cookies) to count visits and installs
 - ~~Add a "Report wrong info" link that opens a short Google Form~~ Dropped (John, 2026-10-30): Report wrong info moves to Phase 4, in the app (SCRUM-30).
 - ✅ **New navigation:** five tabs (Home, Services, Map, Saved, Profile), Emergency behind a floating red button on every screen. `/services` and `/about` keep working.

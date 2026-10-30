@@ -40,7 +40,7 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 | Roles | `user`, `moderator`, `admin`. Sign-ups are always `user`; moderators and admins are appointed in the admin panel. |
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
-| CORS | Only the app's origin (`https://bulig.<subdomain>.workers.dev`, later the real domain). |
+| CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
 | Rate limits | Auth endpoints 10/min per IP and per email; reports 10/hour per user; everything else 120/min per token or IP. |
 | Versioning | `/api/v1`. A breaking change means `/api/v2` (see [§11](#11-changing-this-contract)). The data envelopes keep `"version": 1`. |
 
