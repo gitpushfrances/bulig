@@ -106,7 +106,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Goal:** real people in the first pilot area use it, and you learn from them. The first area is not the only one: everything learned here becomes the checklist for opening the next area anywhere.
 
-**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), OPEN-AN-AREA.md (SCRUM-32).
+**Built so far (2026-11-02, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details · ✅ splash, page fade-in, loading skeletons, location asked only inside the app, exact scroll on Back, older browsers (iOS 14+, Chrome 87+) (PR #33). **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), OPEN-AN-AREA.md (SCRUM-32).
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
@@ -154,6 +154,18 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 ## Phase 4: Backend and admin (v0.4)
 
 **Goal:** move the data into a real database that you edit through an admin panel. The app reads from an API but keeps working offline.
+
+**Status (2026-11-02):** started on branch `feat/backend-api`. `api/` holds a fresh Laravel 13 project whose install didn't finish (`composer install` still to run), and John's laptop has PHP 8.4 without `pdo_pgsql` and no Herd yet (step 1 below). See CHANGELOG, Errors.
+
+**Built in slices,** one tested PR each, in this order:
+
+| # | Slice | Covers |
+| --- | --- | --- |
+| 1 | Foundation | Sanctum, `/api/v1`, CORS, rate limits, Pest; schema; JSON import; public reads (API.md §3), accounts (§4), `/me` (§5), saved places (§6), `GET /health`. Tests run on SQLite; PostGIS only on Postgres. |
+| 2 | Community updates | `POST /uploads`, `POST /submissions`, `GET /me/submissions`, issues, `GET /settings` (§7) |
+| 3 | Admin panel | Filament at `/panel`: places, emergency contacts, areas, users and moderators, review queue, activity log, Pulse |
+| 4 | Deploy | `api/Dockerfile` on Render free + Neon (Singapore), UptimeRobot, nightly `pg_dump` to R2 |
+| 5 | App on the API | `VITE_DATA_SOURCE=api`, Sanctum tokens in the app, the one-time upload of saved hearts; JSON stays as the fallback |
 
 **Tickets (all new):**
 
