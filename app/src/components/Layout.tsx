@@ -1,5 +1,5 @@
 import { CloudOff, Heart, House, LayoutGrid, Map as MapIcon, TriangleAlert, type LucideIcon } from 'lucide-react'
-import { useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import Avatar from './Avatar.tsx'
@@ -42,12 +42,27 @@ function EmergencyButton({ pathname }: { pathname: string }) {
   )
 }
 
-// A new page opens at its top, like an app screen. Back and Forward (POP) leave the scroll alone.
-function useScrollToTopOnNavigate(pathname: string) {
+// Where each history entry was scrolled to, by its location key.
+const scrollPositions = new Map<string, number>()
+
+// A new page opens at its top, like an app screen; Back and Forward return to exactly where the
+// person was. The browser's own restoration guesses wrong here, because pages remount on return.
+function useScrollMemory() {
+  const { key } = useLocation()
   const type = useNavigationType()
+  const current = useRef(key)
+
+  useEffect(() => {
+    history.scrollRestoration = 'manual'
+    const save = () => scrollPositions.set(current.current, window.scrollY)
+    window.addEventListener('scroll', save, { passive: true })
+    return () => window.removeEventListener('scroll', save)
+  }, [])
+
   useLayoutEffect(() => {
-    if (type !== 'POP') window.scrollTo(0, 0)
-  }, [pathname, type])
+    current.current = key
+    window.scrollTo(0, type === 'POP' ? (scrollPositions.get(key) ?? 0) : 0)
+  }, [key, type])
 }
 
 // No top bar: content starts at the top of the screen. Where you are lives on Home, between the
@@ -56,7 +71,7 @@ function useScrollToTopOnNavigate(pathname: string) {
 export default function Layout() {
   const { online } = useAppData()
   const { pathname } = useLocation()
-  useScrollToTopOnNavigate(pathname)
+  useScrollMemory()
 
   return (
     <div className={styles.shell}>

@@ -51,7 +51,7 @@
   top: 24px;
   left: 50%;
   z-index: 1;
-  translate: -50% 0;
+  transform: translateX(-50%);
 }
 
 @keyframes appear {
