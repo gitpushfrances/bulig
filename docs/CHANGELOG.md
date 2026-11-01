@@ -32,6 +32,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
   - Every page change showed the old and new page through each other (React `<ViewTransition>` cross-fade). Replaced by a fade-in of the new page only.
   - The location prompt opened on the login screen and behind the splash, and allowing it flipped all of Home from "10 places" (every area) to the nearest town (layout shift 0.05). Now asked only inside the app, with placeholders until the first fix.
   - The splash was timed from the start of the page load, so on a real network it flashed for about 0.3s or not at all. Now timed from when it first shows.
+  - Services' line above the cards was one line while loading and two once loaded, so the cards dropped (layout shift 0.024 on the live preview). The loading line now has the same shape ("Finding places near you, nearest first. Pick what you need.").
   - The flaky test "finds the area by itself" (it failed about one run in ten, on `main` too) read the saved area before the effect that writes it had run. It now waits for the write.
   - The splash logo sat in a hard white square (the icon file has a white background), most visible in dark mode. Now a rounded tile like the home-screen icon, from the sharper 512px file.
 - **Place details no longer says "Loading…" forever** when data fails to load: it shows "Couldn't load data" with Try again, and a Back button (branch `feat/splash-transitions-skeletons`, 2026-11-01).

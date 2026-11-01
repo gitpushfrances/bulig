@@ -18,7 +18,8 @@ export default function ServicesPage() {
         <p className={styles.lead}>
           {ready
             ? `${ranked.length} ${ranked.length === 1 ? 'place' : 'places'} ${where}${position ? ', nearest first' : ''}. Pick what you need.`
-            : 'Places along the road, grouped by what they do.'}
+            : // The same shape as the sentence that replaces it, so it wraps the same and nothing moves.
+              'Finding places near you, nearest first. Pick what you need.'}
         </p>
       </div>
 
