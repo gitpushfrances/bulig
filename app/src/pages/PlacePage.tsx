@@ -1,16 +1,19 @@
-import { Check, ChevronLeft, CircleCheck, Link2, MapPin, Navigation, Phone, Route, Share2, X } from 'lucide-react'
+import { Check, CircleCheck, Link2, MapPin, Navigation, Phone, Route, Share2, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
+import BackButton from '../components/BackButton.tsx'
+import DataNotice from '../components/DataNotice.tsx'
 import { CATEGORY_ICONS } from '../components/icons.ts'
 import { StatusLine } from '../components/PlaceInfo.tsx'
 import SaveButton from '../components/SaveButton.tsx'
+import { PlaceSkeleton } from '../components/Skeleton.tsx'
 import { useAppData } from '../data/context.ts'
 import { formatDate, telHref } from '../data/format.ts'
 import { categoryLabel } from '../data/labels.ts'
 import { routeHref } from '../data/links.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { DAY_NAMES, hoursForDay } from '../rules/hours.ts'
-import { CHIP_LABELS, needForCategory } from '../rules/needs.ts'
+import { CHIP_LABELS, nearbyHref, needForCategory } from '../rules/needs.ts'
 import { formatDistance } from '../rules/nearby.ts'
 import { isNew } from '../rules/services.ts'
 import { DAYS, FEATURES, type Day } from '../types.ts'
@@ -24,14 +27,18 @@ const WEEK: Day[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 // what it offers, when it was checked, and Call, Route, Save and Share. A link to it can be shared.
 export default function PlacePage() {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const canGoBack = useLocation().key !== 'default'
   const { data } = useAppData()
   const { ranked, labels } = useNearby()
   const [now] = useState(() => new Date())
   const [shared, setShared] = useState<'copied' | null>(null)
 
-  if (data.status !== 'ready') return <p className={styles.notice}>Loading…</p>
+  if (data.status !== 'ready')
+    return (
+      <section className={`${styles.page} ${styles.readable}`} aria-label="Place details">
+        <BackButton fallback="/services" />
+        {data.status === 'loading' ? <PlaceSkeleton /> : <DataNotice hasSamples={false} />}
+      </section>
+    )
   const place = data.services.find((s) => s.id === id)
   if (!place) return <NotFoundPage />
 
@@ -65,10 +72,7 @@ export default function PlacePage() {
 
   return (
     <article className={`${styles.page} ${styles.readable}`} aria-labelledby="place-title">
-      <button type="button" className={styles.back} onClick={() => (canGoBack ? navigate(-1) : navigate(`/nearby/${need.id}`))}>
-        <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
-        Back
-      </button>
+      <BackButton fallback={nearbyHref(need)} />
 
       <header className={styles.placeHead}>
         <p className={styles.meta}>

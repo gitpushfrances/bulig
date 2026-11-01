@@ -1,8 +1,9 @@
-import { Camera, ChevronLeft, Save, Trash2 } from 'lucide-react'
+import { Camera, Save, Trash2 } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { toAvatar } from '../auth/photo.ts'
+import BackButton from '../components/BackButton.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { useAppData } from '../data/context.ts'
 import page from './Page.module.css'
@@ -12,14 +13,9 @@ const MIN_PASSWORD = 8
 
 // A sub-screen of Profile: Back (to where the person came from), a title, then the content.
 export function SubPage({ title, lead, children }: { title: string; lead?: string; children: ReactNode }) {
-  const navigate = useNavigate()
-  const canGoBack = useLocation().key !== 'default'
   return (
     <section className={styles.page} aria-labelledby="sub-title">
-      <button type="button" className={page.back} onClick={() => (canGoBack ? navigate(-1) : navigate('/profile'))}>
-        <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
-        Back
-      </button>
+      <BackButton fallback="/profile" />
       <div className={page.intro}>
         <h1 id="sub-title" className={page.title}>
           {title}

@@ -27,7 +27,8 @@ export default function AuthLayout({
         </aside>
       )}
       <main className={`${styles.main} ${wide ? styles.mainWide : ''}`}>
-        <div className={styles.column}>{children}</div>
+        {/* Fades in as each screen opens (index.css, "Page enter"). */}
+        <div className={`${styles.column} page-enter`}>{children}</div>
       </main>
     </div>
   )

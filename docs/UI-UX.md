@@ -344,6 +344,9 @@ Built like a production settings screen:
 
 | State | What shows |
 | --- | --- |
+| Asking for location | Only once the person is in the app: never on Sign in, Create account or Forgot password, never over the splash. Until the first fix (while the prompt is open), places hold their skeleton instead of listing every area and then jumping to the nearest, for up to 8s; a saved area shows at once. |
+| Loading | A skeleton in the shape of what is coming (the "What's wrong?" tiles, rows, cards, Place details), using the real layout so nothing jumps when the data lands. Hidden for the first 100ms, so a fast load shows nothing; a slow opacity pulse, still under reduced motion. One "Loading…" for screen readers. The national hotline never waits behind one. On Ropi pages, Ropi walks over the skeleton once the wait passes 1.2s. |
+| Data failed to load | "Couldn't load data" with **Try again**, never an endless "Loading…". |
 | First open, no location yet | The picked town (default: all areas). The prompt appears only on first use of a button or the Map. |
 | Location denied | The town picker stays the source of truth, sorted by name, with a one-line hint. |
 | Offline | The banner. Cached data everywhere, and the mini map swaps to the plain panel. A screen that has nothing cached shows Ropi `thinking` with "No signal, and nothing saved here yet." |
@@ -535,7 +538,7 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 - One Ropi per screen, at most 160px tall on a phone, placed above the empty-state text (or under its speech bubble), never beside or over a button.
 - Add a new pose only when a real screen needs it. Every pose must keep the same face, colours, outfit and art style.
 
-**Status (2026-10-30):** built. `app/src/components/Mascot.tsx` (`variant`, `height`, tap reaction) and `RopiSays.tsx` (Ropi under a speech bubble with a tail; the bubble is real text for screen readers, Ropi stays decorative). Used on every screen in the table above. `RopiLoader.tsx` shows the walking loop (96px) above "Loading…" on the same `ropi` pages; Home and Emergency keep the plain "Loading…" line.
+**Status (2026-10-30):** built. `app/src/components/Mascot.tsx` (`variant`, `height`, tap reaction) and `RopiSays.tsx` (Ropi under a speech bubble with a tail; the bubble is real text for screen readers, Ropi stays decorative). Used on every screen in the table above. `RopiLoader.tsx` shows the walking loop (96px) over the loading skeleton (`Skeleton.tsx`) on Services, a category and Saved, after 1.2s; Home and Emergency show only the skeleton.
 
 **Files**
 - Stored in [`app/public/assets/mascot/`](../app/public/assets/mascot/), served from `/assets/mascot/<name>.webp`. Naming and export rules are in that folder's README.
@@ -548,12 +551,14 @@ Ropi is Bulig's mascot: a golden-tan dog with cream markings, a charcoal helmet 
 - Tapping Ropi plays one short reaction, under 600ms, then stops: a wiggle or hop, plus small floating icons drawn in code (not in the image). Thinking gets a "?" and a lightbulb, friendly gets hearts, ready gets sparkles. The icons come from the app's icon set.
 - Only `transform` and `opacity` are animated, so it stays smooth on a low-cost phone.
 - With `prefers-reduced-motion`, there is no movement; a tap may show the icons without motion.
-- **The one exception is loading.** While a page with Ropi is loading, Ropi walks in a loop: `ropi-walk.webp` is one 1800 × 180 strip of 8 frames (225 × 180 each, about 80 KB), slid one frame at a time with CSS `steps(8)` over 960ms. It appears only after 400ms, so a fast load never flashes a dog, and it stops as soon as the data is there. A wait the person can see is not decoration. Under `prefers-reduced-motion` it shows the first frame, still.
+- **The one exception is loading.** While a page with Ropi is loading, Ropi walks in a loop: `ropi-walk.webp` is one 1800 × 180 strip of 8 frames (225 × 180 each, about 80 KB), slid one frame at a time with CSS `steps(8)` over 960ms. It walks over the loading skeleton and appears only after 1.2s, so a normal load shows just the skeleton, and it stops as soon as the data is there. A wait the person can see is not decoration. Under `prefers-reduced-motion` it shows the first frame, still.
 - Ropi is not a button for assistive technology. The tap reaction is a small extra, never the only way to reach something.
 
 ### Motion, touch, forms, and browser chrome
 
-- Use brief press feedback (`scale(0.98)` over about 120–160ms) for touch. No decorative entrance animation or continuous pulsing; the user-location halo is the only subtle recurring map cue.
+- Use brief press feedback (`scale(0.98)` over about 120–160ms) for touch. No decorative entrance animation or continuous pulsing; the user-location halo is the only subtle recurring map cue, and a loading skeleton's slow pulse the only other.
+- **Page transitions** (decided by John, 2026-11-01): the old page goes at once and the new one fades in, 160ms, opacity only (`.page-enter` in index.css), so two pages never show together. No cross-fade: View Transitions were tried and dropped, because the two pages showed through each other mid-fade and full-page snapshots are costly on a low-cost phone. The tab bar stays outside, so it never blinks. Emergency and the Map appear at once, with no fade. Off under reduced motion. A new page opens scrolled to its top; Back and Forward return to the exact scroll position (kept by the app, not the browser, so every browser behaves the same).
+- **Splash** (decided by John, 2026-11-01): opening Bulig shows the logo (as the same rounded tile as the home-screen icon), "Bulig" and "Help along the way." on the page background, painted by `index.html` before any script, so there is never a blank screen. The logo and words fade in with a slight scale (0.94 to 1, 360ms); it covers the app's download, stays at least 700ms from when it first showed, then fades out in 200ms. Nothing appears over it: the location prompt waits until it is gone. Once per launch (a reload doesn't repeat it) and **never in front of Emergency**: a link to `/emergency` opens straight to the numbers. If the app fails to start, it gets out of the way after 4s.
 - Respect `prefers-reduced-motion`. Hover states apply only to devices that support hover.
 - Use safe-area padding for notches and bottom navigation. Do not suppress accessibility focus outlines; style a visible 3px focus ring from the palette.
 - Do not disable browser zoom or hide scrollbars in a way that removes platform affordances. Keep scrolling available when a screen does not fit.
@@ -598,7 +603,7 @@ Screens opened from tabs (not bottom tabs of their own):
 
 **Responsive layout:** phones use a top bar and four-tab bottom navigation. Tablets (48rem and up) may use an 88px navigation rail. Desktops (72rem and up) use a 240px labelled sidebar with content capped at a readable width. Wider screens may use two-column results, but mobile card order and emergency priority stay the same.
 
-**Motion and chrome:** use the same restrained press feedback specified in section 10. Do not add a fade-and-lift animation to every page transition. Do not hide usable scrollbars as a visual trick; scrolling must remain discoverable and functional.
+**Motion and chrome:** use the same restrained press feedback specified in section 10. The new page fades in (opacity only, see "Page transitions" in section 10); no cross-fade, fade-and-lift or slide. Do not hide usable scrollbars as a visual trick; scrolling must remain discoverable and functional.
 
 **Implementation order:**
 

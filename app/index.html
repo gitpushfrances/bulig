@@ -24,10 +24,120 @@
           document.querySelectorAll('meta[name=theme-color]').forEach(function (m) { m.setAttribute('content', c) })
         }
       } catch (e) {}
+
+      // The splash shows once per launch, and never in front of Emergency: a link to /emergency
+      // opens straight to it. Decided here, before the splash can paint.
+      try {
+        if (location.pathname.indexOf('/emergency') === 0 || sessionStorage.getItem('bulig.splash')) {
+          document.documentElement.classList.add('no-splash')
+        } else {
+          sessionStorage.setItem('bulig.splash', '1')
+          // src/splash.ts keeps the splash up for a moment from here.
+          performance.mark('bulig-splash')
+        }
+      } catch (e) {}
     </script>
     <title>Bulig</title>
+    <!-- The splash: painted with the HTML, before any script, so opening Bulig never shows a blank
+         screen. src/splash.ts fades it out once the app has drawn. See docs/UI-UX.md, "Splash". -->
+    <style>
+      #splash {
+        --splash-bg: #fafafa;
+        --splash-text: #18181b;
+        --splash-muted: #52525b;
+        --splash-edge: #e4e4e7;
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: var(--splash-bg);
+        color: var(--splash-text);
+        font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+        /* Fail-safe: if the app never starts, the splash still gets out of the way. */
+        animation: splash-gone 0s 4s forwards;
+      }
+      .no-splash #splash {
+        display: none;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) #splash {
+          --splash-bg: #09090b;
+          --splash-text: #fafafa;
+          --splash-muted: #a1a1aa;
+          --splash-edge: transparent;
+        }
+      }
+      :root[data-theme='dark'] #splash {
+        --splash-bg: #09090b;
+        --splash-text: #fafafa;
+        --splash-muted: #a1a1aa;
+        --splash-edge: transparent;
+      }
+      /* The icon file is the pin on white: shown as the same rounded tile as the home-screen icon. */
+      #splash img {
+        border-radius: 24px;
+        box-shadow: 0 0 0 1px var(--splash-edge);
+      }
+      #splash img,
+      #splash p {
+        margin: 0;
+        animation: splash-in 360ms cubic-bezier(0.23, 1, 0.32, 1) both;
+      }
+      #splash .splash-name {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        animation-delay: 60ms;
+      }
+      #splash .splash-tagline {
+        color: var(--splash-muted);
+        font-size: 1rem;
+        animation-delay: 120ms;
+      }
+      #splash.splash-out {
+        pointer-events: none;
+        animation: splash-out 200ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+      }
+      @keyframes splash-in {
+        from {
+          opacity: 0;
+          transform: scale(0.94);
+        }
+      }
+      @keyframes splash-out {
+        to {
+          opacity: 0;
+        }
+      }
+      @keyframes splash-gone {
+        to {
+          visibility: hidden;
+          pointer-events: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #splash img,
+        #splash p {
+          animation-name: splash-fade;
+        }
+        @keyframes splash-fade {
+          from {
+            opacity: 0;
+          }
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <img src="/pwa-512x512.png" width="96" height="96" alt="" />
+      <p class="splash-name">Bulig</p>
+      <p class="splash-tagline">Help along the way.</p>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,4 +1,4 @@
-import type { CountryCode } from '../types.ts'
+import type { CountryCode, EmergencyContact } from '../types.ts'
 
 // Per-country config that has to work before any data loads. Everything else
 // country-specific lives in public/data/<cc>/.
@@ -10,6 +10,22 @@ export const LIVE_COUNTRIES: CountryCode[] = ['PH']
 // page is never empty. This is the one place a national number is allowed in code.
 export const FALLBACK_EMERGENCY: Record<CountryCode, string> = {
   PH: '911',
+}
+
+// The fallback number as a contact card, for pages that show the hotline before data is in.
+export function fallbackHotline(country: CountryCode): EmergencyContact | null {
+  const phone = FALLBACK_EMERGENCY[country]
+  if (!phone) return null
+  return {
+    id: 'fallback',
+    country,
+    area: null,
+    name: 'National emergency hotline',
+    kind: 'national',
+    phones: [phone],
+    verifiedAt: '',
+    source: 'built-in fallback',
+  }
 }
 
 // Saved choice first, then the region in the browser language ("en-PH", "fil-PH"),

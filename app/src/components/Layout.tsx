@@ -1,5 +1,6 @@
 import { CloudOff, Heart, House, LayoutGrid, Map as MapIcon, TriangleAlert, type LucideIcon } from 'lucide-react'
-import { Link, Outlet, useLocation } from 'react-router'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import Avatar from './Avatar.tsx'
 import { ICON_STROKE } from './icons.ts'
@@ -22,6 +23,8 @@ const tabs: Tab[] = [
   { to: '/profile', label: 'Profile', also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
 ]
 
+const INSTANT_PATHS = ['/emergency', '/map']
+
 function isActive({ to, also }: Tab, pathname: string): boolean {
   if (to === '/') return pathname === '/'
   const under = (p: string) => pathname === p || pathname.startsWith(`${p}/`)
@@ -39,12 +42,36 @@ function EmergencyButton({ pathname }: { pathname: string }) {
   )
 }
 
+// Where each history entry was scrolled to, by its location key.
+const scrollPositions = new Map<string, number>()
+
+// A new page opens at its top, like an app screen; Back and Forward return to exactly where the
+// person was. The browser's own restoration guesses wrong here, because pages remount on return.
+function useScrollMemory() {
+  const { key } = useLocation()
+  const type = useNavigationType()
+  const current = useRef(key)
+
+  useEffect(() => {
+    history.scrollRestoration = 'manual'
+    const save = () => scrollPositions.set(current.current, window.scrollY)
+    window.addEventListener('scroll', save, { passive: true })
+    return () => window.removeEventListener('scroll', save)
+  }, [])
+
+  useLayoutEffect(() => {
+    current.current = key
+    window.scrollTo(0, type === 'POP' ? (scrollPositions.get(key) ?? 0) : 0)
+  }, [key, type])
+}
+
 // No top bar: content starts at the top of the screen. Where you are lives on Home, between the
 // services and the emergency numbers. Phones: a bottom tab bar in thumb reach. Tablets: a rail on
 // the left. Desktops: a labelled sidebar. One nav element, laid out by CSS.
 export default function Layout() {
   const { online } = useAppData()
   const { pathname } = useLocation()
+  useScrollMemory()
 
   return (
     <div className={styles.shell}>
@@ -87,8 +114,10 @@ export default function Layout() {
           </p>
         )}
         <main id="main" className={pathname === '/map' ? `${styles.main} ${styles.flush}` : styles.main}>
-          {/* Keyed by path: each tab change mounts fresh and fades in (index.css respects reduced motion). */}
-          <div key={pathname} className={styles.view}>
+          {/* Keyed by path: each page mounts fresh and fades in (index.css, "Page enter"). The tab bar
+              stays outside, so it never blinks. Emergency and the Map appear at once: one is reached
+              in a hurry, the other is a heavy canvas carrying its own Emergency button. */}
+          <div key={pathname} className={INSTANT_PATHS.includes(pathname) ? undefined : 'page-enter'}>
             <Outlet />
           </div>
         </main>

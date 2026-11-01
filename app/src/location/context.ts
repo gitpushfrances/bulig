@@ -10,6 +10,8 @@ export interface PhoneLocation {
   status: LocationStatus
   position: Position | null
   updatedAt: number | null // ms since epoch of the last fix
+  // The first fix is on its way (the permission prompt may be open), for a few seconds at most.
+  settling: boolean
   // Barangay, municipality, province and postcode for where the phone is, when it could be looked up.
   address: PlacedAddress | null
   refresh: () => void
@@ -20,6 +22,7 @@ export const LocationContext = createContext<PhoneLocation>({
   status: 'unavailable',
   position: null,
   updatedAt: null,
+  settling: false,
   address: null,
   refresh: () => {},
 })

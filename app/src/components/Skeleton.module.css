@@ -1,0 +1,70 @@
+/* Placeholders in the shape of what is coming, so nothing jumps when it arrives.
+   Hidden for the first 100ms (a fast load never flashes grey), then a slow opacity pulse.
+   index.css turns animations off under prefers-reduced-motion: the blocks then show still. */
+
+.loading {
+  position: relative;
+  animation: appear 0s 100ms both;
+}
+
+.bone {
+  display: block;
+  border-radius: 6px;
+  background: var(--skeleton-bg);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* Text lines, sized to the type they stand in for. */
+.line {
+  height: 0.875rem;
+}
+
+.title {
+  height: 1.25rem;
+}
+
+.round {
+  flex: none;
+  border-radius: 999px;
+}
+
+/* A card or tile: the real component's box, without its border colour. */
+.block {
+  border-radius: var(--radius-card);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grow {
+  flex: 1;
+}
+
+/* Ropi walks over the placeholders, only when the wait is long enough to notice (RopiLoader
+   sets the delay). Absolute, so it never pushes the layout. */
+.ropi {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}

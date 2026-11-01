@@ -6,7 +6,7 @@
   display: block;
   flex: none;
   overflow: hidden;
-  animation: appear 0s 400ms both;
+  animation: appear 0s 1200ms both;
 }
 
 .strip {
@@ -18,7 +18,7 @@
   animation: walk 960ms steps(8) infinite;
 }
 
-/* Hidden for the first 400ms of loading, then shown at once. */
+/* The skeleton covers a short wait. Ropi joins only when it runs past 1.2s, then shows at once. */
 @keyframes appear {
   from {
     opacity: 0;

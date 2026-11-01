@@ -1,12 +1,13 @@
 import { OfferCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
+import { OfferGridSkeleton } from '../components/Skeleton.tsx'
 import { useNearby } from '../data/useNearby.ts'
 import { CATEGORIES } from '../types.ts'
 import styles from './Page.module.css'
 
 // What we offer: one card per kind of service. A card opens its list, so the card is the filter.
 export default function ServicesPage() {
-  const { ready, where, ranked, labels, position } = useNearby()
+  const { ready, loading, where, ranked, labels, position } = useNearby()
 
   return (
     <section className={styles.page} aria-labelledby="services-title">
@@ -17,11 +18,13 @@ export default function ServicesPage() {
         <p className={styles.lead}>
           {ready
             ? `${ranked.length} ${ranked.length === 1 ? 'place' : 'places'} ${where}${position ? ', nearest first' : ''}. Pick what you need.`
-            : 'Places along the road, grouped by what they do.'}
+            : // The same shape as the sentence that replaces it, so it wraps the same and nothing moves.
+              'Finding places near you, nearest first. Pick what you need.'}
         </p>
       </div>
 
       <DataNotice hasSamples={ranked.some((r) => r.item.sample)} ropi />
+      {loading && <OfferGridSkeleton />}
 
       {ready && (
         <nav className={styles.offerGrid} aria-label="Services">

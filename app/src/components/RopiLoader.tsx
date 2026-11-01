@@ -11,7 +11,7 @@ interface Props {
 }
 
 // Ropi walking, for a wait the person can see. Only where UI-UX.md allows Ropi: never on Home
-// or Emergency. Appears after a short delay so a fast load doesn't flash a dog.
+// or Emergency. Walks over a skeleton (Skeleton.tsx) and only once the wait runs long.
 export default function RopiLoader({ height = 96 }: Props) {
   return (
     <span

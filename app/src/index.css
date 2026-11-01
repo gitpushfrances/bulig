@@ -69,6 +69,7 @@
   --chip-active-bg: var(--color-primary);
   --chip-active-text: var(--color-on-primary);
   --tab-active-bg: var(--color-selected);
+  --skeleton-bg: var(--color-status-bg);
   --radius-card: 14px;
   --radius-control: 10px;
   --gutter: 16px;
@@ -226,6 +227,21 @@ button,
   *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* ---------- Page enter ----------
+   The new page fades in as it mounts (Layout keys it by path; AuthLayout mounts per screen). The old
+   page is gone at once, so two pages never show together. Opacity only, on one layer: cheap on a
+   low-cost phone, and pages are opened tens of times a day. Off under reduced motion (above). */
+
+.page-enter {
+  animation: page-in 160ms var(--ease-out);
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
   }
 }
 

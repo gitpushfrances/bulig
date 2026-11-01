@@ -18,8 +18,13 @@ function buildId(): string {
 
 // https://vite.dev/config/
 export default defineConfig({
-  // MapLibre is one ~1 MB file (273 kB gzipped) that loads only on the Map tab; the app itself is small.
-  build: { chunkSizeWarningLimit: 1100 },
+  build: {
+    // Phones from about 2020 on, including old iPhones on iOS 14–15 and the in-app browsers
+    // (Facebook, Messenger) that shared links open in: newer syntax is compiled down for them.
+    target: ['es2020', 'chrome87', 'edge88', 'firefox78', 'safari14'],
+    // MapLibre is one ~1 MB file (273 kB gzipped) that loads only on the Map tab; the app itself is small.
+    chunkSizeWarningLimit: 1100,
+  },
   define: {
     __APP_VERSION__: JSON.stringify(version),
     __BUILD_ID__: JSON.stringify(buildId()),

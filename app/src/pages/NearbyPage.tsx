@@ -1,12 +1,14 @@
-import { Check, ChevronLeft, ChevronRight, CircleCheck, Map as MapIcon, Phone, Route, Siren } from 'lucide-react'
+import { Check, ChevronRight, CircleCheck, Map as MapIcon, Phone, Route, Siren } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
+import BackButton from '../components/BackButton.tsx'
 import { SectionHead } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import { CATEGORY_ICONS, ICON_STROKE } from '../components/icons.ts'
 import { FeatureTags, StatusLine } from '../components/PlaceInfo.tsx'
 import RopiSays from '../components/RopiSays.tsx'
 import SaveButton from '../components/SaveButton.tsx'
+import { NearbySkeleton } from '../components/Skeleton.tsx'
 import { formatDate, telHref } from '../data/format.ts'
 import { categoryFromSlug, categoryLabel } from '../data/labels.ts'
 import { placeHref, routeHref } from '../data/links.ts'
@@ -109,11 +111,9 @@ function MoreRow({ place, labels, now }: { place: Ranked<Service>; labels: Label
 // /nearby/<need>, and /services/<category> for links shared before needs existed.
 export default function NearbyPage() {
   const params = useParams()
-  const navigate = useNavigate()
-  const canGoBack = useLocation().key !== 'default'
   const fromCategory = categoryFromSlug(params.category)
   const need = params.need !== undefined ? needById(params.need) : fromCategory ? needForCategory(fromCategory) : null
-  const { ready, where, ranked, labels, position } = useNearby()
+  const { ready, loading, where, ranked, labels, position } = useNearby()
   const [chips, setChips] = useState<Chip[]>([])
   // One clock for the page, so every card agrees on "now".
   const [now] = useState(() => new Date())
@@ -127,10 +127,7 @@ export default function NearbyPage() {
 
   return (
     <section className={`${styles.page} ${styles.readable}`} aria-labelledby="nearby-title">
-      <button type="button" className={styles.back} onClick={() => (canGoBack ? navigate(-1) : navigate('/'))}>
-        <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
-        Back
-      </button>
+      <BackButton fallback="/" />
 
       <div className={styles.nearbyHead}>
         <div className={styles.intro}>
@@ -173,6 +170,7 @@ export default function NearbyPage() {
       )}
 
       <DataNotice hasSamples={places.some((r) => r.item.sample)} ropi />
+      {loading && <NearbySkeleton />}
 
       {ready && all.length === 0 && (
         <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>
