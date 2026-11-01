@@ -114,11 +114,21 @@ export function RowsSkeleton({ count = 3 }: { count?: number }) {
   )
 }
 
+interface CardListProps {
+  count?: number
+  // A card's real height, measured at 360px: an emergency contact is 12rem, a place 7.5rem.
+  height?: string
+  // A section heading above the cards, as the real list has.
+  heading?: boolean
+  ropi?: boolean
+}
+
 // Full cards in a list: Emergency's local numbers, Saved.
-export function CardListSkeleton({ count = 3, ropi = false }: { count?: number; ropi?: boolean }) {
+export function CardListSkeleton({ count = 3, height = '7.5rem', heading = false, ropi = false }: CardListProps) {
   return (
     <Loading ropi={ropi}>
-      <CardBones count={count} height="7.5rem" />
+      {heading && <Bone shape="title" width="9rem" height="2rem" />}
+      <CardBones count={count} height={height} />
     </Loading>
   )
 }

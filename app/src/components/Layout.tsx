@@ -1,5 +1,5 @@
 import { CloudOff, Heart, House, LayoutGrid, Map as MapIcon, TriangleAlert, type LucideIcon } from 'lucide-react'
-import { useLayoutEffect, ViewTransition } from 'react'
+import { useLayoutEffect } from 'react'
 import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import Avatar from './Avatar.tsx'
@@ -22,6 +22,8 @@ const tabs: Tab[] = [
   { to: '/saved', label: 'Saved', icon: Heart },
   { to: '/profile', label: 'Profile', also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
 ]
+
+const INSTANT_PATHS = ['/emergency', '/map']
 
 function isActive({ to, also }: Tab, pathname: string): boolean {
   if (to === '/') return pathname === '/'
@@ -97,13 +99,12 @@ export default function Layout() {
           </p>
         )}
         <main id="main" className={pathname === '/map' ? `${styles.main} ${styles.flush}` : styles.main}>
-          {/* Pages cross-fade (index.css, "Page transitions"); the tab bar stays outside, so it never
-              blinks. Keyed by path, so a page opened from itself (one need to another) starts fresh. */}
-          <ViewTransition default="page">
-            <div>
-              <Outlet key={pathname} />
-            </div>
-          </ViewTransition>
+          {/* Keyed by path: each page mounts fresh and fades in (index.css, "Page enter"). The tab bar
+              stays outside, so it never blinks. Emergency and the Map appear at once: one is reached
+              in a hurry, the other is a heavy canvas carrying its own Emergency button. */}
+          <div key={pathname} className={INSTANT_PATHS.includes(pathname) ? undefined : 'page-enter'}>
+            <Outlet />
+          </div>
         </main>
       </div>
       <EmergencyButton pathname={pathname} />

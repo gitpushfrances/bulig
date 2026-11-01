@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
+import { useLocation } from 'react-router'
 import { readSaved, writeSaved } from '../data/storage.ts'
+import { whenSplashGone } from '../splash.ts'
 import { distanceKm, type Position } from '../rules/nearby.ts'
 import { lookUpAddress, needsLookup, type PlacedAddress } from './address.ts'
 import { LocationContext, type LocationStatus } from './context.ts'
@@ -13,6 +15,8 @@ const FRESH: PositionOptions = { enableHighAccuracy: true, maximumAge: 0, timeou
 
 const ADDRESS_KEY = 'bulig.address'
 const STALE_KM = 2
+const SETTLE_MS = 8_000
+const AUTH_PATHS = ['/login', '/signup', '/forgot-password']
 
 function readAddress(): PlacedAddress | null {
   try {
@@ -55,12 +59,37 @@ export default function LocationProvider({
   const [address, setAddress] = useState<PlacedAddress | null>(readAddress)
   const forceLookup = useRef(false)
   const lastLookup = useRef<PlacedAddress | null>(address)
+  const [splashGone, setSplashGone] = useState(false)
+  const [settleOver, setSettleOver] = useState(false)
 
   useEffect(() => {
-    if (!geo) return
+    let live = true
+    whenSplashGone().then(() => live && setSplashGone(true))
+    return () => {
+      live = false
+    }
+  }, [])
+
+  // Ask only once the person is in the app: never over the splash, and never on the sign-in screens,
+  // where a permission prompt would land on top of the password field.
+  const onAuthScreen = AUTH_PATHS.includes(useLocation().pathname)
+  const watching = !!geo && splashGone && !onAuthScreen
+
+  useEffect(() => {
+    if (!geo || !watching) return
     const id = geo.watchPosition(...handlers(setFix), WATCH)
     return () => geo.clearWatch(id)
-  }, [geo])
+  }, [geo, watching])
+
+  // The first fix is on its way (the permission prompt may be open). Pages hold their placeholders
+  // rather than show every area and then jump to the nearest one, for up to SETTLE_MS.
+  const firstFixPending = watching && fix.status === 'locating' && !fix.position
+  useEffect(() => {
+    if (!firstFixPending) return
+    const timer = window.setTimeout(() => setSettleOver(true), SETTLE_MS)
+    return () => window.clearTimeout(timer)
+  }, [firstFixPending])
+  const settling = firstFixPending && !settleOver
 
   const position = fix.position
   useEffect(() => {
@@ -94,6 +123,8 @@ export default function LocationProvider({
     address && (position ? distanceKm(position, address) < STALE_KM : fix.status === 'locating') ? address : null
 
   return (
-    <LocationContext.Provider value={{ ...fix, address: current, refresh }}>{children}</LocationContext.Provider>
+    <LocationContext.Provider value={{ ...fix, settling, address: current, refresh }}>
+      {children}
+    </LocationContext.Provider>
   )
 }

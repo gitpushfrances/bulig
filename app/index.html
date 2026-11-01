@@ -32,6 +32,8 @@
           document.documentElement.classList.add('no-splash')
         } else {
           sessionStorage.setItem('bulig.splash', '1')
+          // src/splash.ts keeps the splash up for a moment from here.
+          performance.mark('bulig-splash')
         }
       } catch (e) {}
     </script>
@@ -43,6 +45,7 @@
         --splash-bg: #fafafa;
         --splash-text: #18181b;
         --splash-muted: #52525b;
+        --splash-edge: #e4e4e7;
         position: fixed;
         inset: 0;
         z-index: 100;
@@ -65,12 +68,19 @@
           --splash-bg: #09090b;
           --splash-text: #fafafa;
           --splash-muted: #a1a1aa;
+          --splash-edge: transparent;
         }
       }
       :root[data-theme='dark'] #splash {
         --splash-bg: #09090b;
         --splash-text: #fafafa;
         --splash-muted: #a1a1aa;
+        --splash-edge: transparent;
+      }
+      /* The icon file is the pin on white: shown as the same rounded tile as the home-screen icon. */
+      #splash img {
+        border-radius: 24px;
+        box-shadow: 0 0 0 1px var(--splash-edge);
       }
       #splash img,
       #splash p {
@@ -124,7 +134,7 @@
   </head>
   <body>
     <div id="splash" aria-hidden="true">
-      <img src="/pwa-192x192.png" width="96" height="96" alt="" />
+      <img src="/pwa-512x512.png" width="96" height="96" alt="" />
       <p class="splash-name">Bulig</p>
       <p class="splash-tagline">Help along the way.</p>
     </div>

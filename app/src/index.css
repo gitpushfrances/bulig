@@ -230,54 +230,18 @@ button,
   }
 }
 
-/* ---------- Page transitions ----------
-   React's <ViewTransition default="page"> (Layout, AuthLayout) cross-fades the page on every
-   navigation. Opacity only: pages are opened tens of times a day, so it bridges the swap without
-   any movement. The old page leaves faster than the new one arrives. The chrome around it (tab
-   bar, Emergency button) swaps at once. Browsers without View Transitions simply swap pages. */
+/* ---------- Page enter ----------
+   The new page fades in as it mounts (Layout keys it by path; AuthLayout mounts per screen). The old
+   page is gone at once, so two pages never show together. Opacity only, on one layer: cheap on a
+   low-cost phone, and pages are opened tens of times a day. Off under reduced motion (above). */
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-}
-
-::view-transition-group(.page) {
-  animation-duration: 200ms;
-  animation-timing-function: var(--ease-out);
-}
-
-::view-transition-old(.page) {
-  animation: page-out 120ms var(--ease-out) both;
-}
-
-::view-transition-new(.page) {
-  animation: page-in 200ms var(--ease-out) both;
-}
-
-@keyframes page-out {
-  to {
-    opacity: 0;
-  }
+.page-enter {
+  animation: page-in 160ms var(--ease-out);
 }
 
 @keyframes page-in {
   from {
     opacity: 0;
-  }
-}
-
-/* Reduced motion keeps the fade (no movement in it), just shorter. */
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(.page) {
-    animation-duration: 0s;
-  }
-
-  ::view-transition-old(.page) {
-    animation-duration: 80ms;
-  }
-
-  ::view-transition-new(.page) {
-    animation-duration: 120ms;
   }
 }
 

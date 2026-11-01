@@ -61,7 +61,7 @@ export default function EmergencyPage() {
 
       <DataNotice hasSamples={local.some((c) => c.sample)} />
 
-      {data.status === 'loading' && <CardListSkeleton count={2} />}
+      {data.status === 'loading' && <CardListSkeleton count={2} height="12rem" heading />}
 
       {ready && (
         <div className={styles.section}>

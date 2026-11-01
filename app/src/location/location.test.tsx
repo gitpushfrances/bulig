@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.tsx'
@@ -48,7 +48,8 @@ describe('Location from GPS', () => {
     // Home's location line, between the services and the emergency numbers.
     expect(await screen.findByText('Cebu City · Cebu')).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: 'Area' })).not.toBeInTheDocument()
-    expect(localStorage.getItem('bulig.area')).toBe('ph-cebu-cebu-city')
+    // Saved in an effect after the render, so wait for it rather than race it.
+    await waitFor(() => expect(localStorage.getItem('bulig.area')).toBe('ph-cebu-cebu-city'))
   })
 
   it('lists only nearby places, with their distance', async () => {
@@ -103,5 +104,30 @@ describe('Location from GPS', () => {
     renderAt('/')
 
     expect(await screen.findByRole('combobox', { name: 'Area' })).toBeInTheDocument()
+  })
+})
+
+describe('Asking for location', () => {
+  it('never asks on the sign-in screen, only once the person is in the app', async () => {
+    localStorage.removeItem('bulig.session')
+    const geo = fakeGeo(CEBU)
+    renderAt('/login')
+
+    await screen.findByRole('heading', { name: 'Welcome back' })
+    await act(async () => {})
+    expect(geo.watchPosition).not.toHaveBeenCalled()
+  })
+
+  it('holds placeholders while the first fix comes in, instead of listing every area and jumping', async () => {
+    const geo = fakeGeo(CEBU)
+    geo.watchPosition.mockImplementation(() => 1) // the prompt is still open: no answer yet
+    renderAt('/')
+
+    await act(async () => {})
+    expect(geo.watchPosition).toHaveBeenCalled()
+    expect(screen.queryByRole('link', { name: /^Flat tire/ })).not.toBeInTheDocument()
+    expect(screen.getAllByText('Loading…').length).toBeGreaterThan(0)
+    // The national number never waits for location.
+    expect(screen.getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
   })
 })
