@@ -3,6 +3,7 @@ import { useAuth } from '../auth/context.ts'
 import { ContactCard, SectionHead, ServiceCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import RopiSays from '../components/RopiSays.tsx'
+import { CardListSkeleton } from '../components/Skeleton.tsx'
 import { useAppData } from '../data/context.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { byDistance } from '../rules/nearby.ts'
@@ -38,6 +39,7 @@ export default function SavedPage() {
       ) : (
         <>
           <DataNotice hasSamples={[...places.map((p) => p.item), ...numbers].some((r) => r.sample)} ropi />
+          {data.status === 'loading' && <CardListSkeleton count={Math.min(Math.max(saved.length, 1), 4)} ropi />}
           {ready && places.length + numbers.length === 0 && (
             <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>
               <RopiSays variant="friendly">

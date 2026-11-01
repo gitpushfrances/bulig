@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
+import { hideSplash } from './splash.ts'
 import AuthProvider from './auth/AuthProvider.tsx'
 import LocationProvider from './location/LocationProvider.tsx'
 import Layout from './components/Layout.tsx'
@@ -24,6 +26,9 @@ import DataProvider from './data/DataProvider.tsx'
 // Emergency (/emergency) is open to everyone, always. Everything else needs an account: a guest
 // ("Continue without an account") sees a gate, anyone else goes to /login and comes back after.
 export default function App() {
+  // The app has drawn its first screen: the splash can go.
+  useEffect(hideSplash, [])
+
   return (
     <LocationProvider>
       <DataProvider>

@@ -22,7 +22,7 @@
       "parent": null,
       "lat": 16.4023,
       "lng": 120.596,
-      "languages": ["en", "fil", "ilo"]
+      "languages": ["en", "fil"]
     },
     {
       "id": "ph-camarines-sur-naga",
@@ -33,7 +33,7 @@
       "parent": null,
       "lat": 13.6218,
       "lng": 123.1948,
-      "languages": ["en", "fil", "bik"]
+      "languages": ["en", "fil"]
     },
     {
       "id": "ph-palawan-puerto-princesa",
@@ -55,7 +55,7 @@
       "parent": null,
       "lat": 10.7202,
       "lng": 122.5621,
-      "languages": ["en", "hil"]
+      "languages": ["en", "fil"]
     },
     {
       "id": "ph-cebu-cebu-city",
@@ -66,7 +66,7 @@
       "parent": null,
       "lat": 10.3157,
       "lng": 123.8854,
-      "languages": ["en", "ceb"]
+      "languages": ["en", "fil"]
     },
     {
       "id": "ph-leyte-tacloban",
@@ -77,7 +77,7 @@
       "parent": null,
       "lat": 11.2443,
       "lng": 125.0039,
-      "languages": ["en", "war"]
+      "languages": ["en", "fil"]
     },
     {
       "id": "ph-eastern-samar-guiuan",
@@ -88,7 +88,7 @@
       "parent": null,
       "lat": 11.0333,
       "lng": 125.7245,
-      "languages": ["en", "war"]
+      "languages": ["en", "fil"]
     },
     {
       "id": "ph-eastern-samar-mercedes",
@@ -99,7 +99,7 @@
       "parent": null,
       "lat": 11.1036,
       "lng": 125.7175,
-      "languages": ["en", "war"]
+      "languages": ["en", "fil"]
     },
     {
       "id": "ph-davao-del-sur-davao-city",
@@ -110,7 +110,7 @@
       "parent": null,
       "lat": 7.1907,
       "lng": 125.4553,
-      "languages": ["en", "ceb"]
+      "languages": ["en", "fil"]
     }
   ]
 }

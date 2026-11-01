@@ -15,6 +15,8 @@ export function useNearby() {
 
   return {
     ready,
+    // Still fetching: pages show a skeleton. (An error is neither ready nor loading.)
+    loading: data.status === 'loading',
     area,
     areaName,
     areaNames,

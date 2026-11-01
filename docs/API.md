@@ -106,7 +106,7 @@ Every listed area of a country. The app picks the nearest one from GPS (`nearest
       "parent": null,
       "lat": 10.3157,
       "lng": 123.8854,
-      "languages": ["en", "ceb"]
+      "languages": ["en", "fil"]
     }
   ]
 }
@@ -221,7 +221,7 @@ The country's own words for categories (`"Vulcanizing"`), per language. Not an e
 {
   "version": 1,
   "categories": {
-    "tire_repair": { "en": "Vulcanizing", "war": "Vulcanizing" },
+    "tire_repair": { "en": "Vulcanizing" },
     "fuel": { "en": "Gas station" },
     "food": { "en": "Resto and carinderia" },
     "lodging": { "en": "Hotel and inn" },

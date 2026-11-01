@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { ViewTransition, type ReactNode } from 'react'
 import Mascot from './Mascot.tsx'
 import styles from './AuthLayout.module.css'
 
@@ -27,7 +27,10 @@ export default function AuthLayout({
         </aside>
       )}
       <main className={`${styles.main} ${wide ? styles.mainWide : ''}`}>
-        <div className={styles.column}>{children}</div>
+        {/* Sign in, Create account and Forgot password cross-fade into each other (index.css). */}
+        <ViewTransition default="page">
+          <div className={styles.column}>{children}</div>
+        </ViewTransition>
       </main>
     </div>
   )

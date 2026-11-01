@@ -1,5 +1,6 @@
 import { CloudOff, Heart, House, LayoutGrid, Map as MapIcon, TriangleAlert, type LucideIcon } from 'lucide-react'
-import { Link, Outlet, useLocation } from 'react-router'
+import { useLayoutEffect, ViewTransition } from 'react'
+import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import Avatar from './Avatar.tsx'
 import { ICON_STROKE } from './icons.ts'
@@ -39,12 +40,21 @@ function EmergencyButton({ pathname }: { pathname: string }) {
   )
 }
 
+// A new page opens at its top, like an app screen. Back and Forward (POP) leave the scroll alone.
+function useScrollToTopOnNavigate(pathname: string) {
+  const type = useNavigationType()
+  useLayoutEffect(() => {
+    if (type !== 'POP') window.scrollTo(0, 0)
+  }, [pathname, type])
+}
+
 // No top bar: content starts at the top of the screen. Where you are lives on Home, between the
 // services and the emergency numbers. Phones: a bottom tab bar in thumb reach. Tablets: a rail on
 // the left. Desktops: a labelled sidebar. One nav element, laid out by CSS.
 export default function Layout() {
   const { online } = useAppData()
   const { pathname } = useLocation()
+  useScrollToTopOnNavigate(pathname)
 
   return (
     <div className={styles.shell}>
@@ -87,10 +97,13 @@ export default function Layout() {
           </p>
         )}
         <main id="main" className={pathname === '/map' ? `${styles.main} ${styles.flush}` : styles.main}>
-          {/* Keyed by path: each tab change mounts fresh and fades in (index.css respects reduced motion). */}
-          <div key={pathname} className={styles.view}>
-            <Outlet />
-          </div>
+          {/* Pages cross-fade (index.css, "Page transitions"); the tab bar stays outside, so it never
+              blinks. Keyed by path, so a page opened from itself (one need to another) starts fresh. */}
+          <ViewTransition default="page">
+            <div>
+              <Outlet key={pathname} />
+            </div>
+          </ViewTransition>
         </main>
       </div>
       <EmergencyButton pathname={pathname} />

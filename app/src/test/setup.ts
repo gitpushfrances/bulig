@@ -15,6 +15,9 @@ function fakeFetch(input: RequestInfo | URL): Promise<Response> {
   )
 }
 
+// jsdom has no layout, so it can't scroll. Layout scrolls a new page to its top.
+window.scrollTo = () => {}
+
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(fakeFetch))
   localStorage.clear()

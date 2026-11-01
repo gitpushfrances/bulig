@@ -69,6 +69,7 @@
   --chip-active-bg: var(--color-primary);
   --chip-active-text: var(--color-on-primary);
   --tab-active-bg: var(--color-selected);
+  --skeleton-bg: var(--color-status-bg);
   --radius-card: 14px;
   --radius-control: 10px;
   --gutter: 16px;
@@ -226,6 +227,57 @@ button,
   *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* ---------- Page transitions ----------
+   React's <ViewTransition default="page"> (Layout, AuthLayout) cross-fades the page on every
+   navigation. Opacity only: pages are opened tens of times a day, so it bridges the swap without
+   any movement. The old page leaves faster than the new one arrives. The chrome around it (tab
+   bar, Emergency button) swaps at once. Browsers without View Transitions simply swap pages. */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(.page) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(.page) {
+  animation: page-out 120ms var(--ease-out) both;
+}
+
+::view-transition-new(.page) {
+  animation: page-in 200ms var(--ease-out) both;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion keeps the fade (no movement in it), just shorter. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(.page) {
+    animation-duration: 0s;
+  }
+
+  ::view-transition-old(.page) {
+    animation-duration: 80ms;
+  }
+
+  ::view-transition-new(.page) {
+    animation-duration: 120ms;
   }
 }
 

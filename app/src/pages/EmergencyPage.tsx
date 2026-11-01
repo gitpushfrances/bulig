@@ -1,14 +1,16 @@
 import { ChevronLeft } from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
+import BackButton from '../components/BackButton.tsx'
 import { ContactCard, HotlineCard, SectionHead } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import LocationLine from '../components/LocationLine.tsx'
+import { CardListSkeleton } from '../components/Skeleton.tsx'
+import { useCanGoBack } from '../components/useCanGoBack.ts'
 import { useAppData } from '../data/context.ts'
-import { FALLBACK_EMERGENCY } from '../data/countries.ts'
+import { fallbackHotline } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
 import { visibleContacts } from '../rules/emergency.ts'
-import type { EmergencyContact } from '../types.ts'
 import styles from './Page.module.css'
 
 // Open to everyone, with or without an account. Reached from the red button on every screen;
@@ -16,10 +18,7 @@ import styles from './Page.module.css'
 export default function EmergencyPage() {
   const { country, data, area } = useAppData()
   const { account } = useAuth()
-  const navigate = useNavigate()
-  // 'default' means this is the first page of the visit (a shared link): there is nothing to go back to.
-  const canGoBack = useLocation().key !== 'default'
-  const fallback = FALLBACK_EMERGENCY[country]
+  const canGoBack = useCanGoBack()
   const ready = data.status === 'ready'
 
   const contacts = ready ? visibleContacts(data.emergency, area, new Date()) : []
@@ -29,29 +28,13 @@ export default function EmergencyPage() {
   const picked = area ? areaNames.get(area) : undefined
 
   // Until data loads (or if it never does), the national number is still one tap away.
-  const hotlines: EmergencyContact[] =
-    ready || !fallback
-      ? national
-      : [
-          {
-            id: 'fallback',
-            country,
-            area: null,
-            name: 'National emergency hotline',
-            kind: 'national',
-            phones: [fallback],
-            verifiedAt: '',
-            source: 'built-in fallback',
-          },
-        ]
+  const fallback = fallbackHotline(country)
+  const hotlines = ready || !fallback ? national : [fallback]
 
   return (
     <section className={styles.page} aria-labelledby="emergency-title">
       {canGoBack ? (
-        <button type="button" className={styles.back} onClick={() => navigate(-1)}>
-          <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
-          Back
-        </button>
+        <BackButton fallback="/" />
       ) : (
         account && (
           <Link className={styles.back} to="/">
@@ -77,6 +60,8 @@ export default function EmergencyPage() {
       <LocationLine />
 
       <DataNotice hasSamples={local.some((c) => c.sample)} />
+
+      {data.status === 'loading' && <CardListSkeleton count={2} />}
 
       {ready && (
         <div className={styles.section}>

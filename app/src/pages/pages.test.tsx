@@ -161,3 +161,40 @@ describe('Nearby filters and Place details', () => {
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
   })
 })
+
+describe('Loading', () => {
+  const never = () => vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+
+  it('holds the bento and nearest places with placeholders, never the national number', () => {
+    never()
+    renderAt('/')
+
+    expect(screen.getAllByRole('status').every((s) => s.getAttribute('aria-busy') === 'true')).toBe(true)
+    expect(screen.getAllByText('Loading…').length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
+  })
+
+  it('shows Emergency’s hotline at once, with placeholders only for local numbers', () => {
+    never()
+    renderAt('/emergency')
+
+    expect(screen.getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
+    expect(screen.getByRole('status')).toHaveTextContent('Loading…')
+  })
+
+  it('shows Place details as a placeholder, with Back', () => {
+    never()
+    renderAt('/place/anything')
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading…')
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument()
+  })
+
+  it('tells Place details when data fails, instead of loading forever', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('down'))))
+    renderAt('/place/anything')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load data")
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+})

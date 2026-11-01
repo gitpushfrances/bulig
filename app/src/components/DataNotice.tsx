@@ -1,34 +1,23 @@
 import { useAppData } from '../data/context.ts'
 import styles from '../pages/Page.module.css'
-import RopiLoader from './RopiLoader.tsx'
 import RopiSays from './RopiSays.tsx'
 
 interface Props {
   hasSamples: boolean
-  // Show Ropi while loading and when offline with nothing cached. Off on Home and Emergency:
-  // never near getting help.
+  // Ropi explains when offline with nothing cached. Off on Home and Emergency: never near
+  // getting help.
   ropi?: boolean
 }
 
-// Loading, error and sample-data notes, shared by every page that shows records.
-// Being offline is shown once, in the header (Layout).
+// Error and sample-data notes, shared by every page that shows records. Loading is each page's
+// own skeleton (Skeleton.tsx); being offline is shown once, at the top (Layout).
 export default function DataNotice({ hasSamples, ropi = false }: Props) {
   const { data, retry, online } = useAppData()
+  const failed = data.status === 'error'
 
   return (
     <>
-      {data.status === 'loading' && ropi && (
-        <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`} role="status">
-          <RopiLoader />
-          <p>Loading…</p>
-        </div>
-      )}
-      {data.status === 'loading' && !ropi && (
-        <p className={styles.notice} role="status">
-          Loading…
-        </p>
-      )}
-      {data.status === 'error' && ropi && !online && (
+      {failed && ropi && !online && (
         <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`} role="alert">
           <RopiSays variant="thinking">
             <strong>No signal, and nothing saved here yet.</strong> Connect once and Bulig keeps this for offline
@@ -39,7 +28,7 @@ export default function DataNotice({ hasSamples, ropi = false }: Props) {
           </button>
         </div>
       )}
-      {data.status === 'error' && !(ropi && !online) && (
+      {failed && !(ropi && !online) && (
         <div className={`${styles.notice} ${styles.warn}`} role="alert">
           <p>Couldn&apos;t load data. Check your connection and try again.</p>
           <button type="button" className={styles.secondary} onClick={retry}>

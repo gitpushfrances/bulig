@@ -4,12 +4,12 @@ import { useAuth } from '../auth/context.ts'
 import { HotlineCard, NumberRow, PlaceRow, SectionHead, ServiceBento } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import LocationLine from '../components/LocationLine.tsx'
+import { BentoSkeleton, RowsSkeleton } from '../components/Skeleton.tsx'
 import { useAppData } from '../data/context.ts'
-import { FALLBACK_EMERGENCY } from '../data/countries.ts'
+import { fallbackHotline } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { visibleContacts } from '../rules/emergency.ts'
-import type { EmergencyContact } from '../types.ts'
 import styles from './Page.module.css'
 
 // Home answers "what do I need?": the services first, then where you are (a plain line that
@@ -17,26 +17,13 @@ import styles from './Page.module.css'
 export default function HomePage() {
   const { country, data, area } = useAppData()
   const { account, saved } = useAuth()
-  const { ready, ranked, labels } = useNearby()
+  const { ready, loading, ranked, labels } = useNearby()
 
   const contacts = data.status === 'ready' ? visibleContacts(data.emergency, area, new Date()) : []
   const national = contacts.find((c) => c.kind === 'national' && c.area === null)
   const local = contacts.filter((c) => c !== national).slice(0, 3)
-  const fallback = FALLBACK_EMERGENCY[country]
-  const hotline: EmergencyContact | undefined =
-    national ??
-    (fallback && !ready
-      ? {
-          id: 'fallback',
-          country,
-          area: null,
-          name: 'National emergency hotline',
-          kind: 'national',
-          phones: [fallback],
-          verifiedAt: '',
-          source: 'built-in fallback',
-        }
-      : undefined)
+  // Until data loads (or if it never does), the national number is still one tap away.
+  const hotline = national ?? (ready ? null : fallbackHotline(country))
 
   const nearest = ranked.slice(0, 3)
   const savedPlaces =
@@ -49,6 +36,7 @@ export default function HomePage() {
       </h1>
 
       {ready && <ServiceBento ranked={ranked} labels={labels} />}
+      {loading && <BentoSkeleton />}
 
       <LocationLine />
 
@@ -75,48 +63,56 @@ export default function HomePage() {
         </div>
 
         <div className={styles.homeColumn}>
-          {ready && (
+          {(ready || loading) && (
             <div className={styles.section}>
               <SectionHead title="Nearest to you" to="/services" more="All services" />
-              <div className={styles.panel}>
-                {nearest.length ? (
-                  <ul className={styles.rows} aria-label="Nearest places">
-                    {nearest.map(({ item, km }) => (
-                      <PlaceRow key={item.id} service={item} labels={labels} km={km} />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className={styles.panelEmpty}>No places listed here yet.</p>
-                )}
-              </div>
+              {loading ? (
+                <RowsSkeleton />
+              ) : (
+                <div className={styles.panel}>
+                  {nearest.length ? (
+                    <ul className={styles.rows} aria-label="Nearest places">
+                      {nearest.map(({ item, km }) => (
+                        <PlaceRow key={item.id} service={item} labels={labels} km={km} />
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={styles.panelEmpty}>No places listed here yet.</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
           <div className={styles.section}>
             <SectionHead title="Saved" to={account ? '/saved' : undefined} />
-            <div className={styles.panel}>
-              {!account ? (
-                <div className={styles.panelEmpty}>
-                  <p>Sign in to keep the places you trust one tap away.</p>
-                  <Link className={styles.secondary} to="/login">
-                    Sign in
-                  </Link>
-                </div>
-              ) : savedPlaces.length ? (
-                <ul className={styles.rows} aria-label="Saved places">
-                  {savedPlaces.map((s) => (
-                    <PlaceRow
-                      key={s.id}
-                      service={s}
-                      labels={labels}
-                      km={ranked.find((r) => r.item.id === s.id)?.km ?? null}
-                    />
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.panelEmpty}>Tap the heart on any place to keep it here.</p>
-              )}
-            </div>
+            {account && loading ? (
+              <RowsSkeleton count={Math.min(Math.max(saved.length, 1), 3)} />
+            ) : (
+              <div className={styles.panel}>
+                {!account ? (
+                  <div className={styles.panelEmpty}>
+                    <p>Sign in to keep the places you trust one tap away.</p>
+                    <Link className={styles.secondary} to="/login">
+                      Sign in
+                    </Link>
+                  </div>
+                ) : savedPlaces.length ? (
+                  <ul className={styles.rows} aria-label="Saved places">
+                    {savedPlaces.map((s) => (
+                      <PlaceRow
+                        key={s.id}
+                        service={s}
+                        labels={labels}
+                        km={ranked.find((r) => r.item.id === s.id)?.km ?? null}
+                      />
+                    ))}
+                  </ul>
+                ) : (
+                  <p className={styles.panelEmpty}>Tap the heart on any place to keep it here.</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

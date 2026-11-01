@@ -106,7 +106,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Goal:** real people in the first pilot area use it, and you learn from them. The first area is not the only one: everything learned here becomes the checklist for opening the next area anywhere.
 
-**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), Waray About, OPEN-AN-AREA.md (SCRUM-32).
+**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), OPEN-AN-AREA.md (SCRUM-32).
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
@@ -120,7 +120,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - ✅ Map tab with MapLibre and OpenFreeMap, lazy-loaded, category pins, bottom sheet, list fallback, plus in-app routes (OSRM, free)
 - ✅ Saved and Profile (accounts, photo, theme, install, legal), and Place details (`/place/:id`).
 - ✅ Data: `Area.lat/lng`, `Service.features`, `Service.weeklyHours`, `Service.open24h`, `Service.subtype` (all optional, contract v1 stays)
-- *(new)* Write a Privacy and About page in plain English plus the pilot area's local language (Waray), set up so more languages can be added per area
+- *(new)* Write a Privacy and About page in plain English for the whole country. Filipino comes next as the national second language; regional languages wait until there is national reach (decided by John, 2026-11-01)
 - *(new)* Write `docs/OPEN-AN-AREA.md`: the checklist for opening a new area or country (verify emergency numbers, collect services, local category names, language, privacy notice), based on what this pilot taught
 
 **Steps**

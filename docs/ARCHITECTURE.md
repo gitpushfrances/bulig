@@ -99,7 +99,7 @@ export interface Area {
   region: string;            // province or region: "Eastern Samar"
   level?: string;            // the country's word for it: "city", "municipality", "barangay"
   parent?: AreaId | null;    // the area it sits inside (a barangay's city); null = top level
-  languages: string[];       // BCP 47, first is the default UI language: ["en", "war"]
+  languages: string[];       // BCP 47, first is the default UI language: ["en", "fil"]
 }
 
 export type Category = 'tire_repair' | 'mechanic' | 'fuel' | 'hospital' | 'food' | 'lodging' | 'store';
@@ -141,7 +141,7 @@ export interface Envelope<T> { version: 1; updatedAt: string; items: T[] }
 
 - Every record carries `country` and `area` from the first sample file. Bulig starts in one area, but nothing in the code assumes which one.
 - Data lives in one folder per country: `public/data/<cc>/areas.json`, `emergency-contacts.json`, `services.json` and `labels.json` (lower-case `cc`, e.g. `ph`). The phone only downloads the country the user picked, so the download stays small as countries are added.
-- `labels.json` maps each `Category` to local words per language, e.g. `tire_repair` → `{ "en": "Vulcanizing", "war": "Vulcanizing" }` in `ph/`, `{ "en": "Tire repair" }` in `us/`. Category keys never change; only labels do.
+- `labels.json` maps each `Category` to local words per language, e.g. `tire_repair` → `{ "en": "Vulcanizing" }` in `ph/`, `{ "en": "Tire repair" }` in `us/`. Category keys never change; only labels do.
 - The national emergency number is **data**, not code: a `kind: 'national'` contact with `area: null`. The code never contains "911".
 - UI text goes through one small `t(key)` lookup with English as the fallback (no i18n library until there are 3+ languages).
 
@@ -282,7 +282,7 @@ A moderator's own edits go live straight away but are written to the activity lo
 | Home | **Built.** `ServiceBento` is the "What's wrong?" grid (one tile per need, the first large, Others wide), then `LocationLine`, the national hotline from `visibleContacts()`, local numbers, nearest places and Saved. No mini map. |
 | Map | **Built.** `MapPage` imports `maplibre-gl` dynamically (its own ~270 kB gzipped chunk, kept out of the offline cache). OpenFreeMap `positron` style recoloured by `applyMapTheme()` (`app/src/map/mapTheme.ts`) for light and dark. Pins are React portals into MapLibre markers. `?cat=` filters, `?to=<id>` opens a route. Routes: `fetchRoute()` (`app/src/map/route.ts`) calls OSRM on `routing.openstreetmap.de` (car or foot, GeoJSON), refetched when the phone enters a new ~200 m cell, drawn as a line layer. Offline or no WebGL: a list. |
 | Saved and accounts | **Built.** `AuthProvider` (`app/src/auth/`): test logins in `testAccount.ts`, accounts made on the phone in `localAccounts.ts` (salted SHA-256 hash, `bulig.accounts`), session `bulig.session`, guest mode `bulig.guest`, saved IDs `bulig.saved.<email>`, profile details and photo `bulig.profile.<email>`. `RequireAccount` guards every route but Emergency, Help and the legal pages. See [WORKFLOW.md](WORKFLOW.md#sign-in). |
-| Profile, legal and install | **Built.** Profile is a settings screen (`components/Settings.tsx`): edit profile with a photo (`auth/photo.ts`, 256px WebP), change password, theme (`theme.ts`, applied before first paint from `index.html`), install (`install.ts`: `beforeinstallprompt` on Android, steps on iPhone), Help, Terms and Privacy (drafts), licences, delete account, and "v<version> · build <commit>" (injected by `vite.config.ts`). Local-language About is still to do. |
+| Profile, legal and install | **Built.** Profile is a settings screen (`components/Settings.tsx`): edit profile with a photo (`auth/photo.ts`, 256px WebP), change password, theme (`theme.ts`, applied before first paint from `index.html`), install (`install.ts`: `beforeinstallprompt` on Android, steps on iPhone), Help, Terms and Privacy (drafts), licences, delete account, and "v<version> · build <commit>" (injected by `vite.config.ts`). English only for now; Filipino is the next language, for the whole country. |
 | Share preview | Open Graph tags and a 1200x630 image in `index.html`. |
 
 **Connects to:** spine 1 (real data, same contract plus optional fields), spine 2 (the map, Home and Nearby results are views of the same data, not a second data path), and spine 3 (the report button starts the feedback pipeline).
