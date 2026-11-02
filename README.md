@@ -35,7 +35,7 @@ Bulig is a free, offline-first web app (PWA) for people on the road. Installed t
 | [docs/UI-UX.md](docs/UI-UX.md) | **What** each screen looks like and how people move through the app |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Every change, error, conflict and big decision, newest first |
 | [docs/API.md](docs/API.md) | **The API contract**: every request the app makes (or will, once the backend exists) with its payload, response and errors, and what moves from the phone to the server |
-| [docs/WORKFLOW.md](docs/WORKFLOW.md) | **Who does what**: areas, roles (user, moderator, admin), sign-in, how records and code changes flow |
+| [docs/WORKFLOW.md](docs/WORKFLOW.md) | **Who does what**: areas, roles (user, contributor, moderator, admin), sign-in, how records and code changes flow |
 
 ## Stack
 

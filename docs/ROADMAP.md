@@ -176,7 +176,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 - Database schema: countries, areas, categories, services, emergency_contacts, with `geography(Point,4326)` and audit timestamps
 - Import script that loads the current JSON into the database
 - Read API: `GET /api/v1/services?country=&area=&category=&near=lat,lng` and `GET /api/v1/emergency-contacts?country=&area=`
-- Filament panel for admins and moderators: places with photos, emergency contacts (admin only), areas, users, a "verified" workflow; moderators see only their areas
+- Filament panel for admins and moderators: places with photos, emergency contacts (moderators and admins), areas, users, a "verified" workflow; moderators cover the whole country until area assignment ships, then see only their areas; moderators and admins can make a user a contributor (contributors request new places and info, users only flag)
 - **Update details** (SCRUM-30): one form on Place details for new prices, hours, services, phone, location, closed, or a new place, with up to 3 photos (required for prices); `POST /uploads` and `POST /submissions` ([API.md §7](API.md#7-community-updates-update-details))
 - Review queue: current vs proposed values field by field, photos, approve ticked fields or reject with a reason; dated price history (`service_prices`); users see their submission status in Profile
 - Admin: users and moderators (add, edit, suspend, role, areas), "online now", activity log, system settings, Laravel Pulse dashboard

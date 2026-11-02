@@ -64,7 +64,7 @@ flowchart LR
   API --> DB[("PostgreSQL + PostGIS")]
   API --> R2[("Cloudflare R2\nphotos, backups")]
   API -- "HTTPS" --> Mail["Email HTTP API\n(Resend once the domain exists)"]
-  Panel["Filament panel:\nmoderators (their areas)\nadmins (everything)"] --> DB
+  Panel["Filament panel:\nmoderators (places, contacts)\nadmins (everything)"] --> DB
   Panel --> R2
   Up["UptimeRobot\nstatus page"] -- "GET /health" --> CF
 ```
@@ -174,11 +174,11 @@ export interface DataSource {
 
 ### 3. Community updates pipeline
 
-Every change that doesn't come from a moderator or admin goes through **one form, one endpoint and one review queue**. A driver who fuelled this morning and saw a new price, a shop with a new air pump, a closed hospital ward, a new carinderia: all of them are an **Update details** on a place, posted to `POST /api/v1/submissions` ([API.md §7](API.md#7-community-updates-update-details)). Business owners use the same form from Phase 5.
+Every change that doesn't come from a moderator or admin goes through **one form, one endpoint and one review queue**. A driver who fuelled this morning and saw a new price, a shop with a new air pump, a closed hospital ward, a new carinderia: all of them are an **Update details** on a place, posted to `POST /api/v1/submissions` ([API.md §7](API.md#7-community-updates-update-details)). Any user can flag a place as wrong; only a **contributor** (a user a moderator or admin promoted) can send new values, a new place or a removal. Business owners use the same form from Phase 5.
 
 ```mermaid
 flowchart TD
-  U["Signed-in user on Place details\\ntaps Update details"] --> F["Picks what changed: prices, hours,\\nservices offered, phone, location,\\nclosed for good, other.\\nOnly the changed fields are sent."]
+  U["Contributor on Place details\\ntaps Update details"] --> F["Picks what changed: prices, hours,\\nservices offered, phone, location,\\nclosed for good, other.\\nOnly the changed fields are sent."]
   F --> PH["Adds 1-3 photos (price board, sign).\\nRequired for prices; optional otherwise.\\nPhone shrinks to WebP, max 1280 px"]
   PH --> Q["submissions: status pending\\nphotos in R2 private/"]
   Q --> M{"Moderator for that area\\n(or admin)"}
@@ -192,13 +192,13 @@ flowchart TD
 | Phase | What comes in | Who reviews | What goes public |
 | --- | --- | --- | --- |
 | 3 | Nothing (sample data; John fixes the JSON by hand) | | |
-| 4 | Update details from users: prices, hours, services, phone, location, closed, new place, with photos | Moderator for the area, or an admin | Only the fields a reviewer approves |
+| 4 | Flags from users; Update details from contributors: prices, hours, services, phone, location, closed, new place, with photos | A moderator (for the area, once areas are assigned), or an admin | Only the fields a reviewer approves |
 | 5 | Same form, plus hazard reports and owner edits | Same queue | Same approval step |
 
 **Rules in every phase**
 
 - Nothing a member of the public submits is shown until a moderator or admin approves it. There is no auto-approve, even for frequent reporters (revisit only when the queue takes over 2 hours a week).
-- **Emergency contacts can't be edited through this pipeline.** A user can flag one ("number not working"); only an admin changes it, after calling it.
+- **Emergency contacts can't be edited through this pipeline.** A user can flag one ("number not working"); only a moderator or admin changes it, after calling it.
 - **Prices are never "current".** Each price is stored with the date it was seen and shown as "₱82.00 · seen 30 Oct by a Bulig user". The app greys a price out after 7 days and hides it after 30, because fuel prices in the Philippines change most weeks.
 - Each submission shows the reviewer the current value next to the proposed one, field by field, with the photos. Approving applies only the ticked fields.
 - Photos have their location and camera data stripped on the server before anyone sees them. A reviewer can blur or reject a photo that shows faces or plate numbers. Only approved photos ever move to `public/`.
@@ -206,7 +206,7 @@ flowchart TD
 
 ### 4. Identity
 
-Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In short: **user**, **moderator** (scoped to an area and the areas inside it) and **admin**, decided by one function, `can()` in `app/src/rules/permissions.ts`.
+Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In short: **user**, **contributor**, **moderator** (the whole country for now; later scoped to an area and the areas inside it) and **admin**, decided by one function, `can()` in `app/src/rules/permissions.ts`.
 
 - **Now (test UI):** everything except Emergency needs an account (John, 2026-10-30). Three test logins (`test@`, `moderator@`, `admin@bulig.com`) plus accounts made on the phone (`auth/localAccounts.ts`, salted SHA-256 hash). Guests ("Continue without an account") get Emergency only. Not security: it goes when Phase 4 sign-in lands.
 - **Phase 4:** real accounts on the API with Sanctum tokens: register, login, logout, forgot and reset password, `/me` (profile, photo, password, delete) and `/me/saved`. Every request and payload is in [API.md](API.md). Admins and moderators also sign in to Filament.
@@ -217,11 +217,12 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 
 | Role | Can do | Scope |
 | --- | --- | --- |
-| **User** | Save places; send Update details with photos; report an app problem; see the status of their own submissions | Everywhere |
-| **Moderator** | Everything a user can, plus: review and approve or reject submissions, add and edit places and their photos, mark records checked, see and work on app problems | Their areas and the areas inside them. Until there are more moderators, John is admin and covers the whole country |
-| **Admin** | Everything: users and moderators (add, edit, suspend, change role, assign areas), every place and photo, emergency contacts, areas, system settings, the live dashboard and the activity log | Everywhere |
+| **User** | Save places; flag a place or number as wrong, with photos; report an app problem; see the status of their own submissions | Everywhere |
+| **Contributor** | Everything a user can, plus send Update details (new place, new info, removal), each waiting for a moderator. Made a contributor by a moderator or admin | Everywhere |
+| **Moderator** | Everything a user can, plus: review and approve or reject submissions, add and edit places (pin, name, hours, services offered, photos) and emergency contacts, mark records checked, see and work on app problems | Everywhere for now (John, 2026-11-03: one admin, one moderator, no areas assigned). Once area assignment ships: their areas and the areas inside them |
+| **Admin** (superadmin) | Everything, including add and remove: users and moderators (add, edit, suspend, change role, assign areas), every place and photo, emergency contacts, areas, system settings, the live dashboard and the activity log | Everywhere |
 
-A moderator's own edits go live straight away but are written to the activity log with before and after values, so an admin can see and revert them. Emergency contacts are admin-only.
+A moderator's own edits go live straight away but are written to the activity log with before and after values, so an admin can see and revert them. That includes emergency contacts: a moderator may add or change one only after calling the number, and it still shows only while `verified_at` is within 180 days (national lines excepted).
 
 ---
 
@@ -306,7 +307,7 @@ A moderator's own edits go live straight away but are written to the activity lo
 | API contract | Build every endpoint to [API.md](API.md): public reads (areas, emergency contacts, services, labels), auth (register, login, logout, forgot and reset password), `/me` (profile, photo, password, delete) and `/me/saved`. Generate `contracts/openapi.yaml` from it at the start of the phase and test the responses against it. |
 | Read API | `GET /api/v1/emergency-contacts` and `GET /api/v1/services`, with a required `?country=` and an optional `?area=`. They return the contract v1 envelope through API Resource classes, with `Cache-Control: public, max-age=3600`. Emergency only returns contacts with `verified_at` in the last 180 days, except `national` lines, matching `visibleContacts()`. |
 | Contract tests | Pest tests validate both responses against `contracts/*.schema.json`. The 180-day rule is tested on the server too. |
-| Panel | Filament 5 at `/panel` with Filament Shield. Admins and moderators sign in with the same account they use in the app. Resources: places (with photos), emergency contacts (admin only), areas, users, submissions, app issues, settings. A "Needs re-check" filter shows records last verified more than 150 days ago; "Mark verified" sets `verified_at` and `source`. Moderators only see records and submissions in their areas (a global scope on `area`). |
+| Panel | Filament 5 at `/panel` with Filament Shield. Admins and moderators sign in with the same account they use in the app. Resources: places (with photos), emergency contacts (moderators and admins), areas, users, submissions, app issues, settings. A "Needs re-check" filter shows records last verified more than 150 days ago; "Mark verified" sets `verified_at` and `source`. For now moderators see every record and submission; once area assignment ships, they only see those in their areas (a global scope on `area`). |
 | Review queue | The submissions resource lists pending items oldest first, per area. Opening one shows current vs proposed values field by field, the photos, the submitter's history (approved / rejected count) and the place on a small map. Actions: approve ticked fields, reject with a reason, "Called, still pending". Approving runs one database transaction that updates the place, writes a `service_prices` row for each price, and logs the change. |
 | Prices | `service_prices(id, service_id, item, amount, currency, unit, seen_at, submission_id, approved_by)`. History is kept, never overwritten; the API returns the newest approved price per item. Items come from `labels.json` per country (`ron91`, `ron95`, `diesel`, `lpg_11kg`, and later service items like `tire_patch`). |
 | Photos | Phone shrinks each photo to WebP, max 1280 px and about 300 KB, then posts it to `POST /uploads`. Laravel re-encodes it with Intervention Image (strips location and camera data) and stores it in R2 `private/`. Reviewers see it through a 10-minute signed URL. Approved place photos are copied to `public/` and served from R2's public URL. Pending and rejected photos are deleted after 30 days by a scheduled job. |
