@@ -60,7 +60,7 @@ bulig/
 └── docs/        Roadmap, architecture, UI/UX, changelog
 ```
 
-The Laravel API and Filament admin live in a separate repo, [`gitpushfrances/bulig-backend`](https://github.com/gitpushfrances/bulig-backend) (decided by John, 2026-11-02). This repo keeps the app and every doc, including [docs/API.md](docs/API.md), the one contract both repos follow. `contracts/` doesn't exist yet. Inside `app/src/`: `pages/` (screens), `components/`, `rules/` (pure, tested logic: distance, needs, emergency, permissions), `data/`, `location/`, `map/` (theme and routes), `auth/`.
+The Laravel API and Filament admin live in a separate repo, [`gitpushfrances/bulig-backend`](https://github.com/gitpushfrances/bulig-backend) (decided by John, 2026-11-02). This repo keeps the app and the product docs, including [docs/API.md](docs/API.md), the one contract both repos follow. The backend documents its own architecture, flows and phases in its repo. `contracts/` doesn't exist yet. Inside `app/src/`: `pages/` (screens), `components/`, `rules/` (pure, tested logic: distance, needs, emergency, permissions), `data/`, `location/`, `map/` (theme and routes), `auth/`.
 
 ## Getting started
 
