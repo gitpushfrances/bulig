@@ -141,7 +141,7 @@ export interface Envelope<T> { version: 1; updatedAt: string; items: T[] }
 
 - Every record carries `country` and `area` from the first sample file. Bulig starts in one area, but nothing in the code assumes which one.
 - Data lives in one folder per country: `public/data/<cc>/areas.json`, `emergency-contacts.json`, `services.json` and `labels.json` (lower-case `cc`, e.g. `ph`). The phone only downloads the country the user picked, so the download stays small as countries are added.
-- `labels.json` maps each `Category` to local words per language, e.g. `tire_repair` → `{ "en": "Vulcanizing" }` in `ph/`, `{ "en": "Tire repair" }` in `us/`. Category keys never change; only labels do.
+- `labels.json` maps each `Category` to local words per language, e.g. `tire_repair` → `{ "en": "Vulcanizing" }` in `ph/`, `{ "en": "Tire repair" }` in `us/`. Category keys never change; only labels do. It also lists the country's `currency` and `priceItems` (`ron91`, `diesel`, …), each tied to one category with a unit, so prices are data, not code ([API.md §3.4](API.md#34-get-labelscountryph)).
 - The national emergency number is **data**, not code: a `kind: 'national'` contact with `area: null`. The code never contains "911".
 - UI text goes through one small `t(key)` lookup with English as the fallback (no i18n library until there are 3+ languages).
 
