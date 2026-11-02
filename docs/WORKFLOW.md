@@ -21,13 +21,16 @@ flowchart LR
 
 ## Roles
 
-Three roles. What each may do is decided in one function, `can()` in [`app/src/rules/permissions.ts`](../app/src/rules/permissions.ts), and tested in `permissions.test.ts`.
+Four roles. What each may do is decided in one function, `can()` in [`app/src/rules/permissions.ts`](../app/src/rules/permissions.ts), and tested in `permissions.test.ts`.
 
 | Role | Who | May do | Scope |
 | --- | --- | --- | --- |
-| **User** | Anyone who signs in | Save places and numbers; send Update details (prices, hours, services, closed, new place) with photos; report an app problem; see the status of what they sent | Everywhere |
-| **Moderator** | A trusted local person, one or more per area (a barangay, city or municipality). Until there are some, John (admin) does this for the whole country | Everything a user can, plus approve or reject updates field by field, add and edit places and photos, mark records checked, work on app problems | Only their areas, and the areas inside them |
-| **Admin** | The Bulig team | Everything: users and moderators (add, edit, suspend, role, areas), every record and photo, emergency contacts, areas, system settings, live dashboard, activity log | Everywhere |
+| **User** | Anyone who signs in | Save places and numbers; flag a place or number as wrong (number not working, closed, wrong location, duplicate) with photos; report an app problem; see the status of what they sent | Everywhere |
+| **Contributor** | A user a moderator or admin trusts, made a contributor in the panel | Everything a user can, plus send Update details: add a new place, change its info (prices, hours, services offered, phone, location) or ask to remove it. Every request waits for a moderator | Everywhere |
+| **Moderator** | A trusted local person, one or more per area (a barangay, city or municipality). Until there are some, John (admin) does this for the whole country | Everything a user can, plus approve or reject updates field by field, add and edit places (pin, name, hours, services offered, photos) and emergency contacts, mark records checked, work on app problems | **For now, everywhere** (no area assigned). Later: only their areas, and the areas inside them |
+| **Admin** (superadmin) | The Bulig team | Everything, including add and remove: users and moderators (add, edit, suspend, role, areas), every record and photo, emergency contacts, areas, system settings, live dashboard, activity log | Everywhere |
+
+**For now (John, 2026-11-03):** one admin and one moderator, and moderators have no area. Until area assignment ships, a moderator covers the whole country; the area rules below apply from then. The app's `can()` already has the area rule, but no screen calls it yet, and the panel enforces roles on the server.
 
 From Phase 4, roles are data on the server (`spatie/laravel-permission`), so a new role (owner, LGU partner) is added in the panel without a deploy. Details: [ARCHITECTURE.md, Spine 4](ARCHITECTURE.md#4-identity).
 

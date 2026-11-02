@@ -283,7 +283,7 @@ After **Create account** the person lands on Home (or the screen that asked for 
 ### Profile (`/profile`)
 
 Built like a production settings screen:
-- **Header card:** the person's photo as the avatar (Ropi's head until they add one), name, email, a role badge (User / Moderator / Admin), "Member since <month year>". The **Profile tab** in the nav shows the same avatar (26px, a ring when selected) instead of an icon.
+- **Header card:** the person's photo as the avatar (Ropi's head until they add one), name, email, a role badge (User / Contributor / Moderator / Admin), "Member since <month year>". The **Profile tab** in the nav shows the same avatar (26px, a ring when selected) instead of an icon.
 - **Account:** Edit profile (`/profile/edit`: **photo** (Add a photo / Change photo / Remove; centre-cropped to a 256px WebP, about 15–30 KB, kept on the phone), name, email read-only, optional mobile number checked as a PH number, optional home area), Change password (`/profile/password`: current, new, confirm; test logins can't change theirs), Saved places with the count, Home area when set.
 - **Preferences:** Appearance (System / Light / Dark, remembered and applied before the first paint), Language (English), Location (Allowed / Blocked / Not asked yet, from the phone's permission).
 - **App:** **Install Bulig**: the browser's install prompt on Android/Chrome, or the Share → Add to Home Screen steps on iPhone. Hidden once installed. Offline data: "<n> places · <n> numbers".

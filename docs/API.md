@@ -37,7 +37,7 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 | Dates | `verifiedAt`, `addedAt`, `createdAt`: ISO 8601 date `"2026-10-21"`. Timestamps (`updatedAt` on envelopes, `savedAt`): ISO 8601 with `Z`. Opening hours are local `"HH:MM"`, `"24:00"` = midnight. |
 | Countries | ISO 3166-1 alpha-2, upper case: `PH`. Every public read needs `?country=`. |
 | Auth | **Laravel Sanctum personal access tokens.** Send `Authorization: Bearer <token>`. 🔒 in the tables = token required. Public data and Emergency never need one. |
-| Roles | `user`, `moderator`, `admin`. Sign-ups are always `user`; moderators and admins are appointed in the admin panel. |
+| Roles | `user`, `contributor`, `moderator`, `admin`. Sign-ups are always `user`. A moderator or admin makes a user a `contributor` in the admin panel; only an admin appoints moderators and admins. |
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
 | CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
@@ -388,7 +388,12 @@ Idempotent: saving twice is fine. No body. **204.** **Errors:** `404` unknown re
 
 ## 7. Community updates (Update details)
 
-Phase 4 (SCRUM-30). One form on Place details, **Update details**, covers both "this is wrong" and "this changed": new prices, hours, services offered, phone, location, closed for good, or a new place. Nothing submitted is public until a moderator for that area (or an admin) approves it, field by field (ARCHITECTURE.md, Spine 3). Emergency contacts can be flagged but never edited by the public.
+Phase 4 (SCRUM-30). One endpoint, two levels (John, 2026-11-03):
+
+- **Users flag.** Any signed-in user can report that something is wrong ("number not working", "closed for good", "wrong location", "duplicate", "other"), with a note and photos. No `changes`.
+- **Contributors request changes.** A user a moderator or admin has made a `contributor` can also send **Update details**: new prices, hours, services offered, phone, location, a new place, or a removal (`closed_for_good`, `duplicate`).
+
+Nothing submitted is public until a moderator (or an admin) approves it, field by field (ARCHITECTURE.md, Spine 3). Emergency contacts can be flagged but never edited through submissions; moderators and admins edit them in the panel.
 
 ### 7.1 `POST /uploads` 🔒
 
@@ -423,14 +428,14 @@ Upload one photo before sending the update, so a weak signal only retries the ph
 | --- | --- |
 | `recordType` | `service` or `emergency_contact` (emergency contacts: `reason` only, no `changes`) |
 | `recordId` | an existing ID; omit for `reason: "new_place"` |
-| `reason` | `changed`, `number_not_working`, `closed_for_good`, `wrong_location`, `duplicate`, `new_place`, `other` |
+| `reason` | `changed`, `number_not_working`, `closed_for_good`, `wrong_location`, `duplicate`, `new_place`, `other`. `changed` and `new_place` need role `contributor` or above (`403` for a `user`) |
 | `changes` | required for `changed` and `new_place`. Allowed keys: `name`, `phone`, `landmark`, `lat`, `lng`, `weeklyHours`, `open24h`, `features`, `subtype`, `prices`, and for `new_place` also `category` and `area`. Same rules as the Service fields in [§3.3](#33-get-servicescountryphareaareaidcategorycategory). `prices[].amount` is 0.01 to 100000; `item` must exist in `labels.json` for that country. |
 | `seenAt` | the date the person saw it, today or up to 7 days ago; defaults to today |
 | `photoIds` | 0 to 3 IDs from `POST /uploads`. **At least 1 is required** when `changes.prices` is present or `reason` is `new_place`. |
 | `note` | optional, up to 500 characters |
 | `position` | optional, only if the person agrees; rounded to 3 decimals (~110 m) by the app |
 
-**201:** `{ "id": "sub_01JBY…", "status": "pending" }`. **Errors:** `422` (field rules, or a missing photo with prices), `423` submissions are switched off in settings, `429` (daily limit).
+**201:** `{ "id": "sub_01JBY…", "status": "pending" }`. **Errors:** `403` (a `user` sent `changed` or `new_place`), `422` (field rules, or a missing photo with prices), `423` submissions are switched off in settings, `429` (daily limit).
 
 ### 7.3 `GET /me/submissions` 🔒
 
@@ -482,7 +487,7 @@ Not part of the app's contract: `POST /internal/schedule` (alpha and beta on Ren
 }
 ```
 
-Matches `Account` in `app/src/auth/types.ts`, except `photo` (a data URL on the phone today) becomes `photoUrl`. `areas` lists a moderator's area IDs (each covers the areas inside it); empty for users and admins. Never returned: password hashes, tokens, deleted state.
+Matches `Account` in `app/src/auth/types.ts`, except `photo` (a data URL on the phone today) becomes `photoUrl`. `areas` lists a moderator's area IDs (each covers the areas inside it); empty for users and admins. Until area assignment ships it is `[]` for everyone, and an empty list on a moderator means the whole country. Never returned: password hashes, tokens, deleted state.
 
 ### 8.2 Envelope, Area, EmergencyContact, Service, Labels
 
