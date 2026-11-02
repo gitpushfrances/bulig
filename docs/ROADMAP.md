@@ -35,7 +35,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - **Hosting:** Cloudflare Worker with static assets, free plan (`app/wrangler.jsonc`)
 - **Map (optional):** MapLibre GL JS 6.16 + OpenFreeMap tiles
 - **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5 (+ Shield), spatie/laravel-permission, spatie/laravel-activitylog, Laravel Pulse, Pest 5. No Redis: Laravel file cache, `sync` queue on alpha/beta (`database` queue later), built-in rate limiter; Cloudflare edge cache once there's a domain
-- **Free services (Phase 4+):** alpha and beta on Render free + Neon, both Singapore (no card; a paid server only after alpha/beta users approve), Cloudflare R2 for photos and backups, Gmail SMTP then Resend, UptimeRobot status page, Sentry. Full table with limits: [ARCHITECTURE.md, Stack](ARCHITECTURE.md#stack-0-until-funded)
+- **Free services (Phase 4+):** alpha and beta on Render free + Neon, both Singapore (no card; a paid server only after alpha/beta users approve), Cloudflare R2 for photos and backups, an HTTP email API (Render blocks SMTP), Resend once the domain exists, UptimeRobot status page, Sentry. Full table with limits: [ARCHITECTURE.md, Stack](ARCHITECTURE.md#stack-0-until-funded)
 - **Native (Phase 6):** Capacitor 8
 
 ## Ground rules for every phase
@@ -106,7 +106,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 
 **Goal:** real people in the first pilot area use it, and you learn from them. The first area is not the only one: everything learned here becomes the checklist for opening the next area anywhere.
 
-**Built so far (2026-10-30, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details. **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), OPEN-AN-AREA.md (SCRUM-32).
+**Built so far (2026-11-02, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details · ✅ splash, page fade-in, loading skeletons, location asked only inside the app, exact scroll on Back, older browsers (iOS 14+, Chrome 87+) (PR #33). **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), OPEN-AN-AREA.md (SCRUM-32).
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
@@ -155,10 +155,24 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 
 **Goal:** move the data into a real database that you edit through an admin panel. The app reads from an API but keeps working offline.
 
+**Status (2026-11-02):** the backend moves to its own private repo, `gitpushfrances/bulig-backend` (John's decision; this repo keeps the app and all docs). The half-installed `api/` folder on John's laptop is dropped. John's laptop still has PHP 8.4 without `pdo_pgsql` and no Herd yet (step 1 below). See CHANGELOG, Errors.
+
+**Reality check:** the Phase 3 gate above isn't met (77 of 77 places are still sample data, no outside users yet). Building the backend now is John's call, but real Guiuan and Mercedes data has to be collected alongside it, or the backend only serves sample records.
+
+**Built in slices,** one tested PR each, in this order:
+
+| # | Slice | Covers |
+| --- | --- | --- |
+| 1 | Foundation | Sanctum, `/api/v1`, CORS, rate limits, Pest; schema; JSON import; public reads (API.md §3), accounts (§4), `/me` (§5), saved places (§6), `GET /health`. Tests run on SQLite; PostGIS only on Postgres. |
+| 2 | Community updates | `POST /uploads`, `POST /submissions`, `GET /me/submissions`, issues, `GET /settings` (§7) |
+| 3 | Admin panel | Filament at `/panel`: places, emergency contacts, areas, users and moderators, review queue, activity log, Pulse |
+| 4 | Deploy | `Dockerfile` in `bulig-backend` on Render free + Neon (Singapore), UptimeRobot, nightly `pg_dump` to R2 |
+| 5 | App on the API | `VITE_DATA_SOURCE=api`, Sanctum tokens in the app, the one-time upload of saved hearts; JSON stays as the fallback |
+
 **Tickets (all new):**
 
 - Build the API to [docs/API.md](API.md): every endpoint, payload and error the app already expects (public reads, accounts, `/me`, saved places)
-- Set up the Laravel 13 project in `api/` with PostgreSQL + PostGIS (Herd + a Neon `dev` branch locally, no Docker)
+- Set up the Laravel 13 project in the `bulig-backend` repo with PostgreSQL + PostGIS (Herd + a Neon `dev` branch locally, no Docker)
 - Database schema: countries, areas, categories, services, emergency_contacts, with `geography(Point,4326)` and audit timestamps
 - Import script that loads the current JSON into the database
 - Read API: `GET /api/v1/services?country=&area=&category=&near=lat,lng` and `GET /api/v1/emergency-contacts?country=&area=`
@@ -175,10 +189,10 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 **Steps**
 
 1. Install Herd (PHP 8.5, Composer). Create a free Neon project in Singapore with PostGIS and a `dev` branch for your laptop; no Docker Desktop needed.
-2. Run `laravel new api` in the repo root, then add Sanctum (`php artisan install:api`) and Filament.
+2. Create the private repo `gitpushfrances/bulig-backend` and clone it next to `bulig` (`~/dev/bulig-backend`). Start it from the tested starter (Laravel 13, Sanctum, Pest, `Dockerfile`, `render.yaml`, CI), then add Filament in slice 3.
 3. Write the migrations, the import script, and API resources. Cache responses so the API stays cheap.
 4. Test with Pest. The emergency rules from Phase 2 have to hold on the server as well.
-5. Hosting for alpha and beta: add `api/Dockerfile` and deploy it as a Render free web service in Singapore, connected to GitHub (Render builds it in the cloud). Point it at Neon's main branch. Use `QUEUE_CONNECTION=sync` and the `file` cache, and run the hourly schedule and nightly `pg_dump` to R2 from GitHub Actions. Render gives HTTPS on `*.onrender.com`.
+5. Hosting for alpha and beta: deploy the `Dockerfile` at the root of `bulig-backend` it as a Render free web service in Singapore, connected to GitHub (Render builds it in the cloud). Point it at Neon's main branch. Use `QUEUE_CONNECTION=sync` and the `file` cache, and run the hourly schedule and nightly `pg_dump` to R2 from GitHub Actions. Render gives HTTPS on `*.onrender.com`.
 6. After alpha and beta users approve: move to a paid Singapore VPS (or Oracle once there's a card) with Postgres on the server, a queue worker and cron. Move to `api.bulig.app` once the domain is bought.
 7. Switch the frontend over behind a setting, so you can flip back to JSON if the API breaks.
 

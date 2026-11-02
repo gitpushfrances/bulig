@@ -2,7 +2,7 @@
 
 Who does what in Bulig, how a record moves from a report to the app, and how a change moves from a branch to the live link. [ARCHITECTURE.md](ARCHITECTURE.md) says how each part is built; this file says how the parts are used.
 
-Last updated: 2026-10-29
+Last updated: 2026-11-02
 
 ## Areas
 
@@ -93,4 +93,5 @@ flowchart LR
 
 - `main` is always deployable. Work on a branch, open a PR, wait for green CI, merge.
 - Every change goes into `docs/CHANGELOG.md` under **Unreleased**.
+- **Two repos** (from 2026-11-02): `bulig` (app and all docs) and `bulig-backend` (Laravel, deployed to Render when its `main` changes). A change to a request or payload is two PRs: first [API.md](API.md) here, then the code in `bulig-backend`, whose PR links the API.md PR. Backend changes are logged in this repo's CHANGELOG too, with the `bulig-backend` PR number, so there is one history.
 - UI changes follow [UI-UX.md](UI-UX.md) (section 10 for the look) and get a screenshot check at phone and desktop widths, light and dark.
