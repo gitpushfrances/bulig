@@ -99,8 +99,18 @@ export interface Envelope<T> {
   items: T[]
 }
 
-// Local words for each category, per language: { tire_repair: { en: "Vulcanizing" } }
+// A thing a place can have a price for: { category: "fuel", unit: "L", names: { en: "Diesel" } }
+export interface PriceItem {
+  category: Category
+  unit: string
+  names: Record<string, string>
+}
+
+// Local words for each category, per language: { tire_repair: { en: "Vulcanizing" } },
+// plus this country's price items and currency (docs/API.md §3.4).
 export interface Labels {
   version: 1
   categories: Partial<Record<Category, Record<string, string>>>
+  currency?: string
+  priceItems?: Record<string, PriceItem>
 }

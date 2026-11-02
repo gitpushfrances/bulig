@@ -209,13 +209,13 @@ Road services and local businesses. The app ranks them on the phone (distance, c
 | `features` | no | `tubeless, tube_type, air_pump, comes_to_you, motorcycle, car_truck, bottled_fuel, emergency_room` → `true` confirmed, `false` confirmed not offered, missing = not confirmed. |
 | `subtype` | no | The owner's word, shown instead of the category ("Halo-halo"). |
 | `addedAt` | no | Date first listed; the app shows **NEW** for 60 days. |
-| `prices` | no | Phase 4. Newest approved price per item: `[{ "item": "ron91", "amount": 82.0, "currency": "PHP", "unit": "L", "seenAt": "2026-10-30" }]`. `item` keys and their words come from `labels.json`. The app shows "seen <date> by a Bulig user", greys it after 7 days and hides it after 30. Never "current price". |
+| `prices` | no | Phase 4. Newest approved price per item: `[{ "item": "ron91", "amount": 82.0, "currency": "PHP", "unit": "L", "seenAt": "2026-10-30" }]`. `item` keys, their words and `unit` come from `labels.json` `priceItems`, and `currency` from its `currency`. The app shows "seen <date> by a Bulig user", greys it after 7 days and hides it after 30. Never "current price". |
 | `photos` | no | Phase 4. Approved public photo URLs (R2 `public/`), first is the cover. |
 | `sample` | no | Test data only. |
 
 ### 3.4 `GET /labels?country=PH`
 
-The country's own words for categories (`"Vulcanizing"`), per language. Not an envelope.
+The country's own words for categories (`"Vulcanizing"`), per language, and the things a price can be given for. Not an envelope.
 
 **200**
 
@@ -228,9 +228,22 @@ The country's own words for categories (`"Vulcanizing"`), per language. Not an e
     "food": { "en": "Resto and carinderia" },
     "lodging": { "en": "Hotel and inn" },
     "other": { "en": "Others" }
+  },
+  "currency": "PHP",
+  "priceItems": {
+    "ron91": { "category": "fuel", "unit": "L", "names": { "en": "Unleaded 91" } },
+    "ron95": { "category": "fuel", "unit": "L", "names": { "en": "Premium 95" } },
+    "ron97": { "category": "fuel", "unit": "L", "names": { "en": "Super Premium 97" } },
+    "diesel": { "category": "fuel", "unit": "L", "names": { "en": "Diesel" } },
+    "kerosene": { "category": "fuel", "unit": "L", "names": { "en": "Kerosene" } }
   }
 }
 ```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `currency` | with `priceItems` | ISO 4217 code for every price in this country. |
+| `priceItems` | no | Key = the `item` in a price (never changes once used). `category`: the only kind of place that can have this price. `unit`: what the amount is for (`L` litre, `each`, …). `names`: words per language, like `categories`. Adding an item is a data change, not a code change. |
 
 ---
 
@@ -429,7 +442,7 @@ Upload one photo before sending the update, so a weak signal only retries the ph
 | `recordType` | `service` or `emergency_contact` (emergency contacts: `reason` only, no `changes`) |
 | `recordId` | an existing ID; omit for `reason: "new_place"` |
 | `reason` | `changed`, `number_not_working`, `closed_for_good`, `wrong_location`, `duplicate`, `new_place`, `other`. `changed` and `new_place` need role `contributor` or above (`403` for a `user`) |
-| `changes` | required for `changed` and `new_place`. Allowed keys: `name`, `phone`, `landmark`, `lat`, `lng`, `weeklyHours`, `open24h`, `features`, `subtype`, `prices`, and for `new_place` also `category` and `area`. Same rules as the Service fields in [§3.3](#33-get-servicescountryphareaareaidcategorycategory). `prices[].amount` is 0.01 to 100000; `item` must exist in `labels.json` for that country. |
+| `changes` | required for `changed` and `new_place`. Allowed keys: `name`, `phone`, `landmark`, `lat`, `lng`, `weeklyHours`, `open24h`, `features`, `subtype`, `prices`, and for `new_place` also `category` and `area`. Same rules as the Service fields in [§3.3](#33-get-servicescountryphareaareaidcategorycategory). `prices` is 1 to 10 of `{item, amount}`, each `item` once; `amount` is 0.01 to 100000; `item` must be a key of `labels.json` `priceItems` for that country whose `category` is the place's category (or `changes.category` for a new place). |
 | `seenAt` | the date the person saw it, today or up to 7 days ago; defaults to today |
 | `photoIds` | 0 to 3 IDs from `POST /uploads`. **At least 1 is required** when `changes.prices` is present or `reason` is `new_place`. |
 | `note` | optional, up to 500 characters |
