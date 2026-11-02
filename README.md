@@ -12,7 +12,7 @@ Bulig is a free, offline-first web app (PWA) for people on the road. Installed t
 
 ## Status
 
-**Phase 3 (v0.3) in progress.** v0.2 (Emergency + Services offline PWA) was released on 2026-10-29. Since then: the Graphite theme, Ropi, accounts and onboarding, the Map with in-app routes, "What's wrong?" and Nearby results, and (PR #33) a splash, smooth page changes, loading skeletons and support for older phones (iOS 14+, Chrome 87+). Still on sample data; real, verified records come next. **Phase 4 (the Laravel backend) has started** in its own private repo, `gitpushfrances/bulig-api`, built in slices (see the ROADMAP). Read [docs/UI-UX.md](docs/UI-UX.md) ("Where the app is now") for the current state, [docs/CHANGELOG.md](docs/CHANGELOG.md) for every change, and [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
+**Phase 3 (v0.3) in progress.** v0.2 (Emergency + Services offline PWA) was released on 2026-10-29. Since then: the Graphite theme, Ropi, accounts and onboarding, the Map with in-app routes, "What's wrong?" and Nearby results, and (PR #33) a splash, smooth page changes, loading skeletons and support for older phones (iOS 14+, Chrome 87+). Still on sample data; real, verified records come next. **Phase 4 (the Laravel backend) has started** in its own private repo, `gitpushfrances/bulig-backend`, built in slices (see the ROADMAP). Read [docs/UI-UX.md](docs/UI-UX.md) ("Where the app is now") for the current state, [docs/CHANGELOG.md](docs/CHANGELOG.md) for every change, and [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
 
 **Test logins** (preview only, typed on the login screen; password `password` for all): `test@bulig.com` (user), `moderator@bulig.com` (moderator), `admin@bulig.com` (admin). Accounts you create are kept on that phone only until the backend arrives.
 
@@ -60,7 +60,7 @@ bulig/
 └── docs/        Roadmap, architecture, UI/UX, changelog
 ```
 
-The Laravel API and Filament admin live in a separate repo, [`gitpushfrances/bulig-api`](https://github.com/gitpushfrances/bulig-api) (decided by John, 2026-11-02). This repo keeps the app and every doc, including [docs/API.md](docs/API.md), the one contract both repos follow. `contracts/` doesn't exist yet. Inside `app/src/`: `pages/` (screens), `components/`, `rules/` (pure, tested logic: distance, needs, emergency, permissions), `data/`, `location/`, `map/` (theme and routes), `auth/`.
+The Laravel API and Filament admin live in a separate repo, [`gitpushfrances/bulig-backend`](https://github.com/gitpushfrances/bulig-backend) (decided by John, 2026-11-02). This repo keeps the app and every doc, including [docs/API.md](docs/API.md), the one contract both repos follow. `contracts/` doesn't exist yet. Inside `app/src/`: `pages/` (screens), `components/`, `rules/` (pure, tested logic: distance, needs, emergency, permissions), `data/`, `location/`, `map/` (theme and routes), `auth/`.
 
 ## Getting started
 
