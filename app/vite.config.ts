@@ -65,6 +65,20 @@ export default defineConfig({
         ],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
+        // With VITE_DATA_SOURCE=api: the last good API answers, for when the server is asleep or the
+        // phone is offline (docs/API.md §1, Caching). The bundled JSON files stay the last resort.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/[^/]+\/api\/v1\/(areas|emergency-contacts|services|labels)\?/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'bulig-api',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
       },
     }),
   ],
