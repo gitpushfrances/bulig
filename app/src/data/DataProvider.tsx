@@ -3,7 +3,7 @@ import type { AreaId, CountryCode } from '../types.ts'
 import { AppDataContext, type DataState } from './context.ts'
 import { pickCountry } from './countries.ts'
 import type { DataSource } from './DataSource.ts'
-import { jsonSource } from './JsonSource.ts'
+import { appSource } from './ApiSource.ts'
 import { usePhoneLocation } from '../location/context.ts'
 import { nearestArea } from '../rules/nearby.ts'
 import { readSaved, writeSaved } from './storage.ts'
@@ -23,7 +23,7 @@ function subscribeOnline(onChange: () => void) {
 // Loads the picked country's data once for the whole app, and remembers the picked area.
 export default function DataProvider({
   children,
-  source = jsonSource,
+  source = appSource,
 }: {
   children: ReactNode
   source?: DataSource

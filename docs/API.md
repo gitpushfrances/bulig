@@ -84,6 +84,8 @@ Admin and moderator screens (Filament at `/panel`, Phase 4) are server-side and 
 
 These four replace the JSON files one to one: **same envelope, same fields, same IDs**. If the API needs a different shape, that's a design bug in the API (ARCHITECTURE.md, Phase 4).
 
+**Status (2026-11-02):** built in `bulig-backend` (`PublicDataController`, `bulig:import`) and read by the app's `ApiSource` when built with `VITE_DATA_SOURCE=api`. Until the admin panel exists, the server's rows are a copy of the app's JSON files, re-synced on every server start; the `updatedAt` of each envelope is the file's own. Optional fields are left out when empty, never `null` (except `parent` and `area`, as in the files). Items are sorted by `id`, with the national line first in emergency contacts. The app waits at most 4 s for an answer, then uses the JSON files bundled with it.
+
 ### 3.1 `GET /areas?country=PH`
 
 Every listed area of a country. The app picks the nearest one from GPS (`nearestArea()` in `rules/nearby.ts`).
@@ -112,7 +114,7 @@ Every listed area of a country. The app picks the nearest one from GPS (`nearest
 }
 ```
 
-**Errors:** `422` missing or unknown `country`.
+**Errors:** `422` missing or unknown `country` (a country is known once it has areas; codes are upper case).
 
 ### 3.2 `GET /emergency-contacts?country=PH[&area=<areaId>]`
 

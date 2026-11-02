@@ -165,9 +165,9 @@ export interface DataSource {
 ```
 
 - Phase 2: `JsonSource` fetches `/data/<cc>/areas.json`, `/data/<cc>/emergency-contacts.json` and `/data/<cc>/services.json`.
-- Phase 4: `ApiSource` fetches `GET /api/v1/areas?country=`, `GET /api/v1/emergency-contacts?country=` and `GET /api/v1/services?country=`.
+- Phase 4: `ApiSource` (`app/src/data/ApiSource.ts`) fetches `GET /api/v1/areas?country=`, `/emergency-contacts`, `/services` and `/labels`, checks each answer with `validate.ts`, and gives up after 4 seconds. `withFallback()` then answers that call from the bundled JSON files, so a sleeping or broken server never blanks the app.
 - `LIVE_COUNTRIES` in `app/src/data/countries.ts` lists the countries that are live (a country picker appears once there are two). The first visit guesses the country from the browser language and lets the user change it; the choice is saved in `localStorage`. No location permission is needed.
-- `VITE_DATA_SOURCE=json|api` picks one at build time. If the API breaks, flip it back to `json` and redeploy. That takes about 2 minutes.
+- `VITE_DATA_SOURCE=json|api` (plus `VITE_API_URL`) picks one at build time; without both, the app uses the JSON files. If the API breaks, flip it back to `json` and redeploy. That takes about 2 minutes.
 - Phase 2 and 3: the service worker (vite-plugin-pwa) **precaches** the JSON files with the app shell, so offline works from the first visit and each deploy ships fresh data. Phase 4: the API responses use `NetworkFirst` with a 3 second timeout. Offline behaviour is the same in every phase.
 
 **The emergency rules always run on the phone**, in `visibleContacts(contacts, now)`. Cached data gets older while the phone is offline, so only the phone knows how stale it really is. The server also refuses to serve unverified contacts, but the phone is the last line of defence.
