@@ -155,7 +155,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 
 **Goal:** move the data into a real database that you edit through an admin panel. The app reads from an API but keeps working offline.
 
-**Status (2026-11-02):** the backend moves to its own private repo, `gitpushfrances/bulig-backend` (John's decision; this repo keeps the app and all docs). The half-installed `api/` folder on John's laptop is dropped. John's laptop still has PHP 8.4 without `pdo_pgsql` and no Herd yet (step 1 below). See CHANGELOG, Errors.
+**Status (2026-11-02):** the backend lives in its own private repo, `gitpushfrances/bulig-backend` (John's decision; this repo keeps the app and all docs), and is live on `https://bulig-backend.onrender.com` (Render free + Neon, Singapore). Slice 1 so far: ✅ public reads (§3, bulig-backend #2), ✅ the app reads them behind `VITE_DATA_SOURCE=api` with the JSON files as fallback (#36), ✅ accounts (§4, bulig-backend #3). **Next:** `/me` (§5) and saved places (§6). Slice-by-slice detail: [bulig-backend docs/PHASES.md](https://github.com/gitpushfrances/bulig-backend/blob/main/docs/PHASES.md). John's laptop still has PHP 8.4 without `pdo_pgsql` and no Herd yet (step 1 below), so Postgres runs in CI only. See CHANGELOG, Errors.
 
 **Reality check:** the Phase 3 gate above isn't met (77 of 77 places are still sample data, no outside users yet). Building the backend now is John's call, but real Guiuan and Mercedes data has to be collected alongside it, or the backend only serves sample records.
 
