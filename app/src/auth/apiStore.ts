@@ -237,7 +237,8 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
           const why = errors.newEmail?.[0]
           return { ok: false as const, reason: why === 'same' || why === 'taken' ? why : ('invalid' as const) }
         }
-        throw err
+        if (signedOut(err)) keep(null, null)
+        return { ok: false as const, reason: 'unavailable' as const }
       }
     },
 

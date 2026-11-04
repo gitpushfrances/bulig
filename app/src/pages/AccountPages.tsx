@@ -307,6 +307,7 @@ export function ChangeEmailPage() {
       busy: { form: 'Too many tries. Wait an hour and try again.' },
       offline: { form: "Couldn't reach Bulig. Check your connection and try again." },
       preview: { form: "This version of Bulig can't send emails." },
+      unavailable: { form: "Bulig couldn't send the link right now. Try again later." },
     }
     setErrors(words[result.reason])
   }

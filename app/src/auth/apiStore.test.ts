@@ -146,6 +146,7 @@ describe('apiStore', () => {
       { status: 422, body: { errors: { newEmail: ['same'] } } },
       { status: 429, body: {} },
       new TypeError('Failed to fetch'),
+      { status: 404, body: {} },
     )
     const store = createApiStore(BASE, fetchFn)
     localStorage.setItem('bulig.token', '1|abc')
@@ -162,8 +163,8 @@ describe('apiStore', () => {
     expect(store.restore()?.pendingEmail).toBeUndefined()
 
     const reasons = []
-    for (let i = 0; i < 5; i++) reasons.push(await store.requestEmailChange(account, 'x@example.com', 'pw'))
-    expect(reasons.map((r) => !r.ok && r.reason)).toEqual(['wrong', 'taken', 'same', 'busy', 'offline'])
+    for (let i = 0; i < 6; i++) reasons.push(await store.requestEmailChange(account, 'x@example.com', 'pw'))
+    expect(reasons.map((r) => !r.ok && r.reason)).toEqual(['wrong', 'taken', 'same', 'busy', 'offline', 'unavailable'])
   })
 
   it('confirms an email link without a sign-in token, and tells used and taken links apart', async () => {

@@ -22,10 +22,10 @@ export type RegisterResult =
 export type ChangePasswordResult = 'ok' | 'wrong' | 'offline'
 
 // API.md §5.7. 'same': already this account's email. 'wrong': not the current password.
-// 'busy': 5 asks an hour used. 'preview': this build sends no email (phone-only accounts).
+// 'busy': 5 asks an hour used. 'unavailable': any other answer (e.g. a server without this yet). 'preview': this build sends no email (phone-only accounts).
 export type EmailChangeResult =
   | { ok: true; account: Account }
-  | { ok: false; reason: 'same' | 'taken' | 'wrong' | 'invalid' | 'busy' | 'offline' | 'preview' }
+  | { ok: false; reason: 'same' | 'taken' | 'wrong' | 'invalid' | 'busy' | 'offline' | 'preview' | 'unavailable' }
 
 // API.md §4.6, the link. 'invalid': unknown, used, cancelled or expired. 'taken': someone took the address meanwhile.
 export type ConfirmEmailResult = { ok: true; email: string } | { ok: false; reason: 'invalid' | 'taken' | 'offline' | 'preview' }
