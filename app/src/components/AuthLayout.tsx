@@ -1,3 +1,4 @@
+import { ShieldCheck } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import Mascot from './Mascot.tsx'
 import styles from './AuthLayout.module.css'
@@ -29,16 +30,23 @@ export default function AuthLayout({
       <main className={`${styles.main} ${wide ? styles.mainWide : ''}`}>
         {/* Fades in as each screen opens (index.css, "Page enter"). */}
         <div className={`${styles.column} page-enter`}>{children}</div>
+        <p className={styles.footer}>Bulig · Road help for the Philippines</p>
       </main>
     </div>
   )
 }
 
-// Ropi's head as the app mark on phones. Hidden where the side panel shows Ropi already.
-export function AuthMark() {
+// Ropi's head in a teal ring, with a small shield badge: the app mark on phones. Hidden where the
+// side panel shows Ropi already, unless `always` (screens without the panel).
+export function AuthMark({ always = false }: { always?: boolean }) {
   return (
-    <div className={styles.mark}>
-      <Mascot variant="head" height={88} />
+    <div className={`${styles.mark} ${always ? styles.markAlways : ''}`}>
+      <span className={styles.ring}>
+        <Mascot variant="head" height={68} />
+        <span className={styles.badge} aria-hidden="true">
+          <ShieldCheck size={16} weight="bold" />
+        </span>
+      </span>
     </div>
   )
 }

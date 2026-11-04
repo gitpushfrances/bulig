@@ -4,10 +4,12 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { canRegister } from '../auth/canRegister.ts'
 import { safeNext } from '../auth/next.ts'
-import AuthLayout from '../components/AuthLayout.tsx'
+import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
+import FormAlert from '../components/FormAlert.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT, looksLikeEmail } from '../components/fieldRules.ts'
 import type { MascotVariant } from '../components/Mascot.tsx'
+import { shake, shakeInvalid } from '../components/shake.ts'
 import RopiSays from '../components/RopiSays.tsx'
 import page from './Page.module.css'
 import styles from './Auth.module.css'
@@ -89,7 +91,13 @@ function Dots({ at }: { at: number }) {
   )
 }
 
-function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
+const SIGNUP_ERRORS = {
+  offline: "Couldn't reach Bulig. Check your connection and try again.",
+  invalid: "Bulig couldn't accept those details. Check your name, email and password.",
+  unavailable: 'Creating an account needs a secure (https) connection. Open Bulig from its usual address.',
+} as const
+
+function SignupForm({ next }: { next: string }) {
   const { register, accountsOnline } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
@@ -99,6 +107,7 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; agreed?: string }>({})
   const [formError, setFormError] = useState<'taken' | 'unavailable' | 'offline' | 'invalid' | null>(null)
   const [busy, setBusy] = useState(false)
+  const form = useRef<HTMLFormElement>(null)
 
   const check = {
     name: (v: string) => (v.trim() ? '' : 'Enter your name.'),
@@ -122,12 +131,13 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
       agreed: agreed ? '' : 'Agree to the Terms and Privacy Policy to continue.',
     }
     setErrors(found)
-    if (Object.values(found).some(Boolean)) return
+    if (Object.values(found).some(Boolean)) return shakeInvalid(form.current, `.${page.field}`)
     setBusy(true)
     const result = await register({ name, email, password })
     setBusy(false)
     if (!result.ok) {
       setFormError(result.reason)
+      shake(form.current?.querySelector(`.${page.field}:nth-child(2)`)) // the email: "taken" is the usual one
       return
     }
     navigate(next, { replace: true })
@@ -138,9 +148,10 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
   }
 
   return (
-    <form className={styles.form} onSubmit={submit} noValidate>
+    <form ref={form} className={styles.form} onSubmit={submit} noValidate>
       <TextField
-        label="Name"
+        label="Full name"
+        placeholder="e.g. Juan Dela Cruz"
         type="text"
         autoComplete="name"
         enterKeyHint="next"
@@ -154,6 +165,7 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
       />
       <TextField
         label="Email"
+        placeholder="juan@example.com"
         {...EMAIL_INPUT}
         autoComplete="email"
         enterKeyHint="next"
@@ -199,39 +211,22 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
           </span>
         )}
       </div>
-      {formError === 'taken' && (
-        <p className={page.error} role="alert">
-          That email already has an account.{' '}
-          <Link className={styles.link} to="/login">
-            Sign in instead
-          </Link>
-        </p>
+      {formError && (
+        <FormAlert onClose={() => setFormError(null)}>
+          {formError === 'taken' ? (
+            <>
+              That email already has an account.{' '}
+              <Link to="/login">Sign in instead</Link>
+            </>
+          ) : (
+            SIGNUP_ERRORS[formError]
+          )}
+        </FormAlert>
       )}
-      {formError === 'offline' && (
-        <p className={page.error} role="alert">
-          Couldn&apos;t reach Bulig. Check your connection and try again.
-        </p>
-      )}
-      {formError === 'invalid' && (
-        <p className={page.error} role="alert">
-          Bulig couldn&apos;t accept those details. Check your name, email and password.
-        </p>
-      )}
-      {formError === 'unavailable' && (
-        <p className={page.error} role="alert">
-          Creating an account needs a secure (https) connection. Open Bulig from its usual address.
-        </p>
-      )}
-      <div className={styles.nav}>
-        <button type="button" className={page.secondary} onClick={onBack}>
-          <ArrowLeft size={18} aria-hidden="true" />
-          Back
-        </button>
-        <button type="submit" className={page.primaryButton} disabled={busy}>
-          <UserPlus size={18} aria-hidden="true" />
-          Create account
-        </button>
-      </div>
+      <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
+        <UserPlus size={18} aria-hidden="true" />
+        {busy ? 'Creating your account…' : 'Create account'}
+      </button>
     </form>
   )
 }
@@ -263,7 +258,12 @@ export default function SignupPage() {
     <AuthLayout wide panel={false}>
       <div className={styles.stepTop}>
         <Dots at={at} />
-        {!onForm && (
+        {onForm ? (
+          <button type="button" className={`${styles.link} ${styles.skipIntro}`} onClick={() => setAt(FORM_STEP - 1)}>
+            <ArrowLeft size={16} aria-hidden="true" />
+            Back
+          </button>
+        ) : (
           <button type="button" className={`${styles.link} ${styles.skipIntro}`} onClick={() => setAt(FORM_STEP)}>
             Skip intro
           </button>
@@ -273,12 +273,13 @@ export default function SignupPage() {
       <div key={at} className={styles.step}>
         {onForm ? (
           <>
-            <RopiSays variant="friendly" height={110}>
-              <strong>Let&apos;s get started!</strong> Make your account.
-            </RopiSays>
-            <h1 ref={heading} tabIndex={-1} className={styles.stepTitle}>
-              Create your account
-            </h1>
+            <AuthMark always />
+            <div className={styles.head}>
+              <h1 ref={heading} tabIndex={-1} className={styles.title}>
+                Create your account
+              </h1>
+              <p className={styles.lead}>Join Bulig to find help and share road updates.</p>
+            </div>
           </>
         ) : (
           <>
@@ -306,7 +307,7 @@ export default function SignupPage() {
       </div>
 
       {onForm ? (
-        <SignupForm onBack={() => setAt(FORM_STEP - 1)} next={next} />
+        <SignupForm next={next} />
       ) : (
         <div className={styles.nav}>
           {at > 0 && (

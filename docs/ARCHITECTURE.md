@@ -208,7 +208,7 @@ flowchart TD
 
 Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In short: **user**, **contributor**, **moderator** (the whole country for now; later scoped to an area and the areas inside it) and **admin**, decided by one function, `can()` in `app/src/rules/permissions.ts`.
 
-- **Now (test UI):** everything except Emergency needs an account (John, 2026-10-30). Three test logins (`test@`, `moderator@`, `admin@bulig.com`) plus accounts made on the phone (`auth/localAccounts.ts`, salted SHA-256 hash). Guests ("Continue without an account") get Emergency only. Not security: it goes when Phase 4 sign-in lands.
+- **Now (test UI):** everything except Emergency needs an account (John, 2026-10-30). Three test logins (`test@`, `moderator@`, `admin@bulig.com`) plus accounts made on the phone (`auth/localAccounts.ts`, salted SHA-256 hash). No guest mode (removed 2026-11-04); `/emergency` is open without an account. Not security: it goes when Phase 4 sign-in lands.
 - **Phase 4:** real accounts on the API with Sanctum tokens: register, login, logout, forgot and reset password, `/me` (profile, photo, password, delete) and `/me/saved`. Every request and payload is in [API.md](API.md). Admins and moderators also sign in to Filament.
 - **Phase 5:** Google sign-in (Socialite), business owners claiming listings, in-app reports (`POST /submissions`).
 - Emergency Help never needs an account, in any phase.

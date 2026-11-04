@@ -31,7 +31,7 @@ function toSignupForm(skip = true) {
 }
 
 function fillSignup(name: string, email: string, password: string, agree = true) {
-  fireEvent.change(screen.getByLabelText('Name'), { target: { value: name } })
+  fireEvent.change(screen.getByLabelText('Full name'), { target: { value: name } })
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
   if (agree) fireEvent.click(screen.getByRole('checkbox'))
@@ -101,33 +101,31 @@ describe('Login', () => {
   })
 })
 
-describe('Continue without an account', () => {
-  it('opens Emergency only, with 911 and local authorities', async () => {
+describe('Without an account', () => {
+  it('has no guest mode on the login', () => {
     signedOut()
     renderAt('/login')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Continue without an account' }))
-    const hotline = await screen.findByRole('region', { name: 'National Emergency Hotline' })
-    expect(within(hotline).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
-    expect(await screen.findByRole('list', { name: 'Local emergency numbers' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Continue without an account/ })).not.toBeInTheDocument()
   })
 
-  it('asks a guest to sign in or sign up anywhere else', () => {
+  it('sends anyone signed out to the login, and back after', () => {
     signedOut()
-    localStorage.setItem('bulig.guest', '1')
+    localStorage.setItem('bulig.guest', '1') // left on old phones: ignored, then cleared
     renderAt('/services')
 
-    expect(screen.getByRole('heading', { name: "Sign in to see what's near you" })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login?next=%2Fservices')
+    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', '/signup?next=%2Fservices')
-    expect(screen.queryByRole('navigation', { name: 'Services' })).not.toBeInTheDocument()
+    expect(localStorage.getItem('bulig.guest')).toBeNull()
   })
 
   it('never blocks a shared Emergency link, even signed out', async () => {
     signedOut()
     renderAt('/emergency')
 
-    expect(await screen.findByRole('region', { name: 'National Emergency Hotline' })).toBeInTheDocument()
+    const hotline = await screen.findByRole('region', { name: 'National Emergency Hotline' })
+    expect(within(hotline).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
+    expect(await screen.findByRole('list', { name: 'Local emergency numbers' })).toBeInTheDocument()
   })
 })
 

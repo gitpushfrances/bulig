@@ -1,11 +1,13 @@
-/* Auth screens: one calm column on phones; split with a Ropi panel from 60rem. */
+/* Auth screens: one card on a soft teal glow on phones; split with a Ropi panel from 60rem. */
 
 .screen {
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  background: var(--color-bg);
+  background:
+    radial-gradient(120% 55% at 50% 0%, var(--auth-glow) 0%, transparent 70%),
+    var(--color-bg);
 }
 
 .aside {
@@ -14,17 +16,53 @@
 
 .main {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   padding: calc(32px + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px))
     calc(32px + env(safe-area-inset-bottom, 0px)) max(var(--gutter), env(safe-area-inset-left, 0px));
 }
 
+/* The card: bright surface, soft layered shadow (a light top edge in dark mode instead). */
 .column {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   width: 100%;
   max-width: 24rem;
+  padding: 24px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised), var(--card-highlight);
+}
+
+/* Each block stacks in a beat after the one above it (off under reduced motion, index.css). */
+.column > * {
+  animation: stack-in 320ms var(--ease-out) both;
+}
+
+.column > :nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.column > :nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.column > :nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.column > :nth-child(n + 5) {
+  animation-delay: 160ms;
+}
+
+@keyframes stack-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
 .mainWide .column {
@@ -36,10 +74,52 @@
   justify-content: center;
 }
 
+/* Ropi's head in a teal ring on a soft teal disc, with a shield badge at the bottom right. */
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border: 3px solid var(--color-primary);
+  border-radius: 50%;
+  background: var(--color-selected);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.badge {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary, #fff);
+}
+
+.footer {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+  animation: stack-in 320ms var(--ease-out) 200ms both;
+}
+
 /* Short phones: a little less air above the mark. */
 @media (max-height: 44rem) {
   .main {
     padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* Narrow phones: a slimmer card, so the fields keep their width. */
+@media (max-width: 24rem) {
+  .column {
+    padding: 20px 16px;
+    border-radius: 20px;
   }
 }
 
@@ -54,7 +134,7 @@
     justify-content: center;
     padding: 48px;
     border-right: 1px solid var(--color-border);
-    background: var(--color-selected);
+    background: linear-gradient(160deg, var(--color-selected), var(--color-bg) 85%);
   }
 
   .asideInner {
@@ -79,8 +159,12 @@
   }
 
   .main {
-    align-items: center;
+    justify-content: center;
     padding: 48px 40px;
+  }
+
+  .column {
+    padding: 32px 28px;
   }
 
   .single {
@@ -89,5 +173,9 @@
 
   .mark {
     display: none;
+  }
+
+  .mark.markAlways {
+    display: flex;
   }
 }

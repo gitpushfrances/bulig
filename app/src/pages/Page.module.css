@@ -1023,22 +1023,6 @@
   gap: 12px;
 }
 
-/* The guest gate: centred, one column, three clear ways forward. */
-.gate {
-  align-items: center;
-  max-width: 26rem;
-  margin: 0 auto;
-  padding-top: 16px;
-  text-align: center;
-}
-
-.gateActions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-}
-
 /* An empty state with Ropi: Ropi on top, the text and one action centred under it. */
 .emptyMascot {
   align-items: center;
@@ -1092,6 +1076,15 @@
   color: var(--color-text);
   font: inherit;
   font-size: 16px;
+  transition:
+    border-color 150ms var(--ease-out),
+    box-shadow 150ms var(--ease-out);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+  outline: none;
 }
 
 .input::placeholder {
@@ -1100,6 +1093,42 @@
 
 .input[aria-invalid='true'] {
   border-color: var(--color-error);
+}
+
+.input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 22%, transparent);
+}
+
+/* A field shakes once as it turns invalid, so the eye goes straight to it (components/shake.ts
+   shakes it again when the same error comes back). Off under reduced motion (index.css). */
+.field:has([aria-invalid='true']) {
+  animation: field-shake 360ms ease-in-out;
+}
+
+.field .error {
+  animation: error-in 180ms var(--ease-out);
+}
+
+@keyframes field-shake {
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes error-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
 
 .withTrail {

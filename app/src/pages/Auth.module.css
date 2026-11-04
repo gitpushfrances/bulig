@@ -3,11 +3,12 @@
 .head {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   text-align: center;
 }
 
 .title {
+  font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.15;
@@ -16,18 +17,54 @@
 
 .lead {
   color: var(--color-text-muted);
+  font-size: 0.9375rem;
   text-wrap: pretty;
+}
+
+/* Fields on these screens: a quiet label, and a filled input that turns white with a teal ring
+   when focused. The border stays strong enough to see in sunlight. */
+.form label:not(.check) {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.form input:not([type='checkbox']) {
+  min-height: 50px;
+  border-radius: 12px;
+  background: var(--color-bg);
+}
+
+.form input:not([type='checkbox']):focus {
+  background: var(--color-surface);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* The main button on these screens: solid teal with a soft teal lift that presses down with it. */
+.form button[type='submit'],
 .submit {
   width: 100%;
   min-height: 52px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-primary);
+  transition:
+    transform var(--press-ms) var(--ease-out),
+    box-shadow var(--press-ms) var(--ease-out);
+}
+
+.form button[type='submit']:active,
+.submit:active {
+  box-shadow: none;
 }
 
 /* A text link that is still a 44px target. */
@@ -35,6 +72,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   min-height: 44px;
   padding: 0 8px;
   border: 0;
@@ -52,6 +90,13 @@
 .forgot {
   align-self: center;
   margin-top: -4px;
+}
+
+/* Sign in / Sign up links in teal, like the rest of Bulig's links. */
+.center .link,
+.forgot {
+  color: var(--color-primary-text);
+  text-decoration-color: color-mix(in srgb, var(--color-primary-text) 40%, transparent);
 }
 
 .divider {
@@ -72,22 +117,12 @@
 
 .full {
   width: 100%;
-}
-
-.guest {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  text-align: center;
-}
-
-.guestNote {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
+  border-radius: 12px;
 }
 
 .center {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
   text-align: center;
 }
 
@@ -179,7 +214,7 @@
   padding: 12px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  background: var(--color-surface);
+  background: var(--color-bg);
 }
 
 .point svg {
@@ -205,6 +240,12 @@
 
 .nav > * {
   flex: 1;
+}
+
+/* Back next to the main button stays narrow, so "Create account" fits on one line at 360px. */
+.nav > button[type='button']:first-child:not(:last-child) {
+  flex: none;
+  padding: 0 16px;
 }
 
 /* A notice in preview builds: what a screen will do once accounts move online. */
