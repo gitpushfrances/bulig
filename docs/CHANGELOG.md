@@ -66,6 +66,8 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Fixed
 
+- **The Map showed nothing after #54** (2026-11-04, reported by John). The kept map's element had `position: absolute; inset: 0`, but MapLibre's stylesheet (loaded later, same specificity) set it back to `position: relative`, so it had no height: 360 × 0 px. Now it is sized with `width/height: 100%`, which holds either way (measured 360 × 576 at 360 × 640). My test had checked only the width.
+- **"Directions" wrapped onto two lines** on place cards (Saved, Nearby) at 360px. The two action buttons have 12px side padding instead of 20px and never wrap their label.
 - **The 404 page sent signed-out people to the login instead of 911.** Its only link said "Go to Emergency Help" but pointed to `/`, which is Home and needs an account. It now links `/emergency` by name.
 - **Home's mini map drifted off you, and the maps' "i" button looked like a watermark** (2026-11-04, John). The mini map now always centres on you (zoom from the nearest places mirrored around your position), follows GPS and re-centres after a resize. Both maps show the required credit as one line of small text instead of the "i" button and pop-up. Rendering is lighter: the style is themed before the map is made (no colour flash), POI icons, house numbers, shields, one-way arrows and airport layers are dropped, and the canvas is capped at 2x pixels.
 
