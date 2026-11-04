@@ -9,6 +9,9 @@ import { nearestArea } from '../rules/nearby.ts'
 import { readSaved, writeSaved } from './storage.ts'
 
 const AREA_KEY = 'bulig.area'
+// The free server sleeps and takes about a minute to wake. When a read fell back to the bundled
+// files, try the API again after these waits, keeping the current data on screen meanwhile.
+const WAKE_RETRY_MS = [20_000, 45_000, 90_000]
 const COUNTRY_KEY = 'bulig.country'
 
 function subscribeOnline(onChange: () => void) {
@@ -24,14 +27,17 @@ function subscribeOnline(onChange: () => void) {
 export default function DataProvider({
   children,
   source = appSource,
+  wakeRetryMs = WAKE_RETRY_MS,
 }: {
   children: ReactNode
   source?: DataSource
+  wakeRetryMs?: readonly number[]
 }) {
   const [country] = useState<CountryCode>(() => pickCountry(readSaved(COUNTRY_KEY), navigator.languages ?? []))
   const [savedArea, setSavedArea] = useState<AreaId | null>(() => readSaved(AREA_KEY))
   const [attempt, setAttempt] = useState(0)
-  const [loaded, setLoaded] = useState<{ key: string; data: DataState } | null>(null)
+  const [loaded, setLoaded] = useState<{ key: string; data: DataState; fromBackup: boolean } | null>(null)
+  const [wakeTries, setWakeTries] = useState(0)
   const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine)
   const { position } = usePhoneLocation()
 
@@ -49,10 +55,16 @@ export default function DataProvider({
           setLoaded({
             key,
             data: { status: 'ready', areas: areas.items, emergency: emergency.items, services: services.items, labels },
+            fromBackup: [areas, emergency, services, labels].some((r) => r?.fromBackup),
           })
       },
       (err: unknown) => {
-        if (live) setLoaded({ key, data: { status: 'error', error: err instanceof Error ? err.message : String(err) } })
+        if (live)
+          setLoaded({
+            key,
+            data: { status: 'error', error: err instanceof Error ? err.message : String(err) },
+            fromBackup: false,
+          })
       },
     )
     return () => {
@@ -60,7 +72,20 @@ export default function DataProvider({
     }
   }, [country, source, key])
 
-  const data: DataState = loaded?.key === key ? loaded.data : { status: 'loading' }
+  // Waiting for the server to wake: try again in the background, a few times only.
+  const needsWake = loaded?.key === key && loaded.fromBackup && wakeTries < wakeRetryMs.length
+  useEffect(() => {
+    if (!needsWake) return
+    const timer = setTimeout(() => {
+      setWakeTries((n) => n + 1)
+      setAttempt((n) => n + 1)
+    }, wakeRetryMs[wakeTries])
+    return () => clearTimeout(timer)
+  }, [needsWake, wakeTries, wakeRetryMs])
+
+  // A background retry keeps the last good data on screen instead of flashing skeletons.
+  const data: DataState =
+    loaded?.key === key ? loaded.data : loaded?.data.status === 'ready' ? loaded.data : { status: 'loading' }
   // GPS wins. Without a fix, a saved area that no longer exists (renamed, removed) falls back to "all areas".
   const nearest = data.status === 'ready' && position ? nearestArea(position, data.areas) : null
   const area = nearest

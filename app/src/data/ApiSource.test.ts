@@ -34,9 +34,24 @@ describe('createApiSource', () => {
     await expect(api.areas('PH')).rejects.toThrow('areas: HTTP 503')
   })
 
-  it('rejects a response that breaks the contract', async () => {
-    const api = createApiSource(BASE, reply({ ...envelope, items: [{ ...contact, phones: [] }] }))
-    await expect(api.emergencyContacts('PH')).rejects.toThrow('bad phones')
+  it('rejects a response whose envelope breaks the contract', async () => {
+    const api = createApiSource(BASE, reply({ ...envelope, version: 2 }))
+    await expect(api.emergencyContacts('PH')).rejects.toThrow('version must be 1')
+  })
+
+  it('skips one bad record and keeps the rest, so one typo in the panel hides nothing else', async () => {
+    const bad = { ...contact, id: 'ph-bad', phones: [] }
+    const onDropped = vi.fn()
+    const api = createApiSource(BASE, reply({ ...envelope, items: [bad, contact] }), 1000, onDropped)
+
+    await expect(api.emergencyContacts('PH')).resolves.toEqual(envelope)
+    expect(onDropped).toHaveBeenCalledWith('emergency-contacts', [expect.stringContaining('(ph-bad): bad phones')])
+  })
+
+  it('asks the server again instead of trusting the browser cache', async () => {
+    const fetchFn = reply(envelope)
+    await createApiSource(BASE, fetchFn).emergencyContacts('PH')
+    expect(fetchFn.mock.calls[0][1]?.cache).toBe('no-cache')
   })
 
   it('gives up on a sleeping server', async () => {
@@ -71,6 +86,7 @@ describe('withFallback', () => {
 
     const emergency = await source.emergencyContacts('PH')
     expect(emergency.items.some((c) => c.kind === 'national')).toBe(true)
+    expect(emergency.fromBackup).toBe(true)
     expect(onFallback).toHaveBeenCalledWith('emergencyContacts', expect.any(Error))
   })
 
@@ -78,7 +94,9 @@ describe('withFallback', () => {
     const onFallback = vi.fn()
     const source = withFallback(createApiSource(BASE, reply(envelope)), jsonSource, onFallback)
 
-    await expect(source.emergencyContacts('PH')).resolves.toEqual(envelope)
+    const answer = await source.emergencyContacts('PH')
+    expect(answer).toEqual(envelope)
+    expect(answer.fromBackup).toBeUndefined()
     expect(onFallback).not.toHaveBeenCalled()
   })
 })
