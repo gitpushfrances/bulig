@@ -31,15 +31,19 @@ export default function LocationLine({ inHeader = false }: { inHeader?: boolean 
   const canRetry = status !== 'unavailable'
 
   // The looked-up address wins; without it, the nearest listed area (and how far, when it isn't here).
+  // In Home's header: one line, so the barangay and town only (no province, no postcode).
   const parts = address
-    ? [address.address.locality, address.address.municipality, address.address.province, address.address.postcode]
+    ? inHeader
+      ? [address.address.locality, address.address.municipality]
+      : [address.address.locality, address.address.municipality, address.address.province, address.address.postcode]
     : []
   let place = parts.filter(Boolean).join(' · ')
   if (!place && fromGps && listed)
     place = areaKm <= NEAR_KM ? `${listed.name} · ${listed.region}` : `${listed.name}, ${formatDistance(areaKm)} away`
 
   const when = address?.at ?? updatedAt
-  const note = locating ? 'Finding your location…' : when ? `Updated ${timeFormat.format(when)}` : null
+  // The header updates live, so it skips "Updated <time>".
+  const note = locating ? 'Finding your location…' : when && !inHeader ? `Updated ${timeFormat.format(when)}` : null
 
   return (
     <div className={inHeader ? `${styles.line} ${styles.inHeader}` : styles.line}>
@@ -47,7 +51,9 @@ export default function LocationLine({ inHeader = false }: { inHeader?: boolean 
         <div className={styles.text} aria-live="polite">
           <Crosshair className={styles.icon} size={18} aria-hidden="true" />
           <div className={styles.words}>
-            <p className={styles.place}>{place}</p>
+            <p className={styles.place} title={place}>
+              {place}
+            </p>
             {note && <p className={styles.meta}>{note}</p>}
           </div>
         </div>
@@ -79,7 +85,7 @@ export default function LocationLine({ inHeader = false }: { inHeader?: boolean 
           </span>
         </label>
       )}
-      {canRetry && (
+      {canRetry && !(inHeader && place) && (
         <button
           type="button"
           className={styles.refresh}

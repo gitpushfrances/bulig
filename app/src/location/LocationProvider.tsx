@@ -8,9 +8,12 @@ import { LocationContext, type LocationStatus } from './context.ts'
 
 type Fix = { status: LocationStatus; position: Position | null; updatedAt: number | null }
 
-// Coarse is enough to pick a town and rank places, and it saves battery. A fix up to a minute old
-// is fine while driving; the refresh button asks for a fresh one.
-const WATCH: PositionOptions = { enableHighAccuracy: false, maximumAge: 60_000, timeout: 20_000 }
+// Live while the app is open (John, 2026-11-04): GPS-accurate so the blue dot moves with the driver,
+// a fix at most LIVE_MS old, and the app takes a new one at most every LIVE_MS. Reading GPS sends
+// nothing anywhere; the street-address lookup (OpenStreetMap) stays limited to a 250 m move.
+// Battery: GPS stays on only while Bulig is on screen (browsers stop it in the background).
+const LIVE_MS = 3_000
+const WATCH: PositionOptions = { enableHighAccuracy: true, maximumAge: LIVE_MS, timeout: 20_000 }
 const FRESH: PositionOptions = { enableHighAccuracy: true, maximumAge: 0, timeout: 20_000 }
 
 const ADDRESS_KEY = 'bulig.address'
@@ -77,7 +80,16 @@ export default function LocationProvider({
 
   useEffect(() => {
     if (!geo || !watching) return
-    const id = geo.watchPosition(...handlers(setFix), WATCH)
+    const [onFix, onFail] = handlers(setFix)
+    // GPS can report several times a second while moving: pass on at most one fix per LIVE_MS, so
+    // the map, the distances and the lists redraw calmly.
+    let last = 0
+    const id = geo.watchPosition((p) => {
+      const now = Date.now()
+      if (now - last < LIVE_MS) return
+      last = now
+      onFix(p)
+    }, onFail, WATCH)
     return () => geo.clearWatch(id)
   }, [geo, watching])
 

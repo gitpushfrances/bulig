@@ -59,7 +59,7 @@ export default function EmergencyPage() {
 
       <LocationLine />
 
-      <DataNotice hasSamples={local.some((c) => c.sample)} />
+      <DataNotice />
 
       {data.status === 'loading' && <CardListSkeleton count={2} height="12rem" heading />}
 

@@ -169,7 +169,7 @@ export default function NearbyPage() {
         </div>
       )}
 
-      <DataNotice hasSamples={places.some((r) => r.item.sample)} ropi />
+      <DataNotice ropi />
       {loading && <NearbySkeleton />}
 
       {ready && all.length === 0 && (

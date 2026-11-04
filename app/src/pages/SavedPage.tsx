@@ -38,7 +38,7 @@ export default function SavedPage() {
         </div>
       ) : (
         <>
-          <DataNotice hasSamples={[...places.map((p) => p.item), ...numbers].some((r) => r.sample)} ropi />
+          <DataNotice ropi />
           {data.status === 'loading' && <CardListSkeleton count={Math.min(Math.max(saved.length, 1), 4)} ropi />}
           {ready && places.length + numbers.length === 0 && (
             <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>

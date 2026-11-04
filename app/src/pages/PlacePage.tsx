@@ -36,7 +36,7 @@ export default function PlacePage() {
     return (
       <section className={`${styles.page} ${styles.readable}`} aria-label="Place details">
         <BackButton fallback="/services" />
-        {data.status === 'loading' ? <PlaceSkeleton /> : <DataNotice hasSamples={false} />}
+        {data.status === 'loading' ? <PlaceSkeleton /> : <DataNotice />}
       </section>
     )
   const place = data.services.find((s) => s.id === id)

@@ -77,7 +77,7 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
   useEffect(() => {
     if (state !== 'ready' || !map.current) return
     meMarker.current?.setLngLat([lng, lat])
-    map.current.jumpTo({ center: [lng, lat] })
+    map.current.easeTo({ center: [lng, lat], duration: 800 })
   }, [lat, lng, state])
 
   const canDraw = visible && online
