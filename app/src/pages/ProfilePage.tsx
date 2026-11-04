@@ -1,20 +1,4 @@
-import {
-  Download,
-  FileText,
-  Globe,
-  Heart,
-  HardDrive,
-  Info,
-  KeyRound,
-  LifeBuoy,
-  LogOut,
-  MapPin,
-  Palette,
-  Scale,
-  Shield,
-  Trash2,
-  UserPen,
-} from 'lucide-react'
+import { DownloadSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, MapPin, Palette, Scales, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -111,14 +95,14 @@ function DeleteAccount() {
                 else setFailed(true)
               }}
             >
-              <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
+              <Trash size={18} aria-hidden="true" />
               Delete account
             </button>
           </div>
         </>
       ) : (
         <button type="button" className={`${page.secondary} ${styles.dangerButton}`} onClick={() => setOpen(true)}>
-          <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
+          <Trash size={18} aria-hidden="true" />
           Delete account
         </button>
       )}
@@ -161,8 +145,8 @@ export default function ProfilePage() {
       </div>
 
       <SettingsGroup title="Account">
-        <SettingsLink to="/profile/edit" icon={UserPen} label="Edit profile" />
-        <SettingsLink to="/profile/password" icon={KeyRound} label="Change password" />
+        <SettingsLink to="/profile/edit" icon={UserGear} label="Edit profile" />
+        <SettingsLink to="/profile/password" icon={Key} label="Change password" />
         <SettingsLink to="/saved" icon={Heart} label="Saved places" value={saved.length} />
         {homeArea && <SettingsInfo icon={MapPin} label="Home area" value={homeArea} />}
       </SettingsGroup>
@@ -184,10 +168,10 @@ export default function ProfilePage() {
       <SettingsGroup title="App">
         {!installed &&
           (canPrompt ? (
-            <SettingsButton icon={Download} label="Install Bulig" value="Full screen" onClick={() => promptInstall()} />
+            <SettingsButton icon={DownloadSimple} label="Install Bulig" value="Full screen" onClick={() => promptInstall()} />
           ) : (
             <SettingsButton
-              icon={Download}
+              icon={DownloadSimple}
               label="Install Bulig"
               value={iosSteps ? 'Hide' : 'How'}
               onClick={() => setIosSteps((s) => !s)}
@@ -220,11 +204,11 @@ export default function ProfilePage() {
       </SettingsGroup>
 
       <SettingsGroup title="Support and legal">
-        <SettingsLink to="/help" icon={LifeBuoy} label="Help and FAQ" />
+        <SettingsLink to="/help" icon={Lifebuoy} label="Help and FAQ" />
         <SettingsLink to="/about" icon={Info} label="About Bulig" />
         <SettingsLink to="/terms" icon={FileText} label="Terms of Use" />
         <SettingsLink to="/privacy" icon={Shield} label="Privacy Policy" />
-        <SettingsLink to="/licenses" icon={Scale} label="Open-source licences" />
+        <SettingsLink to="/licenses" icon={Scales} label="Open-source licences" />
       </SettingsGroup>
 
       <button
@@ -235,7 +219,7 @@ export default function ProfilePage() {
           navigate('/login', { replace: true })
         }}
       >
-        <LogOut size={18} strokeWidth={2} aria-hidden="true" />
+        <SignOut size={18} aria-hidden="true" />
         Sign out
       </button>
 

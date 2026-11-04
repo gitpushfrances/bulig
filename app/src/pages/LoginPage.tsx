@@ -1,4 +1,4 @@
-import { LogIn } from 'lucide-react'
+import { SignIn } from '@phosphor-icons/react'
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -92,7 +92,7 @@ export default function LoginPage() {
           </p>
         )}
         <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
-          <LogIn size={18} strokeWidth={2} aria-hidden="true" />
+          <SignIn size={18} aria-hidden="true" />
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
         <Link className={`${styles.link} ${styles.forgot}`} to="/forgot-password">

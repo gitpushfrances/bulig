@@ -1,4 +1,4 @@
-import { ChevronRight, CircleCheck, Clock, MapPin, Navigation, Phone } from 'lucide-react'
+import { CaretRight, CheckCircle, Clock, MapPin, NavigationArrow, Phone } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { formatDate, telHref } from '../data/format.ts'
@@ -9,13 +9,13 @@ import { isNew } from '../rules/services.ts'
 import { nearbyHref, NEEDS, needForCategory } from '../rules/needs.ts'
 import type { Category, EmergencyContact, Labels, Service } from '../types.ts'
 import styles from '../pages/Page.module.css'
-import { CATEGORY_ICONS, ICON_STROKE, KIND_ICONS } from './icons.ts'
+import { CATEGORY_ICONS, KIND_ICONS } from './icons.ts'
 import SaveButton from './SaveButton.tsx'
 
 function Checked({ date }: { date: string }) {
   return (
     <p className={styles.checked}>
-      <CircleCheck size={15} strokeWidth={2} aria-hidden="true" />
+      <CheckCircle size={15} aria-hidden="true" />
       Last checked {formatDate(date)}
     </p>
   )
@@ -49,7 +49,7 @@ export function SectionHead({ title, to, more = 'See all', children }: {
       {to && (
         <Link className={styles.more} to={to}>
           {more}
-          <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
+          <CaretRight size={16} aria-hidden="true" />
         </Link>
       )}
     </div>
@@ -71,7 +71,7 @@ export function HotlineCard({
     <section className={`${styles.hotline} ${compact ? styles.hotlineCompact : ''}`} aria-labelledby={titleId}>
       <div className={styles.hotlineHead}>
         <h2 id={titleId} className={styles.hotlineName}>
-          <KIND_ICONS.national size={18} strokeWidth={2} aria-hidden="true" />
+          <KIND_ICONS.national size={18} aria-hidden="true" />
           {contact.name}
         </h2>
         <span>{countryName}</span>
@@ -87,7 +87,7 @@ export function HotlineCard({
               // The visible words come first, so "Call 911" works for voice control too.
               aria-label={`Call ${phone}, ${contact.name}`}
             >
-              <Phone size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
+              <Phone size={20} aria-hidden="true" />
               Call {phone}
             </a>
           ))}
@@ -106,7 +106,7 @@ export function ContactCard({ contact, areaName }: { contact: EmergencyContact; 
         <div className={styles.cardHeading}>
           <h3 className={styles.cardTitle}>{contact.name}</h3>
           <p className={styles.meta}>
-            <Icon size={16} strokeWidth={ICON_STROKE} aria-hidden="true" />
+            <Icon size={16} aria-hidden="true" />
             {kindLabel(contact.kind)}
             {areaName && ` · ${areaName}`}
           </p>
@@ -122,7 +122,7 @@ export function ContactCard({ contact, areaName }: { contact: EmergencyContact; 
             href={telHref(phone)}
             aria-label={`Call ${contact.name} at ${phone}`}
           >
-            <Phone size={18} strokeWidth={2} aria-hidden="true" />
+            <Phone size={18} aria-hidden="true" />
             Call
           </a>
         </div>
@@ -155,7 +155,7 @@ export function ServiceCard({
             </Link>
           </h3>
           <p className={styles.meta}>
-            <Icon size={16} strokeWidth={ICON_STROKE} aria-hidden="true" />
+            <Icon size={16} aria-hidden="true" />
             {kindOf(service, labels)} · {service.landmark}
           </p>
         </div>
@@ -167,19 +167,19 @@ export function ServiceCard({
         <div className={styles.details}>
           {km !== null && (
             <p className={`${styles.detail} ${styles.distance}`}>
-              <Navigation size={14} strokeWidth={2} aria-hidden="true" />
+              <NavigationArrow size={14} aria-hidden="true" />
               {formatDistance(km)} away
             </p>
           )}
           {service.hours && (
             <p className={styles.detail}>
-              <Clock size={14} strokeWidth={2} aria-hidden="true" />
+              <Clock size={14} aria-hidden="true" />
               {service.hours}
             </p>
           )}
           {areaName && (
             <p className={styles.detail}>
-              <MapPin size={14} strokeWidth={2} aria-hidden="true" />
+              <MapPin size={14} aria-hidden="true" />
               {areaName}
             </p>
           )}
@@ -189,7 +189,7 @@ export function ServiceCard({
         <div className={styles.actions}>
           {service.phone && (
             <a className={styles.call} href={telHref(service.phone)} aria-label={`Call ${service.name}`}>
-              <Phone size={18} strokeWidth={2} aria-hidden="true" />
+              <Phone size={18} aria-hidden="true" />
               Call
             </a>
           )}
@@ -200,7 +200,7 @@ export function ServiceCard({
               to={`/map?to=${encodeURIComponent(service.id)}`}
               aria-label={`Directions to ${service.name}`}
             >
-              <Navigation size={18} strokeWidth={2} aria-hidden="true" />
+              <NavigationArrow size={18} aria-hidden="true" />
               Directions
             </Link>
           )}
@@ -232,8 +232,8 @@ export function OfferCard({
       className={`${styles.offer} ${compact ? styles.offerCompact : ''} ${count === 0 ? styles.offerEmpty : ''}`}
     >
       <span className={styles.offerTop}>
-        <Icon className={styles.offerIcon} size={compact ? 22 : 26} strokeWidth={1.6} aria-hidden="true" />
-        <ChevronRight className={styles.offerArrow} size={18} strokeWidth={2} aria-hidden="true" />
+        <Icon className={styles.offerIcon} size={compact ? 22 : 26} aria-hidden="true" />
+        <CaretRight className={styles.offerArrow} size={18} aria-hidden="true" />
       </span>
       <span className={styles.offerName}>{categoryLabel(category, labels)}</span>
       {!compact && <span className={styles.offerBlurb}>{categoryBlurb(category)}</span>}
@@ -250,7 +250,7 @@ export function PlaceRow({ service, labels, km }: { service: Service; labels: La
   const Icon = CATEGORY_ICONS[service.category]
   return (
     <li className={styles.row}>
-      <Icon className={styles.rowIcon} size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
+      <Icon className={styles.rowIcon} size={20} aria-hidden="true" />
       <div className={styles.rowText}>
         <p className={styles.rowTitle}>{service.name}</p>
         <p className={styles.rowMeta}>
@@ -260,7 +260,7 @@ export function PlaceRow({ service, labels, km }: { service: Service; labels: La
       </div>
       {service.phone && (
         <a className={styles.rowCall} href={telHref(service.phone)} aria-label={`Call ${service.name}`}>
-          <Phone size={18} strokeWidth={2} aria-hidden="true" />
+          <Phone size={18} aria-hidden="true" />
         </a>
       )}
     </li>
@@ -272,7 +272,7 @@ export function NumberRow({ contact }: { contact: EmergencyContact }) {
   const phone = contact.phones[0]
   return (
     <li className={styles.row}>
-      <Icon className={styles.rowIcon} size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
+      <Icon className={styles.rowIcon} size={20} aria-hidden="true" />
       <div className={styles.rowText}>
         <p className={styles.rowTitle}>{contact.name}</p>
         <p className={`${styles.rowMeta} ${styles.tabular}`}>
@@ -280,7 +280,7 @@ export function NumberRow({ contact }: { contact: EmergencyContact }) {
         </p>
       </div>
       <a className={styles.rowCall} href={telHref(phone)} aria-label={`Call ${contact.name} at ${phone}`}>
-        <Phone size={18} strokeWidth={2} aria-hidden="true" />
+        <Phone size={18} aria-hidden="true" />
       </a>
     </li>
   )
@@ -308,7 +308,7 @@ export function ServiceBento({ ranked, labels }: { ranked: Ranked<Service>[]; la
             to={nearbyHref(need)}
             className={`${styles.bentoTile} ${feature ? styles.bentoFeature : ''} ${wide ? styles.bentoWide : ''}`}
           >
-            <Icon className={styles.offerIcon} size={feature ? 30 : 22} strokeWidth={1.6} aria-hidden="true" />
+            <Icon className={styles.offerIcon} size={feature ? 30 : 22} aria-hidden="true" />
             <span className={styles.bentoName}>
               {need.label}
               {fresh && <New />}

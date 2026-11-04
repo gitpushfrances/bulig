@@ -1,4 +1,4 @@
-import { Check, Clock } from 'lucide-react'
+import { Check, Clock } from '@phosphor-icons/react'
 import { describeStatus, openStatus } from '../rules/hours.ts'
 import { CHIP_LABELS } from '../rules/needs.ts'
 import type { Feature, Service } from '../types.ts'
@@ -11,7 +11,7 @@ export function StatusLine({ service, now }: { service: Service; now: Date }) {
   if (!text) return null
   return (
     <p className={`${styles.status} ${status.state === 'open' ? styles.statusOpen : styles.statusClosed}`}>
-      <Clock size={14} strokeWidth={2} aria-hidden="true" />
+      <Clock size={14} aria-hidden="true" />
       {text}
     </p>
   )
@@ -28,7 +28,7 @@ export function FeatureTags({ service, show }: { service: Service; show: readonl
       {tags.map((f) =>
         service.features?.[f] ? (
           <li key={f} className={styles.tagYes}>
-            <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+            <Check size={14} aria-hidden="true" />
             {CHIP_LABELS[f]}
           </li>
         ) : (

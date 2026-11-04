@@ -1,4 +1,4 @@
-import { KeyRound } from 'lucide-react'
+import { Key } from '@phosphor-icons/react'
 import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
               </p>
             )}
             <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
-              <KeyRound size={18} strokeWidth={2} aria-hidden="true" />
+              <Key size={18} aria-hidden="true" />
               Save new password
             </button>
           </form>

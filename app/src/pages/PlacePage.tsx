@@ -1,4 +1,4 @@
-import { Check, CircleCheck, Link2, MapPin, Navigation, Phone, Route, Share2, X } from 'lucide-react'
+import { Check, CheckCircle, Link as LinkIcon, MapPin, NavigationArrow, Path as RouteIcon, Phone, ShareNetwork, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import BackButton from '../components/BackButton.tsx'
@@ -76,7 +76,7 @@ export default function PlacePage() {
 
       <header className={styles.placeHead}>
         <p className={styles.meta}>
-          <Icon size={16} strokeWidth={2} aria-hidden="true" />
+          <Icon size={16} aria-hidden="true" />
           {kind}
           {area && ` · ${area.name}`}
         </p>
@@ -89,7 +89,7 @@ export default function PlacePage() {
           <SaveButton id={place.id} name={place.name} />
         </div>
         <p className={styles.detail}>
-          <MapPin size={14} strokeWidth={2} aria-hidden="true" />
+          <MapPin size={14} aria-hidden="true" />
           {km !== null && <strong className={styles.distance}>{formatDistance(km)} away · </strong>}
           {place.landmark}
         </p>
@@ -99,18 +99,18 @@ export default function PlacePage() {
       <div className={`${styles.actions} ${styles.bigActions}`}>
         {place.phone && (
           <a className={styles.call} href={telHref(place.phone)} aria-label={`Call ${place.name}`}>
-            <Phone size={20} strokeWidth={2} aria-hidden="true" />
+            <Phone size={20} aria-hidden="true" />
             {need.urgent ? 'Call hospital' : 'Call'}
           </a>
         )}
         {route && (
           <Link className={styles.secondary} to={route} aria-label={`Route to ${place.name}`}>
-            <Route size={20} strokeWidth={2} aria-hidden="true" />
+            <RouteIcon size={20} aria-hidden="true" />
             Route
           </Link>
         )}
         <button type="button" className={styles.secondary} onClick={share} aria-label={`Share ${place.name}`}>
-          {shared ? <Link2 size={20} strokeWidth={2} aria-hidden="true" /> : <Share2 size={20} strokeWidth={2} aria-hidden="true" />}
+          {shared ? <LinkIcon size={20} aria-hidden="true" /> : <ShareNetwork size={20} aria-hidden="true" />}
           {shared ? 'Link copied' : 'Share'}
         </button>
       </div>
@@ -151,12 +151,12 @@ export default function PlacePage() {
             {features.map((f) =>
               place.features?.[f] ? (
                 <li key={f} className={styles.tagYes}>
-                  <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+                  <Check size={14} aria-hidden="true" />
                   {CHIP_LABELS[f]}
                 </li>
               ) : (
                 <li key={f} className={styles.tagNo}>
-                  <X size={14} strokeWidth={2.5} aria-hidden="true" />
+                  <X size={14} aria-hidden="true" />
                   No {CHIP_LABELS[f].toLowerCase()}
                 </li>
               ),
@@ -171,7 +171,7 @@ export default function PlacePage() {
           Checked
         </h2>
         <p className={styles.checked}>
-          <CircleCheck size={15} strokeWidth={2} aria-hidden="true" />
+          <CheckCircle size={15} aria-hidden="true" />
           Last checked {formatDate(place.verifiedAt)}
         </p>
         <p className={styles.hint}>Source: {place.source}</p>
@@ -184,7 +184,7 @@ export default function PlacePage() {
           target="_blank"
           rel="noreferrer"
         >
-          <Navigation size={16} strokeWidth={2} aria-hidden="true" />
+          <NavigationArrow size={16} aria-hidden="true" />
           Open in Google Maps
         </a>
       )}

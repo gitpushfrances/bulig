@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react'
+import { CaretLeft } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import BackButton from '../components/BackButton.tsx'
@@ -38,7 +38,7 @@ export default function EmergencyPage() {
       ) : (
         account && (
           <Link className={styles.back} to="/">
-            <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
+            <CaretLeft size={20} aria-hidden="true" />
             Home
           </Link>
         )

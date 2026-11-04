@@ -1,4 +1,4 @@
-import { CircleQuestionMark, Heart, Lightbulb, Sparkle, Sparkles, type LucideIcon } from 'lucide-react'
+import { Heart, type Icon, Lightbulb, Question, Sparkle } from '@phosphor-icons/react'
 import { useEffect, useState, type CSSProperties } from 'react'
 import styles from './Mascot.module.css'
 
@@ -13,11 +13,11 @@ const SIZES: Record<MascotVariant, { width: number; height: number }> = {
 }
 
 // Drawn in code, not in the image, so they can move. Each has its own drift to the side.
-const REACTIONS: Record<MascotVariant, { icon: LucideIcon; dx: number }[]> = {
+const REACTIONS: Record<MascotVariant, { icon: Icon; dx: number }[]> = {
   ready: [
-    { icon: Sparkles, dx: -22 },
+    { icon: Sparkle, dx: -22 },
     { icon: Sparkle, dx: 4 },
-    { icon: Sparkles, dx: 24 },
+    { icon: Sparkle, dx: 24 },
   ],
   friendly: [
     { icon: Heart, dx: -20 },
@@ -25,7 +25,7 @@ const REACTIONS: Record<MascotVariant, { icon: LucideIcon; dx: number }[]> = {
     { icon: Heart, dx: 22 },
   ],
   thinking: [
-    { icon: CircleQuestionMark, dx: -16 },
+    { icon: Question, dx: -16 },
     { icon: Lightbulb, dx: 18 },
   ],
   head: [
@@ -85,7 +85,6 @@ export default function Mascot({ variant, height = 128 }: Props) {
             className={styles.float}
             style={{ '--dx': `${dx}px`, animationDelay: `${i * 40}ms` } as CSSProperties}
             size={18}
-            strokeWidth={2}
             aria-hidden="true"
           />
         ))}

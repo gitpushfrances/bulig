@@ -1,4 +1,4 @@
-import { LogIn, Siren, UserPlus } from 'lucide-react'
+import { SignIn, Siren, UserPlus } from '@phosphor-icons/react'
 import { Link, Navigate, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import styles from '../pages/Page.module.css'
@@ -26,15 +26,15 @@ export default function RequireAccount() {
       <p className={styles.lead}>Nearby services, the map and saved places come with an account.</p>
       <div className={styles.gateActions}>
         <Link className={styles.primaryButton} to={`/login?next=${next}`}>
-          <LogIn size={18} strokeWidth={2} aria-hidden="true" />
+          <SignIn size={18} aria-hidden="true" />
           Sign in
         </Link>
         <Link className={styles.secondary} to={`/signup?next=${next}`}>
-          <UserPlus size={18} strokeWidth={2} aria-hidden="true" />
+          <UserPlus size={18} aria-hidden="true" />
           Create an account
         </Link>
         <Link className={styles.secondary} to="/emergency">
-          <Siren size={18} strokeWidth={2} aria-hidden="true" />
+          <Siren size={18} aria-hidden="true" />
           Emergency numbers
         </Link>
       </div>

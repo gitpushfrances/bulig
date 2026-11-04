@@ -183,8 +183,8 @@ export function LicensesPage() {
     ['Nominatim', 'Address lookup from OpenStreetMap', 'ODbL 1.0 (data)'],
     ['OSRM (FOSSGIS)', 'Routes along OpenStreetMap roads', 'BSD-2-Clause'],
     ['React and React Router', 'App framework and routing', 'MIT'],
-    ['Lucide', 'Icons', 'ISC'],
-    ['Lexend and Source Sans 3', 'Fonts', 'SIL Open Font License 1.1'],
+    ['Phosphor Icons', 'Icons', 'MIT'],
+    ['IBM Plex Sans', 'Font', 'SIL Open Font License 1.1'],
     ['Workbox (vite-plugin-pwa)', 'Offline support', 'MIT'],
   ]
   return (

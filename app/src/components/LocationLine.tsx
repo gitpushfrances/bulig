@@ -1,4 +1,4 @@
-import { ChevronDown, LocateFixed, LocateOff, RotateCw } from 'lucide-react'
+import { ArrowClockwise, CaretDown, Crosshair, GpsSlash } from '@phosphor-icons/react'
 import { useAppData } from '../data/context.ts'
 import { usePhoneLocation } from '../location/context.ts'
 import { NEAR_KM, formatDistance } from '../rules/nearby.ts'
@@ -44,7 +44,7 @@ export default function LocationLine() {
     <div className={styles.line}>
       {place ? (
         <div className={styles.text} aria-live="polite">
-          <LocateFixed className={styles.icon} size={18} strokeWidth={2} aria-hidden="true" />
+          <Crosshair className={styles.icon} size={18} aria-hidden="true" />
           <div className={styles.words}>
             <p className={styles.place}>{place}</p>
             {note && <p className={styles.meta}>{note}</p>}
@@ -52,12 +52,12 @@ export default function LocationLine() {
         </div>
       ) : locating ? (
         <div className={styles.text} aria-live="polite">
-          <LocateFixed className={styles.icon} size={18} strokeWidth={2} aria-hidden="true" />
+          <Crosshair className={styles.icon} size={18} aria-hidden="true" />
           <p className={styles.meta}>Finding your location…</p>
         </div>
       ) : (
         <label className={styles.pick}>
-          <LocateOff className={styles.icon} size={18} strokeWidth={2} aria-hidden="true" />
+          <GpsSlash className={styles.icon} size={18} aria-hidden="true" />
           <span className={styles.words}>
             <span className={styles.meta}>Location is off. Pick your area:</span>
             <span className={styles.select}>
@@ -73,7 +73,7 @@ export default function LocationLine() {
                   </optgroup>
                 ))}
               </select>
-              <ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
+              <CaretDown size={16} aria-hidden="true" />
             </span>
           </span>
         </label>
@@ -86,7 +86,7 @@ export default function LocationLine() {
           aria-busy={locating}
           onClick={refresh}
         >
-          <RotateCw size={18} strokeWidth={2} aria-hidden="true" />
+          <ArrowClockwise size={18} aria-hidden="true" />
         </button>
       )}
     </div>

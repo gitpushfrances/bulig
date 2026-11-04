@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react'
+import { CaretLeft } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
 import styles from '../pages/Page.module.css'
 import { useCanGoBack } from './useCanGoBack.ts'
@@ -9,7 +9,7 @@ export default function BackButton({ fallback }: { fallback: string }) {
   const canGoBack = useCanGoBack()
   return (
     <button type="button" className={styles.back} onClick={() => (canGoBack ? navigate(-1) : navigate(fallback))}>
-      <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
+      <CaretLeft size={20} aria-hidden="true" />
       Back
     </button>
   )

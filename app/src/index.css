@@ -1,11 +1,11 @@
-/* Graphite: a minimal light theme of near-black, greys and white. Colour is kept for meaning
-   only: red for emergencies, green for checked, greys for everything else.
+/* Bulig Teal: zinc greys and white, with the teal of the Bulig logo (and Ropi's scarf) as the
+   brand colour for actions, links and selected states. Red is for emergencies only, green for
+   checked, and the map pins have their own category colours (docs/UI-UX.md, "Map pins").
    Tokens come in three layers (docs/UI-UX.md, "Tokens"): primitives are raw values, semantic
    tokens name a job, component tokens name a part. Components only use semantic or component
    tokens, never a primitive or a raw hex. */
 
-@import '@fontsource-variable/lexend/wght.css';
-@import '@fontsource-variable/source-sans-3/wght.css';
+@import '@fontsource-variable/ibm-plex-sans/wght.css';
 
 :root {
   /* 1. Primitives (zinc greys) */
@@ -28,9 +28,24 @@
   --red-400: #f87171;
   --green-700: #15803d;
   --green-400: #4ade80;
+  --teal-50: #ecfeff;
+  --teal-100: #cffafe;
+  --teal-300: #67e8f9;
+  --teal-400: #22d3ee;
+  --teal-700: #0e7490;
+  --teal-800: #155e75;
+  --teal-900: #0c3a47;
+  --teal-950: #05222a;
+  --pin-tire: #1e293b;
+  --pin-fuel: #0e7490;
+  --pin-mechanic: #6b21a8;
+  --pin-hospital: #0072b2;
+  --pin-supplies: #f59e0b;
+  --pin-other: #3f3f46;
 
-  --font-display: 'Lexend Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Source Sans 3 Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* One family for everything (UI-UX.md, "Typography"), bundled so it works offline. */
+  --font-display: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-body: var(--font-display);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --press-ms: 160ms;
 
@@ -42,13 +57,13 @@
   --color-border: var(--zinc-200);
   /* Inputs and other controls whose edge must be seen (WCAG 1.4.11, 3:1 or more). */
   --color-border-strong: var(--zinc-500);
-  --color-primary: var(--zinc-900);
+  --color-primary: var(--teal-700);
   --color-on-primary: var(--zinc-0);
-  --color-primary-text: var(--zinc-900);
-  --color-selected: var(--zinc-50);
-  --color-deep: var(--zinc-900);
+  --color-primary-text: var(--teal-800);
+  --color-selected: var(--teal-50);
+  --color-deep: var(--teal-950);
   --color-on-deep: var(--zinc-0);
-  --color-on-deep-muted: var(--zinc-300);
+  --color-on-deep-muted: var(--teal-100);
   --color-emergency: var(--red-600);
   --color-on-emergency: var(--zinc-0);
   --color-checked: var(--green-700);
@@ -56,9 +71,11 @@
   --color-sample-text: var(--zinc-700);
   --color-status-bg: var(--zinc-100);
   --color-status-text: var(--zinc-800);
-  --color-focus: var(--zinc-900);
-  --color-selection: var(--zinc-200);
+  --color-focus: var(--teal-700);
+  --color-selection: var(--teal-100);
   --color-error: var(--red-700);
+  /* Icons that say what a category is (tiles, rows). */
+  --color-icon-brand: var(--teal-700);
 
   /* 3. Component */
   --button-call-bg: var(--color-primary);
@@ -99,13 +116,13 @@
     --color-text-muted: var(--zinc-400);
     --color-border: var(--zinc-800);
     --color-border-strong: var(--zinc-500);
-    --color-primary: var(--zinc-25);
-    --color-on-primary: var(--zinc-950);
-    --color-primary-text: var(--zinc-25);
-    --color-selected: var(--zinc-800);
-    --color-deep: var(--zinc-850);
+    --color-primary: var(--teal-400);
+    --color-on-primary: var(--teal-950);
+    --color-primary-text: var(--teal-300);
+    --color-selected: var(--teal-900);
+    --color-deep: var(--teal-950);
     --color-on-deep: var(--zinc-25);
-    --color-on-deep-muted: var(--zinc-400);
+    --color-on-deep-muted: var(--teal-100);
     --color-emergency: var(--red-600);
     --color-on-emergency: var(--zinc-0);
     --color-checked: var(--green-400);
@@ -113,9 +130,10 @@
     --color-sample-text: var(--zinc-200);
     --color-status-bg: var(--zinc-800);
     --color-status-text: var(--zinc-200);
-    --color-focus: var(--zinc-25);
-    --color-selection: var(--zinc-700);
+    --color-focus: var(--teal-300);
+    --color-selection: var(--teal-900);
     --color-error: var(--red-400);
+    --color-icon-brand: var(--teal-300);
   }
 }
 
@@ -126,13 +144,13 @@
   --color-text-muted: var(--zinc-400);
   --color-border: var(--zinc-800);
   --color-border-strong: var(--zinc-500);
-  --color-primary: var(--zinc-25);
-  --color-on-primary: var(--zinc-950);
-  --color-primary-text: var(--zinc-25);
-  --color-selected: var(--zinc-800);
-  --color-deep: var(--zinc-850);
+  --color-primary: var(--teal-400);
+  --color-on-primary: var(--teal-950);
+  --color-primary-text: var(--teal-300);
+  --color-selected: var(--teal-900);
+  --color-deep: var(--teal-950);
   --color-on-deep: var(--zinc-25);
-  --color-on-deep-muted: var(--zinc-400);
+  --color-on-deep-muted: var(--teal-100);
   --color-emergency: var(--red-600);
   --color-on-emergency: var(--zinc-0);
   --color-checked: var(--green-400);
@@ -140,9 +158,10 @@
   --color-sample-text: var(--zinc-200);
   --color-status-bg: var(--zinc-800);
   --color-status-text: var(--zinc-200);
-  --color-focus: var(--zinc-25);
-  --color-selection: var(--zinc-700);
+  --color-focus: var(--teal-300);
+  --color-selection: var(--teal-900);
   --color-error: var(--red-400);
+  --color-icon-brand: var(--teal-300);
 }
 
 :root[data-theme='light'] {

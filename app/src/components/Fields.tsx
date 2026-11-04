@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from 'react'
 import styles from '../pages/Page.module.css'
 
@@ -82,9 +82,9 @@ export function PasswordField({
           onClick={() => setShow((s) => !s)}
         >
           {show ? (
-            <EyeOff size={20} strokeWidth={1.75} aria-hidden="true" />
+            <EyeSlash size={20} aria-hidden="true" />
           ) : (
-            <Eye size={20} strokeWidth={1.75} aria-hidden="true" />
+            <Eye size={20} aria-hidden="true" />
           )}
         </button>
       }

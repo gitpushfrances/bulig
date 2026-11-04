@@ -126,13 +126,34 @@
   height: 36px;
   margin-bottom: 6px;
   padding: 0;
-  border: 2px solid var(--color-surface);
+  border: 2px solid #ffffff;
   border-radius: 999px;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--pin-bg, var(--pin-other));
+  color: var(--pin-fg, #ffffff);
+  outline: 1px solid rgb(0 0 0 / 0.45);
   cursor: pointer;
   box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
   transition: transform 160ms var(--ease-out);
+}
+
+/* Each kind of place has its own pin colour (UI-UX.md, "Map pins"); the icon and the label still
+   say what it is, so colour is never the only cue. Food and store share amber with a dark icon. */
+.pin[data-category='tire_repair'] {
+  --pin-bg: var(--pin-tire);
+}
+.pin[data-category='fuel'] {
+  --pin-bg: var(--pin-fuel);
+}
+.pin[data-category='mechanic'] {
+  --pin-bg: var(--pin-mechanic);
+}
+.pin[data-category='hospital'] {
+  --pin-bg: var(--pin-hospital);
+}
+.pin[data-category='food'],
+.pin[data-category='store'] {
+  --pin-bg: var(--pin-supplies);
+  --pin-fg: #0b2530;
 }
 
 /* The point under the pin. */
@@ -144,14 +165,14 @@
   width: 8px;
   height: 8px;
   margin-left: -4px;
-  background: var(--color-primary);
+  background: var(--pin-bg, var(--pin-other));
   transform: rotate(45deg);
-  border-right: 2px solid var(--color-surface);
-  border-bottom: 2px solid var(--color-surface);
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
 }
 
 .pinOn {
-  border-color: var(--color-primary);
+  border-color: var(--pin-bg, var(--pin-other));
   background: var(--color-surface);
   color: var(--color-text);
   transform: scale(1.15);
@@ -159,7 +180,7 @@
 
 .pinOn::after {
   background: var(--color-surface);
-  border-color: var(--color-primary);
+  border-color: var(--pin-bg, var(--pin-other));
 }
 
 /* Blue is kept for "you are here" only, with the one recurring map cue: a soft halo. */

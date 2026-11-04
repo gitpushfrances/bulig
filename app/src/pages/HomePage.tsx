@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { CaretRight } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { HotlineCard, NumberRow, PlaceRow, SectionHead, ServiceBento } from '../components/Cards.tsx'
@@ -34,6 +34,10 @@ export default function HomePage() {
       <h1 id="home-title" className={styles.title}>
         What do you need?
       </h1>
+      {/* A Filipino line under the English one: English first, Filipino next (CHANGELOG, 2026-11-01). */}
+      <p className={styles.lead} lang="fil">
+        Ano&apos;ng kailangan mo?
+      </p>
 
       {ready && <ServiceBento ranked={ranked} labels={labels} />}
       {loading && <BentoSkeleton />}
@@ -57,7 +61,7 @@ export default function HomePage() {
             )}
             <Link className={`${styles.more} ${styles.moreEnd}`} to="/emergency">
               All emergency numbers
-              <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
+              <CaretRight size={16} aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -118,7 +122,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      <p className={styles.footnote}>Pull over safely before using your phone.</p>
+      <p className={styles.footnote}>
+        Pull over safely before using your phone. <span lang="fil">Tumabi muna bago mag-cellphone.</span>
+      </p>
     </section>
   )
 }

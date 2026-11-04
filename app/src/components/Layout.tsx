@@ -1,23 +1,22 @@
-import { CloudOff, Heart, House, LayoutGrid, Map as MapIcon, TriangleAlert, type LucideIcon } from 'lucide-react'
+import { CloudSlash, Heart, House, type Icon, MapTrifold as MapIcon, SquaresFour, Warning } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import Avatar from './Avatar.tsx'
-import { ICON_STROKE } from './icons.ts'
 import styles from './Layout.module.css'
 
 interface Tab {
   to: string
   label: string
   // Profile has no icon: it shows the person's photo, or Ropi's head.
-  icon?: LucideIcon
+  icon?: Icon
   // Other paths that belong to this tab, such as /about under Profile.
   also?: string[]
 }
 
 const tabs: Tab[] = [
   { to: '/', label: 'Home', icon: House },
-  { to: '/services', label: 'Services', icon: LayoutGrid, also: ['/nearby', '/place'] },
+  { to: '/services', label: 'Services', icon: SquaresFour, also: ['/nearby', '/place'] },
   { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/saved', label: 'Saved', icon: Heart },
   { to: '/profile', label: 'Profile', also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
@@ -37,7 +36,7 @@ function EmergencyButton({ pathname }: { pathname: string }) {
   if (pathname === '/emergency' || pathname === '/map') return null
   return (
     <Link to="/emergency" className={styles.fab} aria-label="Emergency numbers">
-      <TriangleAlert size={24} strokeWidth={2.25} aria-hidden="true" />
+      <Warning size={24} aria-hidden="true" />
     </Link>
   )
 }
@@ -94,7 +93,7 @@ export default function Layout() {
               >
                 <span className={`${styles.tabIcon} ${Icon ? '' : styles.tabAvatar}`}>
                   {Icon ? (
-                    <Icon size={22} strokeWidth={active ? 2 : ICON_STROKE} aria-hidden="true" />
+                    <Icon size={22} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
                   ) : (
                     <Avatar size={26} ring={active} />
                   )}
@@ -109,7 +108,7 @@ export default function Layout() {
       <div className={styles.column}>
         {!online && (
           <p className={styles.offline} role="status">
-            <CloudOff size={15} strokeWidth={2} aria-hidden="true" />
+            <CloudSlash size={15} aria-hidden="true" />
             Offline: showing saved info
           </p>
         )}

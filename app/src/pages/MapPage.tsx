@@ -1,4 +1,4 @@
-import { LocateFixed, Phone, Route as RouteIcon, TriangleAlert, X } from 'lucide-react'
+import { Crosshair, Path as RouteIcon, Phone, Warning, X } from '@phosphor-icons/react'
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -341,7 +341,7 @@ export default function MapPage() {
           const Icon = CATEGORY_ICONS[c]
           return (
             <button key={c} type="button" aria-pressed={filter === c} onClick={() => setFilter(filter === c ? null : c)}>
-              <Icon size={16} strokeWidth={2} aria-hidden="true" />
+              <Icon size={16} aria-hidden="true" />
               {categoryLabel(c, labels)}
             </button>
           )
@@ -350,10 +350,10 @@ export default function MapPage() {
 
       <div className={styles.controls}>
         <Link to="/emergency" className={styles.sos} aria-label="Emergency numbers">
-          <TriangleAlert size={22} strokeWidth={2.25} aria-hidden="true" />
+          <Warning size={22} aria-hidden="true" />
         </Link>
         <button type="button" className={styles.control} onClick={recentre} aria-label="Go to my location">
-          <LocateFixed size={20} strokeWidth={2} aria-hidden="true" />
+          <Crosshair size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -365,9 +365,10 @@ export default function MapPage() {
           <button
             type="button"
             className={`${styles.pin} ${selected === id ? styles.pinOn : ''}`}
+            data-category={r.item.category}
             aria-label={`${r.item.name}, ${r.item.subtype ?? categoryLabel(r.item.category, labels)}`}
           >
-            <Icon size={18} strokeWidth={2} aria-hidden="true" />
+            <Icon size={18} aria-hidden="true" />
           </button>,
           el,
           id,
@@ -390,13 +391,13 @@ export default function MapPage() {
             {picked.item.sample && <span className={page.sample}>SAMPLE</span>}
             <SaveButton id={picked.item.id} name={picked.item.name} />
             <button type="button" className={styles.close} onClick={() => setSelected(routeTo)} aria-label="Close">
-              <X size={20} strokeWidth={2} aria-hidden="true" />
+              <X size={20} aria-hidden="true" />
             </button>
           </div>
           <div className={page.actions}>
             {picked.item.phone && (
               <a className={page.call} href={telHref(picked.item.phone)} aria-label={`Call ${picked.item.name}`}>
-                <Phone size={18} strokeWidth={2} aria-hidden="true" />
+                <Phone size={18} aria-hidden="true" />
                 Call
               </a>
             )}
@@ -406,7 +407,7 @@ export default function MapPage() {
               onClick={() => startRoute(picked.item.id)}
               aria-label={`Route to ${picked.item.name}`}
             >
-              <RouteIcon size={18} strokeWidth={2} aria-hidden="true" />
+              <RouteIcon size={18} aria-hidden="true" />
               {target ? 'Route here instead' : 'Route'}
             </button>
             <Link className={page.secondary} to={placeHref(picked.item)} aria-label={`Details for ${picked.item.name}`}>
