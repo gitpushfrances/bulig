@@ -108,10 +108,15 @@
   animation: stack-in 320ms var(--ease-out) 200ms both;
 }
 
-/* Short phones: a little less air above the mark. */
-@media (max-height: 44rem) {
+/* Most phones once the browser bar is counted: less air around the card. */
+@media (max-height: 50rem) {
   .main {
-    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  }
+
+  .column {
+    gap: 16px;
+    padding-top: 16px;
   }
 }
 

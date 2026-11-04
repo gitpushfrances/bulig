@@ -5,6 +5,7 @@ import { useAuth } from '../auth/context.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
+import Spinner from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT } from '../components/fieldRules.ts'
 import { shake } from '../components/shake.ts'
@@ -28,17 +29,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  // Wrong email or password: the server never says which (API.md §4.2), so both turn red and the
+  // password shakes (the usual culprit). No signal or too many tries: no field is wrong.
+  const [wrong, setWrong] = useState(false)
   const [formError, setFormError] = useState('')
   const [busy, setBusy] = useState(false)
-  const fields = useRef<HTMLDivElement>(null)
+  const passwordRef = useRef<HTMLDivElement>(null)
 
   if (account) return <Navigate to={next} replace />
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!email.trim() || !password) {
-      setFormError('Enter your email and password.')
-      shake(fields.current)
+    const missing = { email: email.trim() ? '' : 'Enter your email.', password: password ? '' : 'Enter your password.' }
+    if (missing.email || missing.password) {
+      setEmailError(missing.email)
+      setPasswordError(missing.password)
       return
     }
     setBusy(true)
@@ -46,7 +52,10 @@ export default function LoginPage() {
     setBusy(false)
     if (!result.ok) {
       setFormError(LOGIN_ERRORS[result.reason])
-      if (result.reason === 'wrong') shake(fields.current)
+      if (result.reason === 'wrong') {
+        setWrong(true)
+        shake(passwordRef.current)
+      }
       return
     }
     navigate(next, { replace: true })
@@ -63,7 +72,7 @@ export default function LoginPage() {
       </div>
 
       <form className={styles.form} onSubmit={submit} noValidate>
-        <div ref={fields} className={styles.fields}>
+        <div className={styles.fields}>
           <TextField
             label="Email"
             placeholder="you@example.com"
@@ -72,26 +81,43 @@ export default function LoginPage() {
             enterKeyHint="next"
             value={email}
             error={emailError}
+            invalid={wrong}
             onChange={(v) => {
               setEmail(v)
               setEmailError('')
               setFormError('')
+              setWrong(false)
             }}
             onBlur={() => setEmailError(email && !email.includes('@') ? 'Enter an email like name@example.com.' : '')}
           />
-          <PasswordField
-            autoComplete="current-password"
-            enterKeyHint="go"
-            value={password}
-            onChange={(v) => {
-              setPassword(v)
-              setFormError('')
-            }}
-          />
+          <div ref={passwordRef}>
+            <PasswordField
+              autoComplete="current-password"
+              enterKeyHint="go"
+              value={password}
+              error={passwordError}
+              invalid={wrong}
+              onChange={(v) => {
+                setPassword(v)
+                setPasswordError('')
+                setFormError('')
+                setWrong(false)
+              }}
+            />
+          </div>
         </div>
-        {formError && <FormAlert onClose={() => setFormError('')}>{formError}</FormAlert>}
-        <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
-          <SignIn size={18} aria-hidden="true" />
+        {formError && (
+          <FormAlert
+            onClose={() => {
+              setFormError('')
+              setWrong(false)
+            }}
+          >
+            {formError}
+          </FormAlert>
+        )}
+        <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy} aria-busy={busy}>
+          {busy ? <Spinner /> : <SignIn size={18} aria-hidden="true" />}
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
         <Link className={`${styles.link} ${styles.forgot}`} to="/forgot-password">

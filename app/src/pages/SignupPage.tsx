@@ -6,10 +6,11 @@ import { canRegister } from '../auth/canRegister.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
+import Spinner from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT, looksLikeEmail } from '../components/fieldRules.ts'
 import type { MascotVariant } from '../components/Mascot.tsx'
-import { shake, shakeInvalid } from '../components/shake.ts'
+import { shakeInvalid } from '../components/shake.ts'
 import RopiSays from '../components/RopiSays.tsx'
 import page from './Page.module.css'
 import styles from './Auth.module.css'
@@ -29,52 +30,44 @@ const STEPS: Step[] = [
     ropi: 'ready',
     says: (
       <>
-        <strong>Hi, I&apos;m Ropi!</strong> I&apos;ll show you around Bulig. It takes a minute.
+        <strong>Hi, I&apos;m Ropi!</strong> A quick tour, under a minute.
       </>
     ),
     title: 'Help along the way',
     points: [
-      {
-        icon: ShieldCheck,
-        title: 'What Bulig is',
-        text: 'Checked emergency numbers and the nearest road services, wherever you travel in the Philippines.',
-      },
-      {
-        icon: Crosshair,
-        title: 'Built around where you are',
-        text: 'Bulig finds your barangay and town from GPS and sorts every place by distance.',
-      },
+      { icon: ShieldCheck, title: 'Checked help, nationwide', text: 'Emergency numbers and road services across the Philippines.' },
+      { icon: Crosshair, title: 'Nearest first', text: 'GPS finds your town and sorts places by distance.' },
     ],
   },
   {
     ropi: 'friendly',
-    says: "Here's how it helps on a normal day.",
+    says: 'A normal day on the road:',
     title: 'Every day on the road',
     points: [
-      { icon: Tire, title: 'Flat tire?', text: 'Open Vulcanizing: the nearest shop first, with Call and Directions.' },
-      { icon: GasPump, title: 'Low on gas or need a mechanic?', text: 'Gas stations and mechanics near you, nearest first.' },
-      { icon: Sparkle, title: 'Hungry or need a room?', text: 'Restos, hotels, and new local stalls under Others.' },
-      { icon: Heart, title: 'Keep the good ones', text: 'Tap the heart to save places you trust.' },
+      { icon: Tire, title: 'Flat tire?', text: 'The nearest vulcanizing shop.' },
+      { icon: GasPump, title: 'Gas or a mechanic?', text: 'Nearest first.' },
+      { icon: Sparkle, title: 'Food or a room?', text: 'Restos, hotels and local stalls.' },
+      { icon: Heart, title: 'Keep the good ones', text: 'Tap the heart to save a place.' },
     ],
   },
   {
     ropi: 'thinking',
-    says: 'Why use Bulig and not just search?',
+    says: 'Why not just search?',
     title: 'Why Bulig',
     points: [
-      { icon: CheckCircle, title: 'Checked, with dates', text: 'Every number and place shows when it was last checked.' },
-      { icon: WifiSlash, title: 'Works with no signal', text: 'After one visit, numbers and places stay on your phone.' },
-      { icon: ShieldCheck, title: 'Free and clean', text: 'No ads, no paywall, and nothing ever stands in front of 911.' },
+      { icon: CheckCircle, title: 'Checked, with dates', text: 'Every place shows when it was last checked.' },
+      { icon: WifiSlash, title: 'Works with no signal', text: 'After one visit, it stays on your phone.' },
+      { icon: ShieldCheck, title: 'Free and clean', text: 'No ads, and nothing in front of 911.' },
     ],
   },
   {
     ropi: 'head',
-    says: 'One last thing: staying safe.',
+    says: 'Last thing: stay safe.',
     title: 'Safety first',
     points: [
-      { icon: Warning, title: 'Emergency is one tap away', text: 'The red button on every screen opens 911 and local authorities.' },
-      { icon: WarningOctagon, title: 'Pull over first', text: 'Use your phone only when you have stopped safely.' },
-      { icon: PhoneCall, title: 'Always call', text: 'Bulig shows numbers. It never sends help or your location by itself.' },
+      { icon: Warning, title: '911 is one tap away', text: 'The red button opens emergency numbers.' },
+      { icon: WarningOctagon, title: 'Pull over first', text: 'Use your phone only when stopped.' },
+      { icon: PhoneCall, title: 'You make the call', text: 'Bulig never sends help or your location.' },
     ],
   },
 ]
@@ -137,7 +130,8 @@ function SignupForm({ next }: { next: string }) {
     setBusy(false)
     if (!result.ok) {
       setFormError(result.reason)
-      shake(form.current?.querySelector(`.${page.field}:nth-child(2)`)) // the email: "taken" is the usual one
+      // A taken email is the email field's problem: it turns red and shakes. Other reasons aren't a field's.
+      if (result.reason === 'taken') shakeInvalid(form.current, `.${page.field}`)
       return
     }
     navigate(next, { replace: true })
@@ -171,6 +165,7 @@ function SignupForm({ next }: { next: string }) {
         enterKeyHint="next"
         value={email}
         error={errors.email}
+        invalid={formError === 'taken'}
         onChange={(v) => {
           setEmail(v)
           clear('email')
@@ -223,8 +218,8 @@ function SignupForm({ next }: { next: string }) {
           )}
         </FormAlert>
       )}
-      <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
-        <UserPlus size={18} aria-hidden="true" />
+      <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy} aria-busy={busy}>
+        {busy ? <Spinner /> : <UserPlus size={18} aria-hidden="true" />}
         {busy ? 'Creating your account…' : 'Create account'}
       </button>
     </form>
@@ -273,7 +268,9 @@ export default function SignupPage() {
       <div key={at} className={styles.step}>
         {onForm ? (
           <>
-            <AuthMark always />
+            <div className={styles.formMark}>
+              <AuthMark always />
+            </div>
             <div className={styles.head}>
               <h1 ref={heading} tabIndex={-1} className={styles.title}>
                 Create your account
@@ -283,7 +280,7 @@ export default function SignupPage() {
           </>
         ) : (
           <>
-            <RopiSays variant={step.ropi} height={120}>
+            <RopiSays variant={step.ropi} height={76} side>
               {step.says}
             </RopiSays>
             <h1 ref={heading} tabIndex={-1} className={styles.stepTitle}>

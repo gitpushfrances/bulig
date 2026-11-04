@@ -10,11 +10,14 @@ export function TextField({
   error,
   hint,
   trailing,
+  invalid,
   onChange,
   ...input
 }: InputProps & {
   label: string
   error?: string
+  // Red outline with no message of its own: the form's alert says what's wrong (a wrong password).
+  invalid?: boolean
   hint?: string
   trailing?: ReactNode
   onChange: (v: string) => void
@@ -25,7 +28,7 @@ export function TextField({
     <input
       id={id}
       className={`${styles.input} ${trailing ? styles.withTrail : ''}`}
-      aria-invalid={error ? true : undefined}
+      aria-invalid={error || invalid ? true : undefined}
       aria-describedby={describedBy}
       onChange={(e) => onChange(e.target.value)}
       {...input}
