@@ -106,6 +106,43 @@ describe('apiStore', () => {
     expect(result).toMatchObject({ name: 'Juan', phone: '+639171234567' })
   })
 
+  it('uploads the photo as multipart, keeps its URL, removes it, and says why it failed', async () => {
+    const { fetchFn, calls } = server(
+      { body: { photoUrl: 'https://res.cloudinary.com/x/bulig/avatars/a.webp' } },
+      { status: 204 },
+      { status: 503, body: { message: 'Photo storage is not set up.' } },
+      { status: 429, body: {} },
+      new TypeError('Failed to fetch'),
+    )
+    const store = createApiStore(BASE, fetchFn)
+    localStorage.setItem('bulig.token', '1|abc')
+    const account = { email: 'ana@example.com', name: 'Ana', role: 'user' as const, areas: [] }
+    const photo = `data:image/webp;base64,${btoa('RIFF0000WEBP')}`
+
+    expect(await store.setPhoto(account, photo)).toEqual({ ok: true, photo: 'https://res.cloudinary.com/x/bulig/avatars/a.webp' })
+    expect(calls[0].url).toBe(`${BASE}/me/photo`)
+    expect(calls[0].init.method).toBe('POST')
+    const form = calls[0].init.body as FormData
+    expect(form).toBeInstanceOf(FormData)
+    expect((form.get('photo') as File).type).toBe('image/webp')
+    // The browser sets the multipart boundary itself, so no JSON Content-Type is sent.
+    expect(header(calls[0].init, 'Content-Type')).toBeUndefined()
+    expect(store.restore()?.photo).toBe('https://res.cloudinary.com/x/bulig/avatars/a.webp')
+
+    expect(await store.setPhoto(account, null)).toEqual({ ok: true, photo: null })
+    expect(calls[1].init.method).toBe('DELETE')
+
+    expect(await store.setPhoto(account, photo)).toEqual({ ok: false, reason: 'unavailable' })
+    expect(await store.setPhoto(account, photo)).toEqual({ ok: false, reason: 'busy' })
+    expect(await store.setPhoto(account, photo)).toEqual({ ok: false, reason: 'offline' })
+  })
+
+  it('reads the photo URL from the server account', async () => {
+    const { fetchFn } = server({ body: { token: '1|abc', user: { ...user, photoUrl: 'https://res.cloudinary.com/p.webp' } } })
+    const result = await createApiStore(BASE, fetchFn).signIn('ana@example.com', 'long enough')
+    expect(result.ok && result.account.photo).toBe('https://res.cloudinary.com/p.webp')
+  })
+
   it('saves and unsaves hearts on the server, and sends old phone hearts once on sign-in', async () => {
     localStorage.setItem('bulig.saved.ana@example.com', JSON.stringify(['ph-old-shop']))
     const { fetchFn, calls } = server({ body: { token: '1|abc', user } }, { status: 204 }, { status: 204 }, { status: 204 })

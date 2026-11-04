@@ -15,8 +15,8 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 1. [Conventions](#1-conventions)
 2. [All requests at a glance](#2-all-requests-at-a-glance)
 3. [Public data](#3-public-data): areas, emergency contacts, services, labels
-4. [Accounts](#4-accounts): register, login, logout, forgot and reset password
-5. [Me](#5-me): profile, photo, password, delete account
+4. [Accounts](#4-accounts): register, login, logout, forgot and reset password, confirm a new email
+5. [Me](#5-me): profile, photo, password, delete account, change email
 6. [Saved places](#6-saved-places)
 7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health)
 8. [Shared objects](#8-shared-objects)
@@ -41,7 +41,7 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope; at login, `{"message": "...", "reason": "suspended"}` for a suspended account), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
 | CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
-| Rate limits | Auth endpoints 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; everything else 120/min per token or IP. |
+| Rate limits | Auth endpoints 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; email changes 5/hour per user; everything else 120/min per token or IP. |
 | Versioning | `/api/v1`. A breaking change means `/api/v2` (see [§11](#11-changing-this-contract)). The data envelopes keep `"version": 1`. |
 
 ---
@@ -63,8 +63,8 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 9 | Reset password | `POST /auth/reset-password` | — | 4 | `pages/ResetPasswordPage.tsx` at `/reset-password?token=&email=` |
 | 10 | Who am I | `GET /me` | 🔒 | 4 | `refresh()` in `auth/apiStore.ts` on every start; `401` signs the phone out |
 | 11 | Edit profile | `PATCH /me` | 🔒 | 4 | `updateProfile()` in `auth/apiStore.ts`; phone sent as E.164 |
-| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | Not wired yet (backend live since bulig-backend#23): the photo stays on the phone in `bulig.profile.<email>` |
-| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | Not wired yet (backend live) |
+| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | `setPhoto()` in `auth/apiStore.ts`, on Edit profile's Save when the photo changed (a photo kept only on the phone before is sent on the next save) |
+| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | `setPhoto(account, null)` in `auth/apiStore.ts` |
 | 14 | Change password | `PUT /me/password` | 🔒 | 4 | `changePassword()` in `auth/apiStore.ts` |
 | 15 | Delete account | `DELETE /me` | 🔒 | 4 | `deleteAccount()` in `auth/apiStore.ts` (sends `{confirm: "delete"}`) |
 | 16 | List saved | `GET /me/saved` | 🔒 | 4 | `loadSaved()` in `auth/apiStore.ts` after sign-in and on start |
@@ -77,6 +77,9 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 23 | My app problems and their status | `GET /me/issues` | 🔒 | 4 | Not built |
 | 24 | Public settings (banner, submissions on/off) | `GET /settings` | — | 4 | Not built |
 | 25 | Health check (UptimeRobot, not the app) | `GET /health` | — | 4 | Not called by the app |
+| 26 | Change email (sends a confirmation link) | `POST /me/email` | 🔒 | 4 | `requestEmailChange()` in `auth/apiStore.ts` (`pages/AccountPages.tsx`, `/profile/email`) |
+| 27 | Cancel an email change | `DELETE /me/email` | 🔒 | 4 | `cancelEmailChange()` in `auth/apiStore.ts` |
+| 28 | Confirm the new email (the link) | `POST /auth/confirm-email` | — | 4 | `pages/ConfirmEmailPage.tsx` at `/confirm-email?token=` |
 
 Admin and moderator screens (Filament at `/panel`, Phase 4) are server-side and not part of this contract: review queue, places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
 
@@ -320,6 +323,16 @@ No body. Revokes the current token. **204.** The app also clears its copy (`buli
 
 **204** on success (all the user's tokens are revoked; they sign in again). **Errors:** `422` invalid or expired token, or a short password.
 
+### 4.6 `POST /auth/confirm-email`
+
+The link from [§5.7](#57-post-meemail-)'s email. No token needed: the link may open in another browser or on a laptop.
+
+**Request:** `{ "token": "<from the email link>" }`
+
+**200** `{ "email": "juan@example.com" }`. The account's email is now the new one (and counts as verified), the pending change is cleared, and any password reset link sent to the old address stops working. Signed-in phones stay signed in; their next `GET /me` shows the new email. From now on the person signs in with the new email.
+
+**Errors:** `422 errors.token: ["invalid"]` for an unknown, used, cancelled or expired link (the app shows "That link has expired or was already used. Ask for a new one from Profile."), `422 errors.token: ["taken"]` if another account took that email in the meantime.
+
 ---
 
 ## 5. Me
@@ -344,7 +357,7 @@ Edit profile (`/profile/edit`). Send only what changed.
 | `phone` | `null`, or a PH mobile number. The form accepts `0917 123 4567` or `+63 917 123 4567`; send it normalised to E.164 (`+639171234567`). |
 | `homeArea` | `null` or an existing area ID |
 
-`email` and `role` can't be changed here (`422` if sent). **200:** the updated User.
+`email` and `role` can't be changed here (`422` if sent); email changes go through [§5.7](#57-post-meemail-). **200:** the updated User.
 
 ### 5.3 `POST /me/photo` 🔒
 
@@ -369,6 +382,30 @@ Edit profile (`/profile/edit`). Send only what changed.
 **Request:** `{ "confirm": "delete" }` (the word the person typed on Profile).
 
 **204.** Deletes the account, its saved list, photo and tokens (soft delete for 30 days for abuse handling, then purged; say so in the Privacy Policy). Admins and moderators get `403` until an admin removes their role.
+
+### 5.7 `POST /me/email` 🔒
+
+Change email (`/profile/email`). Nothing changes until the person opens the link sent to the **new** address, so a typo can't lock them out: they keep signing in with the old email until then.
+
+**Request:** `{ "newEmail": "juan@example.com", "currentPassword": "long enough" }`
+
+| Field | Rules |
+| --- | --- |
+| `newEmail` | required, valid email, at most 191 characters, stored lower-cased and trimmed. Not the current email (`same`), not another account's (`taken`). |
+| `currentPassword` | required, must match (`incorrect`), so a phone left signed in can't be used to take the account. |
+
+**202** `{ "pendingEmail": "juan@example.com" }`. Two emails go out:
+
+- To the **new** address: a link to `https://<app>/confirm-email?token=<token>`, valid 60 minutes ([§4.6](#46-post-authconfirm-email)).
+- To the **old** address: a notice that someone asked to move the account to `ju***@example.com`, with no link, saying "If this wasn't you, change your password now."
+
+Asking again replaces the earlier link. The token is 64 random characters; the server keeps only its SHA-256 hash.
+
+**Errors:** `422 errors.newEmail: ["same"]` ("That's already your email."), `422 errors.newEmail: ["taken"]` ("That email already has an account."), `422 errors.currentPassword: ["incorrect"]` ("That isn't your current password."), `429` after 5 requests in an hour (the app shows "Too many tries. Wait an hour and try again.").
+
+### 5.8 `DELETE /me/email` 🔒
+
+Cancels a pending change, so its link stops working. **204**, also when nothing was pending.
 
 ---
 
@@ -500,9 +537,12 @@ Not part of the app's contract: `POST /internal/schedule` (alpha and beta on Ren
   "createdAt": "2026-10-30",
   "phone": "+639171234567",
   "homeArea": "ph-cebu-cebu-city",
-  "photoUrl": null
+  "photoUrl": null,
+  "pendingEmail": null
 }
 ```
+
+`pendingEmail` is the address waiting for confirmation ([§5.7](#57-post-meemail-)), or `null`. It turns back to `null` when the link is used, cancelled or expires.
 
 Matches `Account` in `app/src/auth/types.ts`, except `photo` (a data URL on the phone today) becomes `photoUrl`. `areas` lists a moderator's area IDs (each covers the areas inside it); empty for users and admins. Until area assignment ships it is `[]` for everyone, and an empty list on a moderator means the whole country. Never returned: password hashes, tokens, deleted state.
 

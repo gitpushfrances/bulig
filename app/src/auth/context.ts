@@ -2,6 +2,8 @@ import { createContext, useContext } from 'react'
 import type { ChangePasswordResult, NewAccount, RegisterResult, SignInResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
+export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | { photo: 'offline' | 'invalid' | 'busy' | 'unavailable' }
+
 export interface Auth {
   account: Account | null
   // Browsing without an account: Emergency only (911 and local authorities).
@@ -10,8 +12,9 @@ export interface Auth {
   signIn: (email: string, password: string) => Promise<SignInResult>
   register: (details: NewAccount) => Promise<RegisterResult>
   signOut: () => void
-  // 'ok', or why it didn't save: no connection, or the server refused a field.
-  updateProfile: (details: ProfileDetails) => Promise<'ok' | 'offline' | 'invalid'>
+  // 'ok', or why it didn't save: no connection, or the server refused a field. `photo`: the details
+  // saved but the photo didn't (and why), so the page can say exactly that.
+  updateProfile: (details: ProfileDetails) => Promise<UpdateProfileResult>
   // Test logins keep their password.
   changePassword: (current: string, next: string) => Promise<ChangePasswordResult>
   // Removes the account and its saved places (on the server, or from this phone). False if it couldn't.

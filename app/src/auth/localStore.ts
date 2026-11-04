@@ -59,6 +59,11 @@ export const localStore: AccountStore = {
     return { ...account, ...details }
   },
 
+  // Phone-only accounts keep the photo with their other details (AuthProvider, bulig.profile.*).
+  async setPhoto(_account, photo) {
+    return { ok: true, photo }
+  },
+
   async changePassword(account, current, next) {
     return (await changeLocalPassword(account.email, current, next)) ? 'ok' : 'wrong'
   },

@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { appAccounts } from './appAccounts.ts'
 import { AuthContext } from './context.ts'
-import type { AccountStore, NewAccount } from './store.ts'
+import type { UpdateProfileResult } from './context.ts'
+import type { AccountStore, NewAccount, SetPhotoResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
 const GUEST_KEY = 'bulig.guest'
@@ -16,12 +17,13 @@ function readDetails(email: string): Partial<ProfileDetails> {
   }
 }
 
-// The account plus what Edit profile keeps on this phone. With server accounts that is only the
-// photo (uploads come later); with phone-only accounts it is every detail.
+// The account plus what Edit profile keeps on this phone. With server accounts the photo comes from
+// the server (photoUrl); a photo picked before uploads existed shows until the next save sends it.
+// With phone-only accounts it is every detail.
 function withDetails(account: Account | null, store: AccountStore): Account | null {
   if (!account) return null
   const details = readDetails(account.email)
-  if (store.online) return { ...account, photo: details.photo }
+  if (store.online) return { ...account, photo: account.photo ?? details.photo }
   return { ...account, ...details, name: details.name?.trim() || account.name }
 }
 
@@ -87,7 +89,7 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     setGuest(true)
   }
 
-  const updateProfile = async (details: ProfileDetails) => {
+  const updateProfile = async (details: ProfileDetails): Promise<UpdateProfileResult> => {
     if (!account) return 'offline' as const
     const clean: ProfileDetails = {
       name: details.name.trim() || account.name,
@@ -101,9 +103,22 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
       homeArea: clean.homeArea ?? null,
     })
     if (result === 'offline' || result === 'invalid') return result
-    writeSaved(profileKey(account.email), JSON.stringify(store.online ? { photo: clean.photo } : clean))
-    setAccount(withDetails(store.online ? result : { ...result, ...clean }, store))
-    return 'ok' as const
+    // The photo has its own request, only when it changed. A photo only on this phone (picked before
+    // uploads existed: a data URL while the server has none) is sent on this save too.
+    let photo = store.online ? result.photo : account.photo
+    let photoFailed: Exclude<SetPhotoResult, { ok: true }>['reason'] | null = null
+    const unsent = store.online && !!clean.photo?.startsWith('data:')
+    if (clean.photo !== account.photo || unsent) {
+      const sent = await store.setPhoto(result, clean.photo ?? null)
+      if (sent.ok) photo = sent.photo ?? undefined
+      else photoFailed = sent.reason
+    }
+    writeSaved(
+      profileKey(account.email),
+      store.online ? (photoFailed ? JSON.stringify({ photo: account.photo }) : null) : JSON.stringify({ ...clean, photo }),
+    )
+    setAccount(withDetails(store.online ? { ...result, photo } : { ...result, ...clean, photo }, store))
+    return photoFailed ? { photo: photoFailed } : ('ok' as const)
   }
 
   const changePassword = (current: string, next: string) =>

@@ -59,6 +59,17 @@ export function EditProfilePage() {
     const result = await updateProfile({ name, phone, homeArea: homeArea || null, photo })
     setSaving(false)
     if (result === 'ok') navigate('/profile')
+    else if (typeof result === 'object')
+      // The details saved; only the photo didn't.
+      setSaveError(
+        result.photo === 'offline'
+          ? "Your details are saved, but the photo didn't upload. Check your connection and save again."
+          : result.photo === 'invalid'
+            ? "Your details are saved, but Bulig couldn't use that photo. Try another one."
+            : result.photo === 'busy'
+              ? 'Your details are saved. You changed your photo many times today; try again tomorrow.'
+              : "Your details are saved. Photos can't be uploaded right now; try again later.",
+      )
     else
       setSaveError(
         result === 'offline'
@@ -70,7 +81,7 @@ export function EditProfilePage() {
   return (
     <SubPage
       title="Edit profile"
-      lead={accountsOnline ? 'Your photo stays on this phone for now.' : 'This stays on this phone until accounts move online.'}
+      lead={accountsOnline ? 'Saved to your account, so it follows you to any phone.' : 'This stays on this phone until accounts move online.'}
     >
       <form className={styles.form} onSubmit={submit} noValidate>
         <div className={styles.photoRow}>
@@ -104,7 +115,7 @@ export function EditProfilePage() {
                 Remove
               </button>
             )}
-            <p className={page.hint}>{photo ? 'Shown on your Profile tab.' : 'Until you add one, Ropi stands in.'}</p>
+            <p className={page.hint}>{photo ? 'Shown on Home and your Profile.' : 'Until you add one, Ropi stands in on Profile and your initials on Home.'}</p>
             {photoError && <p className={page.error}>{photoError}</p>}
           </div>
         </div>
