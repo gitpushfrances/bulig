@@ -229,7 +229,7 @@ export function PrivacyPage() {
             <li>Profile and update photos: Cloudinary.</li>
             <li>Account emails: sent through Brevo, which sees your email address and the message.</li>
             <li>
-              On your phone: your sign-in token, theme, last area and address, and a copy of the data for offline
+              On your phone: your sign-in token, theme, last area and address, the last map view, and a copy of the data for offline
               use. Clearing the browser’s site data removes them.
             </li>
           </ul>

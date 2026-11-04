@@ -579,6 +579,7 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.guest` | Old guest flag (guest mode removed 2026-11-04) | Cleared on start |
 | `bulig.area`, `bulig.country` | Picked area and country | Stay on the phone (`homeArea` is the server-side preference) |
 | `bulig.address` | Last looked-up address | Stays on the phone |
+| `bulig.mapView` | Last Map view (centre rounded to ~100 m, zoom), to reopen the map there | Stays on the phone |
 | `bulig.theme` | System / Light / Dark | Stays on the phone |
 | `bulig.route` (sessionStorage) | The route in progress | Stays on the phone |
 | Test logins (`auth/testAccount.ts`) | `test@`, `moderator@`, `admin@bulig.com` | **Removed.** Seed real accounts in Filament |

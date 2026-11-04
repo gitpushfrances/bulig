@@ -14,6 +14,7 @@ import { categoryLabel } from '../data/labels.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { usePhoneLocation } from '../location/context.ts'
 import { hasWebGL, LOAD_TIMEOUT_MS, PROBLEM_TEXT, type MapProblem } from '../map/loadMap.ts'
+import { attachMap, detachMap, dropMap, keepMap, keptMap, readView, saveView, type KeptMap } from '../map/mapKeeper.ts'
 import { applyMapTheme, MAP_CREDIT, mapRenderOptions, themedStyle } from '../map/mapTheme.ts'
 import { fetchRoute, REROUTE_DEG, type Route, type TravelMode } from '../map/route.ts'
 import RouteSheet, { type RouteState } from '../map/RouteSheet.tsx'
@@ -94,11 +95,12 @@ export default function MapPage() {
   const userMarker = useRef<Marker | null>(null)
   const themeRef = useRef(resolved)
   const routeToRef = useRef<string | null>(null)
-  const [status, setStatus] = useState<Status>('loading')
+  // A map kept from an earlier visit this session opens ready, at the view it was left at.
+  const [status, setStatus] = useState<Status>(() => (keptMap()?.loaded ? 'ready' : 'loading'))
   const [problem, setProblem] = useState<MapProblem>('failed')
   // Try again bumps this, which makes the map from scratch.
   const [attempt, setAttempt] = useState(0)
-  const [following, setFollowing] = useState(true)
+  const [following, setFollowing] = useState(() => keptMap()?.following ?? true)
   const [pins, setPins] = useState<{ id: string; el: HTMLElement }[]>([])
   const [params] = useSearchParams()
   // /map?cat=<category> (the Map button on Nearby results): open with that kind of place only.
@@ -124,77 +126,164 @@ export default function MapPage() {
   const centre =
     data.status === 'ready' && area ? data.areas.find((a) => a.id === area) : undefined
 
-  // Load MapLibre and make the map, once per attempt.
+  // Where to open a brand-new map, read when it is made (refs, so making it doesn't wait on GPS).
+  const positionRef = useRef(position)
+  const centreRef = useRef(centre)
+  useEffect(() => {
+    positionRef.current = position
+    centreRef.current = centre
+  })
+
+  // Get the map onto the page: the one kept from an earlier visit (mapKeeper.ts), else a new one.
   useEffect(() => {
     let cancelled = false
     let timer = 0
+    let unwire = () => {}
     const fail = (why: MapProblem) => {
       if (cancelled) return
+      dropMap()
+      map.current = null
       setProblem(why)
       setStatus('failed')
     }
-    ;(async () => {
-      if (!hasWebGL()) return fail('no-webgl')
-      // The style or the first tiles never arrived (weak signal, tile server down): stop waiting.
-      timer = window.setTimeout(() => fail(navigator.onLine ? 'failed' : 'offline'), LOAD_TIMEOUT_MS)
-      try {
-        const [[ml], style] = await Promise.all([
-          Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')]),
-          // Fetched and recoloured before the map exists, so it never flashes the stock colours.
-          themedStyle(themeRef.current),
-        ])
-        if (cancelled || !box.current) return
-        lib.current = ml
-        const m = new ml.Map({
-          ...mapRenderOptions(),
-          container: box.current,
-          style,
-          bounds: PH_BOUNDS,
-          dragRotate: false,
-          pitchWithRotate: false,
-        })
-        m.touchZoomRotate.disableRotation()
-        m.once('load', () => {
-          window.clearTimeout(timer)
-          if (!cancelled) setStatus('ready')
-        })
-        // Tapping the map closes a place's sheet; a route in progress stays.
-        m.on('click', () => setSelected(routeToRef.current))
-        // Moving the map yourself stops it following you; Go to my location turns following back on.
-        m.on('dragstart', () => setFollowing(false))
-        map.current = m
-      } catch {
-        fail(navigator.onLine ? 'failed' : 'offline')
+    // Listeners that update this page; removed when the page goes, so a kept map never calls into
+    // a page that is gone.
+    const wire = (k: KeptMap) => {
+      const m = k.map
+      // Tapping the map closes a place's sheet; a route in progress stays.
+      const onClick = () => setSelected(routeToRef.current)
+      // Moving the map yourself stops it following you; Go to my location turns following back on.
+      const onDrag = () => setFollowing(false)
+      const onMoveEnd = () => {
+        const c = m.getCenter()
+        saveView({ lng: c.lng, lat: c.lat, zoom: m.getZoom() })
       }
-    })()
+      m.on('click', onClick)
+      m.on('dragstart', onDrag)
+      m.on('moveend', onMoveEnd)
+      return () => {
+        m.off('click', onClick)
+        m.off('dragstart', onDrag)
+        m.off('moveend', onMoveEnd)
+      }
+    }
+    // Ready once the first full draw is done, or failed after LOAD_TIMEOUT_MS on a weak signal.
+    const whenLoaded = (k: KeptMap) => {
+      if (k.loaded) return
+      timer = window.setTimeout(() => fail(navigator.onLine ? 'failed' : 'offline'), LOAD_TIMEOUT_MS)
+      k.map.once('load', () => {
+        k.loaded = true
+        window.clearTimeout(timer)
+        if (!cancelled) setStatus('ready')
+      })
+    }
+
+    const reuse = keptMap()
+    if (reuse && box.current) {
+      attachMap(reuse, box.current)
+      lib.current = reuse.lib
+      map.current = reuse.map
+      unwire = wire(reuse)
+      whenLoaded(reuse)
+    } else {
+      ;(async () => {
+        if (!hasWebGL()) return fail('no-webgl')
+        timer = window.setTimeout(() => fail(navigator.onLine ? 'failed' : 'offline'), LOAD_TIMEOUT_MS)
+        try {
+          const [[ml], style] = await Promise.all([
+            Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')]),
+            // Fetched and recoloured before the map exists, so it never flashes the stock colours.
+            themedStyle(themeRef.current),
+          ])
+          if (cancelled || !box.current) return
+          window.clearTimeout(timer)
+          // Open on the person, else where they last looked, else their area, else the country.
+          const here = positionRef.current
+          const last = readView()
+          const area = centreRef.current
+          const view =
+            here ? { center: [here.lng, here.lat] as [number, number], zoom: 14 }
+            : last ? { center: [last.lng, last.lat] as [number, number], zoom: last.zoom }
+            : area?.lat !== undefined && area.lng !== undefined ? { center: [area.lng, area.lat] as [number, number], zoom: 13 }
+            : { bounds: PH_BOUNDS }
+          const element = document.createElement('div')
+          element.className = styles.canvasBox
+          box.current.appendChild(element)
+          const m = new ml.Map({
+            ...mapRenderOptions(),
+            ...view,
+            container: element,
+            style,
+            dragRotate: false,
+            pitchWithRotate: false,
+          })
+          m.touchZoomRotate.disableRotation()
+          const k: KeptMap = {
+            map: m,
+            lib: ml,
+            element,
+            loaded: false,
+            fitted: here ? 'person' : 'bounds' in view ? 'none' : 'area',
+            following: true,
+            theme: themeRef.current,
+          }
+          keepMap(k)
+          lib.current = ml
+          map.current = m
+          unwire = wire(k)
+          whenLoaded(k)
+        } catch {
+          fail(navigator.onLine ? 'failed' : 'offline')
+        }
+      })()
+    }
+
     const pinned = markers.current
     return () => {
       cancelled = true
       window.clearTimeout(timer)
+      unwire()
+      // Pins and the blue dot belong to this page (React draws into them); the map keeps the rest.
       pinned.forEach((mk) => mk.remove())
       pinned.clear()
-      map.current?.remove()
-      map.current = null
+      userMarker.current?.remove()
       userMarker.current = null
+      const k = keptMap()
+      if (k) detachMap(k)
+      map.current = null
       fittedFor.current = null
       setPins([])
     }
   }, [attempt])
 
+  useEffect(() => {
+    const k = keptMap()
+    if (k) k.following = following
+  }, [following])
+
   // Follow the app theme.
   useEffect(() => {
     themeRef.current = resolved
-    if (status === 'ready' && map.current) applyMapTheme(map.current, resolved)
+    const k = keptMap()
+    if (status !== 'ready' || !map.current || !k || k.theme === resolved) return
+    applyMapTheme(map.current, resolved)
+    k.theme = resolved
   }, [resolved, status])
 
-  // Fit the view to the person, else the picked area, else the country.
+  // Fit the view to the person, else the picked area, once per session: a map kept from an earlier
+  // visit stays where the person left it. When GPS first finds them, the view moves to them once.
   const hasFix = !!position
   useEffect(() => {
     const m = map.current
-    if (status !== 'ready' || !m) return
-    if (position) m.jumpTo({ center: [position.lng, position.lat], zoom: 14 })
-    else if (centre?.lat !== undefined && centre.lng !== undefined) m.jumpTo({ center: [centre.lng, centre.lat], zoom: 13 })
-    // Only on first load and when GPS first finds the person; following (below) does the rest.
+    const k = keptMap()
+    if (status !== 'ready' || !m || !k || k.fitted === 'person') return
+    if (position) {
+      m.jumpTo({ center: [position.lng, position.lat], zoom: Math.max(m.getZoom(), 14) })
+      k.fitted = 'person'
+    } else if (k.fitted === 'none' && centre?.lat !== undefined && centre.lng !== undefined) {
+      m.jumpTo({ center: [centre.lng, centre.lat], zoom: 13 })
+      k.fitted = 'area'
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, hasFix, centre?.id])
 
@@ -346,6 +435,7 @@ export default function MapPage() {
     const why = status === 'failed' ? problem : 'offline'
     const text = PROBLEM_TEXT[why]
     const retry = () => {
+      dropMap()
       setStatus('loading')
       setAttempt((n) => n + 1)
     }
