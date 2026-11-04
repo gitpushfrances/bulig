@@ -63,15 +63,15 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 9 | Reset password | `POST /auth/reset-password` | — | 4 | `pages/ResetPasswordPage.tsx` at `/reset-password?token=&email=` |
 | 10 | Who am I | `GET /me` | 🔒 | 4 | `refresh()` in `auth/apiStore.ts` on every start; `401` signs the phone out |
 | 11 | Edit profile | `PATCH /me` | 🔒 | 4 | `updateProfile()` in `auth/apiStore.ts`; phone sent as E.164 |
-| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | Not wired (backend not built): the photo stays on the phone in `bulig.profile.<email>` |
-| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | Not wired (backend not built) |
+| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | Not wired yet (backend live since bulig-backend#23): the photo stays on the phone in `bulig.profile.<email>` |
+| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | Not wired yet (backend live) |
 | 14 | Change password | `PUT /me/password` | 🔒 | 4 | `changePassword()` in `auth/apiStore.ts` |
 | 15 | Delete account | `DELETE /me` | 🔒 | 4 | `deleteAccount()` in `auth/apiStore.ts` (sends `{confirm: "delete"}`) |
 | 16 | List saved | `GET /me/saved` | 🔒 | 4 | `loadSaved()` in `auth/apiStore.ts` after sign-in and on start |
 | 17 | Save a place or number | `PUT /me/saved/{recordId}` | 🔒 | 4 | `setSaved()` in `auth/apiStore.ts` (heart flips at once, flips back if the server says no) |
 | 18 | Unsave | `DELETE /me/saved/{recordId}` | 🔒 | 4 | `setSaved()` in `auth/apiStore.ts` |
 | 19 | Update details (includes "report wrong info") | `POST /submissions` | 🔒 | 4 | Not built yet (SCRUM-30); no Google Form |
-| 20 | Upload a photo for an update | `POST /uploads` | 🔒 | 4 | Not built |
+| 20 | Upload a photo for an update | `POST /uploads` | 🔒 | 4 | Not built in the app (backend live since bulig-backend#23) |
 | 21 | My submissions and their status | `GET /me/submissions` | 🔒 | 4 | Not built |
 | 22 | Report an app problem | `POST /issues` | 🔒 | 4 | Not built (Profile → Help today has no form) |
 | 23 | My app problems and their status | `GET /me/issues` | 🔒 | 4 | Not built |
@@ -212,7 +212,7 @@ Road services and local businesses. The app ranks them on the phone (distance, c
 | `subtype` | no | The owner's word, shown instead of the category ("Halo-halo"). |
 | `addedAt` | no | Date first listed; the app shows **NEW** for 60 days. |
 | `prices` | no | Phase 4. Newest approved price per item: `[{ "item": "ron91", "amount": 82.0, "currency": "PHP", "unit": "L", "seenAt": "2026-10-30" }]`. `item` keys, their words and `unit` come from `labels.json` `priceItems`, and `currency` from its `currency`. The app shows "seen <date> by a Bulig user", greys it after 7 days and hides it after 30. Never "current price". |
-| `photos` | no | Phase 4. Approved public photo URLs (R2 `public/`), first is the cover. |
+| `photos` | no | Phase 4. Public photo URLs on Cloudinary (WebP, max 1280 px), first is the cover: `["https://res.cloudinary.com/…/bulig/places/….webp"]`. Added by staff in the panel, or from an approved update's photos. Left out when there are none. |
 | `sample` | no | Test data only. |
 
 ### 3.4 `GET /labels?country=PH`
@@ -352,7 +352,7 @@ Edit profile (`/profile/edit`). Send only what changed.
 
 **Limits:** `image/webp`, `image/jpeg` or `image/png`, at most 2 MB.
 
-**200:** `{ "photoUrl": "https://<cdn>/avatars/usr_01JBX…/8f3c.webp" }`. **Errors:** `422` wrong type or too big.
+**200:** `{ "photoUrl": "https://res.cloudinary.com/…/bulig/avatars/….webp" }`. A new photo replaces the old one, which is deleted. **Errors:** `422` wrong type or too big, `429` (30 photos a day, shared with `POST /uploads`), `503` photo storage isn't set up on the server.
 
 ### 5.4 `DELETE /me/photo` 🔒
 
@@ -416,7 +416,7 @@ Nothing submitted is public until a moderator (or an admin) approves it, field b
 
 Upload one photo before sending the update, so a weak signal only retries the photo, not the whole form. `multipart/form-data`, one field `photo`. The app shrinks it first to WebP (JPEG on old Safari), max 1280 px on the long side, about 300 KB. The server rejects anything over 2 MB, re-encodes it, strips location and camera data, and stores it privately.
 
-**201:** `{ "id": "upl_01JC…", "expiresAt": "2026-11-29T00:00:00Z" }`. An upload not attached to a submission within 24 hours is deleted. **Errors:** `413` too large, `415` not an image, `429` (30 a day).
+**201:** `{ "id": "upl_01JC…", "expiresAt": "2026-11-29T00:00:00Z" }`. An upload not attached to a submission within 24 hours is deleted. **Errors:** `413` too large, `415` not an image (checked from the bytes, not the name), `422` no `photo` field, `429` (30 photos a day, shared with `POST /me/photo`), `503` photo storage isn't set up. Each `photoIds` entry in `POST /submissions` must be the sender's own upload, unused and under 24 hours old (else `422` on `photoIds.N`: send that photo again).
 
 ### 7.2 `POST /submissions` 🔒
 
