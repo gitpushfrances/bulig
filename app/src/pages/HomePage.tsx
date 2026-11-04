@@ -14,12 +14,7 @@ import { useNearby } from '../data/useNearby.ts'
 import { visibleContacts } from '../rules/emergency.ts'
 import styles from './Page.module.css'
 import home from './HomePage.module.css'
-
-// "Good morning" until noon, "Good afternoon" until 6 PM, then "Good evening", by the phone's clock.
-function greeting(now: Date): string {
-  const h = now.getHours()
-  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
-}
+import { useWelcome } from './welcome.ts'
 
 // Home answers "what do I need?": who and where you are, the six common problems, then the nearest
 // places on a real map, the local hotlines and what you saved. The red Emergency button floats over
@@ -28,6 +23,7 @@ export default function HomePage() {
   const { country, data, area } = useAppData()
   const { account, saved } = useAuth()
   const { ready, loading, ranked, labels, position, areaName } = useNearby()
+  const welcome = useWelcome()
 
   const contacts = data.status === 'ready' ? visibleContacts(data.emergency, area, new Date()) : []
   const national = contacts.find((c) => c.kind === 'national' && c.area === null)
@@ -53,8 +49,9 @@ export default function HomePage() {
       {/* Profile lives here, not in the tab bar: the avatar on the right opens it. */}
       <header className={home.header}>
         <div className={home.who}>
-          <p className={home.greeting}>{greeting(new Date())}</p>
-          <p className={home.hello}>{firstName ?? 'there'}</p>
+          <p className={home.greeting}>{welcome.greeting}</p>
+          <p className={home.hello}>{firstName ? `Hi, ${firstName}!` : 'Hi there!'}</p>
+          <p className={home.message}>{welcome.message}</p>
           <LocationLine inHeader />
         </div>
         <Link to="/profile" className={home.profile} aria-label="Profile">
