@@ -19,7 +19,8 @@ const timeFormat = new Intl.DateTimeFormat('en-PH', { hour: 'numeric', minute: '
 // Where the phone is, as one plain line of text between hairlines: a divider, not a card.
 // "Lahug · Cebu City · Cebu · 6000" over "Updated 2:41 PM", with a reload button. It comes from
 // GPS and follows the driver; only without GPS (denied, missing, failed) can the person pick an area.
-export default function LocationLine() {
+// `inHeader`: under the greeting on Home, without the hairlines.
+export default function LocationLine({ inHeader = false }: { inHeader?: boolean }) {
   const { status, address, updatedAt, refresh } = usePhoneLocation()
   const { data, area, areaKm, setArea } = useAppData()
   if (data.status !== 'ready') return null
@@ -41,7 +42,7 @@ export default function LocationLine() {
   const note = locating ? 'Finding your location…' : when ? `Updated ${timeFormat.format(when)}` : null
 
   return (
-    <div className={styles.line}>
+    <div className={inHeader ? `${styles.line} ${styles.inHeader}` : styles.line}>
       {place ? (
         <div className={styles.text} aria-live="polite">
           <Crosshair className={styles.icon} size={18} aria-hidden="true" />

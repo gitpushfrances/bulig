@@ -43,7 +43,7 @@ export default function SavedPage() {
           {ready && places.length + numbers.length === 0 && (
             <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>
               <RopiSays variant="friendly">
-                <strong>Tara, simulan na natin!</strong> Tap the heart on any place to save it here.
+                <strong>Let&apos;s get started!</strong> Tap the heart on any place to save it here.
               </RopiSays>
               <Link className={styles.secondary} to="/services">
                 Find a place

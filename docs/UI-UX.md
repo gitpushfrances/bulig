@@ -103,40 +103,41 @@ Bulig never sends help and never shares the exact location (only a rounded one, 
 
 ### Home
 
-Design for the smallest supported viewport first: **360 × 740 CSS px**, with essential actions visible without scrolling on a typical phone. Keep a compact header and avoid a large hero section. If content does not fit on a short device, preserve the 911 and call targets at full size; remove the mini-map preview first, then reduce non-essential previews. Never shrink a touch target below 48px to force a no-scroll layout.
+**Built (2026-11-04, from John's Figma Make prototype "Bulig Roadside Help").** Design for the smallest supported viewport first: **360 × 740 CSS px**. Never shrink a touch target below 48px to force a no-scroll layout.
 
 ```text
 ┌────────────────────────────────┐
-│ ≋ Bulig        Near <town>  ⟳  │  compact brand + location control
+│ (JC) Hi John                   │  initials avatar (photo if added)
+│      ⌖ Guiuan · Eastern Samar ⟳│  GPS location line, teal wash behind
 ├────────────────────────────────┤
-│ Emergency assistance       All › │
-│ For urgent emergencies           │
-│ ┌────────────────────────────┐  │
-│ │           Call 911          │  │  red, one tap: tel:911
-│ └────────────────────────────┘  │
-│ [MDRRMO]      [PNP]      [BFP]  │  only valid local numbers
+│ What do you need?      See all ›│  See all = Services
+│ [Flat tire][Breakdown][Out of gas]│
+│ [Hospital ][Food     ][Hotel     ]│  3 × 2 on phones, 6 in a row from 48rem
 ├────────────────────────────────┤
-│ What's wrong?                   │
-│ [Flat tire] [Out of gas] [Breakdown] │
-│ [Hospital ] [Food      ] [Store     ]│  3 columns × 2 rows
-├────────────────────────────────┤
-│  Mini-map / Open map →           │  loads last; never blocks Home
-│  12 nearby places               │
-├────────────────────────────────┤
+│ Nearest to you        Open map ›│
+│ ┌────────────────────────────┐ │
+│ │ live map: you + 5 pins     │ │  a picture: tap opens the Map tab
+│ ├────────────────────────────┤ │
+│ │ 3 nearest places, Call     │ │
+│ └────────────────────────────┘ │
+│ Local hotlines                  │
+│ [ 911 card, red Call 911 ]      │
+│ [ local numbers ]   All numbers ›│
+│ Saved                  See all ›│
 │ Pull over safely before using   │
 │ your phone.                     │
 ├────────────────────────────────┤
-│ Home        Map       Saved  Profile │  four tabs
+│ Home Services Map Saved Profile │  + the red hazard button, always
 └────────────────────────────────┘
 ```
 
-- **No header** (John, 2026-10-30): no top bar, no logo tile. Where you are is the **location line** on Home, between the bento and the national hotline: plain text between two hairlines (a divider, not a card), the full address "Barangay · City or municipality · Province · ZIP" in one size, "Updated <time>" under it in muted text, and a reload button right after the text (clear of the floating emergency button). Without GPS the same spot is the area picker. Emergency shows the same line under its title.
-- **Emergency card:** pale-red surface, red border, dark-red heading, and a full-width red **Call 911** button. The action is visible immediately and uses `tel:911`; it never requires sign-in. Red is reserved for emergency actions, not routine service calls.
-- **Local quick calls:** show the selected area's verified MDRRMO, PNP, and BFP contacts when available. Omit missing or expired local contacts instead of rendering broken buttons. “All” opens Hotlines.
-- **What's wrong?:** six category actions in a consistent **3-column × 2-row** grid: Flat tire, Out of gas, Breakdown, Hospital, Food, Store. Each tile has one Phosphor icon and a visible text label; tapping it opens the matching Nearby Results filter. If the labels wrap at 360px, let them wrap naturally—do not shrink text below the type scale.
-- **Mini-map preview:** loads after the emergency card and category actions. It never delays the rest of Home. Tap opens Map. Offline, or on a device without WebGL2, replace the map with a plain “Open map” panel and nearby count. The preview is optional when vertical space is tight.
-- **Safety note:** keep “Pull over safely before using your phone” visible near the bottom of Home without competing visually with Call 911.
-- **Navigation:** fixed four-tab bottom navigation: Home, Map, Saved, Profile. Include an icon and a short label for every tab. Leave enough bottom safe-area space for device insets.
+- **Header:** a 44px avatar (the person's photo, else their **initials** on teal: Ropi never goes on Home), "Hi <first name>", and under it the **location line** from GPS ("Barangay · Municipality · Province", "Updated <time>", reload). Without GPS the same spot is the area picker ("Location is off. Pick your area"). No bell (there are no notifications yet) and no settings gear (Profile is a tab). A soft teal wash fades out behind it.
+- **What do you need?:** the six commonest problems as tiles: Flat tire, Breakdown, Out of gas, Hospital, Food, Hotel. Each tile is one link: a 28px teal icon, the problem, and the nearest one's distance ("160 m"), else the count, else "None yet". No arrows: at 360px a tile is 104px wide and the whole tile is the target. Store and Others are under **See all** (Services).
+- **Nearest to you** ("Near <area>" without GPS): one card with the **live mini map** on top and the three nearest places under it. The map is MapLibre with the same style, pins and blue dot as the Map tab, fitted to you and the five nearest places, and not draggable (it never traps the page's scroll); tapping it opens the Map tab. It loads only once the card is on screen and the phone is idle, so Home and 911 never wait for it. Offline, without WebGL, or not drawn within 20 s, the map is left out and the list does the job.
+- **Local hotlines:** the national 911 card (deep teal, red Call 911), then up to three verified local numbers, then "All emergency numbers". The red hazard button floats over every screen, so 911 stays one tap away even though the card sits lower on the page.
+- **Saved:** up to three saved places, or "Sign in" / "Tap the heart".
+- **Safety note:** "Pull over safely before using your phone." at the bottom.
+- **Sizes:** side margins grow from 16px (360px phones) to 32px; sections are 24 to 32px apart; tiles 96px tall on phones, 108px from 30rem. From 60rem Home is two columns (nearest | hotlines and saved).
 
 ### Nearby results (`/nearby/:need`)
 
@@ -214,8 +215,13 @@ Filter presets:
 - **The route sheet, like navigation apps** (John, 2026-10-30): the corner button **minimizes** (⌄) instead of ending. Minimized, the route is a slim pill at the bottom (blue icon, place name, "1.4 km · 3 min", ⌃) while the line stays on the map; tap it to open the sheet again. Ending is deliberate: **End route** (red text at the bottom of the open sheet), or **swipe the pill sideways** past ~96px (a shorter drag snaps back). Right after, a dark pill says "Route ended · **Undo**" for 5 seconds. Tapping another pin while routing opens that place's sheet over the route; **Route here instead** switches the route, closing it returns to the route. The route (place and Car/Walk) is kept for the browser session (`bulig.route`), so leaving the Map and coming back keeps it.
 - **Directions** on any place card opens `/map?to=<id>`: the Map with that place picked and its route on. No live traffic and no spoken directions in Bulig; that is what the Google Maps button is for.
 - The map credit (OpenFreeMap © OpenMapTiles, data from OpenStreetMap) is always shown, as the licence requires.
-- MapLibre (about 270 kB gzipped) loads only when the Map tab opens and is kept out of the offline cache, so Home and Emergency never wait for it.
-- Offline, or without WebGL: Ropi `thinking` says "The map needs a connection" and the tab shows the nearest places as a list.
+- MapLibre (about 270 kB gzipped) loads only when the Map tab (or Home's mini map) needs it, and is kept out of the install download, so Home and Emergency never wait for it. Once loaded, the service worker keeps it, with the map style and the last 500 tiles viewed (2026-11-04).
+- **When the map can't be drawn**, Ropi `thinking` says why, then the nearest places as a list (2026-11-04: it used to say "needs a connection" for every failure):
+  - offline: "No signal, so no map right now."
+  - no WebGL (some cheap phones, Messenger and Facebook's in-app browsers): "This browser can't draw the map." plus "open it in Chrome instead".
+  - the map file failed or nothing drew within 20 s: "The map didn't load." with **Try the map again**.
+  - A map file missing after a deploy (a phone on the old version) reloads the app once into the new version.
+- **Location off** (denied, failed or no GPS): a one-line strip under the chips says why there is no blue dot ("Location is blocked. Allow it for this site in your browser settings."); the map still centres on the area.
 
 ### Place details (`/place/:id`)
 
@@ -477,9 +483,9 @@ Measured contrast (WCAG), teal: white on primary `5.36:1`; brand text on white `
 - Shape: cards 14px corners, controls 10px. Borders separate surfaces; no shadows except the selected segmented tab's 1px ring.
 - `theme-color`, the PWA manifest and the app icons use `#FAFAFA` / `#09090B`. The app icons are the Bulig logo (teal pin, road and hand) on white, generated from `app/brand/bulig-icon.png`.
 
-### Filipino touches (2026-11-04)
+### Language
 
-English stays the app language and Filipino comes next (CHANGELOG, 2026-11-01). Until the full translation, a few short Filipino lines give the app a local voice, always next to the English, never replacing an instruction, and marked `lang="fil"` for screen readers: "Ano'ng kailangan mo?" under Home's title, "Tumabi muna bago mag-cellphone." in Home's footnote, and "Tara, simulan na natin!" in Saved's empty state. Never on the Emergency path, where every word must be understood at once.
+English only for now (John, 2026-11-04). The short Filipino lines added in the identity pass were removed the same day; a full Filipino translation stays on the roadmap.
 
 ### Map pins
 

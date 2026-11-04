@@ -1,0 +1,57 @@
+/* Home: a header with you and where you are on a soft teal wash, then the sections, --space-6 apart. */
+
+.page {
+  position: relative;
+  gap: var(--space-6);
+  isolation: isolate;
+}
+
+/* The wash: full width behind the header, fading out by the bento. Under the content (z-index -1),
+   from the very top of the screen (Layout's top padding included). */
+.page::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: calc(-20px - env(safe-area-inset-top, 0px));
+  left: calc(-1 * var(--gutter));
+  right: calc(-1 * var(--gutter));
+  height: 220px;
+  /* Strongest behind the avatar, fading to the page on every side, so it has no edges on wide screens. */
+  background: radial-gradient(130% 100% at 0% 0%, var(--color-selected) 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hello {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.title {
+  flex: 1;
+  font-size: clamp(1.25rem, 1.1rem + 0.8vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+/* The map sits flush on top of the list, inside one card. */
+.nearest {
+  overflow: hidden;
+}

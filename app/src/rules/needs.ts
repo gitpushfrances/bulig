@@ -45,6 +45,9 @@ export const NEEDS: readonly Need[] = [
   { id: 'others', label: 'Others', category: 'other', finds: 'New stalls and local finds', one: 'new stall or local find', chips: ['open_now'], shows: [] },
 ]
 
+// Home's bento: the six most common problems. Store and Others are under "See all" (Services).
+export const HOME_NEEDS = NEEDS.slice(0, 6)
+
 export const needById = (id: string | undefined): Need | null => NEEDS.find((n) => n.id === id) ?? null
 
 export const needForCategory = (category: Category): Need => NEEDS.find((n) => n.category === category)!

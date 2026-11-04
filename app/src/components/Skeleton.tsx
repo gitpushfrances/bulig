@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { NEEDS } from '../rules/needs.ts'
+import { HOME_NEEDS } from '../rules/needs.ts'
 import { CATEGORIES } from '../types.ts'
 import pageStyles from '../pages/Page.module.css'
 import RopiLoader from './RopiLoader.tsx'
@@ -80,12 +80,8 @@ export function BentoSkeleton() {
   return (
     <Loading>
       <div className={pageStyles.bento}>
-        {NEEDS.map((need, i) => (
-          <Bone
-            key={need.id}
-            shape="block"
-            className={`${i === 0 ? pageStyles.bentoFeature : ''} ${need.category === 'other' ? pageStyles.bentoWide : ''}`}
-          />
+        {HOME_NEEDS.map((need) => (
+          <Bone key={need.id} shape="block" className={pageStyles.bentoTile} />
         ))}
       </div>
     </Loading>

@@ -6,7 +6,7 @@ import { placeHref } from '../data/links.ts'
 import { categoryBlurb, categoryLabel, kindLabel } from '../data/labels.ts'
 import { formatDistance, type Ranked } from '../rules/nearby.ts'
 import { isNew } from '../rules/services.ts'
-import { nearbyHref, NEEDS, needForCategory } from '../rules/needs.ts'
+import { HOME_NEEDS, nearbyHref, needForCategory } from '../rules/needs.ts'
 import type { Category, EmergencyContact, Labels, Service } from '../types.ts'
 import styles from '../pages/Page.module.css'
 import { CATEGORY_ICONS, KIND_ICONS } from './icons.ts'
@@ -286,47 +286,37 @@ export function NumberRow({ contact }: { contact: EmergencyContact }) {
   )
 }
 
-// "What's wrong?" at a glance: each tile is a problem ("Flat tire") over the kind of place that
-// solves it ("Vulcanizing"), and opens Nearby results. Home's services at a glance: the first kind as a large tile with its nearest place, the rest as
-// small tiles. Others (new and local stalls) closes the grid as a wide tile. Eight tiles fill a
-// 2-column grid on phones and a 4-column grid from tablets exactly.
+// Home's "What do you need?": the six most common problems, each opening its Nearby results.
 export function ServiceBento({ ranked, labels }: { ranked: Ranked<Service>[]; labels: Labels | null }) {
   return (
     <nav className={styles.bento} aria-label="Common services">
-      {NEEDS.map((need, i) => {
+      {HOME_NEEDS.map((need) => {
         const category = need.category
         const Icon = CATEGORY_ICONS[category]
         const kind = categoryLabel(category, labels)
         const inCategory = ranked.filter((r) => r.item.category === category)
         const nearest = inCategory[0]
-        const feature = i === 0
-        const wide = category === 'other'
-        const fresh = wide && inCategory.some((r) => isNew(r.item, new Date()))
+        const fresh = inCategory.some((r) => isNew(r.item, new Date()))
+        const foot =
+          inCategory.length === 0
+            ? 'None yet'
+            : nearest?.km != null
+              ? formatDistance(nearest.km)
+              : `${inCategory.length} ${inCategory.length === 1 ? 'place' : 'places'}`
         return (
           <Link
             key={need.id}
             to={nearbyHref(need)}
-            className={`${styles.bentoTile} ${feature ? styles.bentoFeature : ''} ${wide ? styles.bentoWide : ''}`}
+            className={styles.bentoTile}
+            // "Flat tire, vulcanizing, nearest 400 m": the kind of place is said, not shown.
+            aria-label={`${need.label}${kind !== need.label ? `, ${kind}` : ''}, ${inCategory.length === 0 ? 'none listed yet' : nearest?.km != null ? `nearest ${formatDistance(nearest.km)}` : foot}`}
           >
-            <Icon className={styles.offerIcon} size={feature ? 30 : 22} aria-hidden="true" />
+            <Icon className={styles.offerIcon} size={28} aria-hidden="true" />
             <span className={styles.bentoName}>
               {need.label}
               {fresh && <New />}
             </span>
-            {kind !== need.label && <span className={styles.bentoKind}>{kind}</span>}
-            {(feature || wide) && <span className={styles.offerBlurb}>{categoryBlurb(category)}</span>}
-            <span className={styles.bentoFoot}>
-              {inCategory.length === 0
-                ? 'None listed yet'
-                : `${inCategory.length} ${inCategory.length === 1 ? 'place' : 'places'}`}
-              {!feature && nearest?.km != null && <span> · {formatDistance(nearest.km)}</span>}
-            </span>
-            {feature && nearest && (
-              <span className={styles.bentoNearest}>
-                <span className={styles.bentoNearestName}>{nearest.item.name}</span>
-                <span>{nearest.km != null ? `Nearest · ${formatDistance(nearest.km)} away` : 'Nearest listed'}</span>
-              </span>
-            )}
+            <span className={styles.bentoFoot}>{foot}</span>
           </Link>
         )
       })}
