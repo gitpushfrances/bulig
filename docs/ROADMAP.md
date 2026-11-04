@@ -33,7 +33,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - **Frontend:** Vite 8.3, React 19.3, TypeScript 6.0.x (not 7, because typescript-eslint 8 needs TypeScript below 6.1), ESLint, React Router 8, plain CSS Modules, vite-plugin-pwa 2.0, Vitest 5
 - **Data (Phases 1 to 3):** JSON files in `app/public/data/<country>/`, one folder per country (`ph/` first)
 - **Hosting:** Cloudflare Worker with static assets, free plan (`app/wrangler.jsonc`)
-- **Map (optional):** MapLibre GL JS 6.16 + OpenFreeMap tiles
+- **Map (optional):** MapLibre GL JS 5 + OpenFreeMap tiles
 - **Backend (Phase 4+):** Laravel 13, PHP 8.5, PostgreSQL + PostGIS, Sanctum, Filament 5 (+ Shield), spatie/laravel-permission, spatie/laravel-activitylog, Laravel Pulse, Pest 5. No Redis: Laravel file cache, `sync` queue on alpha/beta (`database` queue later), built-in rate limiter; Cloudflare edge cache once there's a domain
 - **Free services (Phase 4+):** alpha and beta on Render free + Neon, both Singapore (no card; a paid server only after alpha/beta users approve), Cloudflare R2 for photos and backups, an HTTP email API (Render blocks SMTP), Resend once the domain exists, UptimeRobot status page, Sentry. Full table with limits: [ARCHITECTURE.md, Stack](ARCHITECTURE.md#stack-0-until-funded)
 - **Native (Phase 6):** Capacitor 8
@@ -107,6 +107,8 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 **Goal:** real people in the first pilot area use it, and you learn from them. The first area is not the only one: everything learned here becomes the checklist for opening the next area anywhere.
 
 **Built so far (2026-11-02, sample data):** ✅ navigation (five tabs, the floating Emergency button, no top bar) · ✅ Home ("What's wrong?" tiles, location line, hotline) · ✅ Nearby results (nearest card with Call and Route, more nearby) · ✅ Map (MapLibre + OpenFreeMap, pins, in-app OSRM routes) · ✅ Saved · ✅ accounts (login, onboarding sign-up, guest = Emergency only) · ✅ production-style Profile, Help, draft Terms and Privacy · ✅ Others (new local businesses). ✅ hours, features, chips, "usually open" and Place details · ✅ splash, page fade-in, loading skeletons, location asked only inside the app, exact scroll on Back, older browsers (iOS 14+, Chrome 87+) (PR #33). **Still to do:** real data, Update details (SCRUM-30, Phase 4), analytics (SCRUM-31), OPEN-AN-AREA.md (SCRUM-32).
+
+**Since then (2026-11-04):** ✅ four tabs (Profile opens from Home's header) · ✅ no guest mode (Emergency still open without an account) · ✅ welcome header with live-location dot · ✅ free-text home area · ✅ photo preview · ✅ spinner submit buttons · ✅ rewritten About, Terms and Privacy (still drafts) · ✅ Ropi 404 page · ✅ map kept between visits and tiles prefetched around the view. Still open: real data, a contact email and a Data Protection Officer for the legal pages.
 
 **Tickets:** SCRUM-28, SCRUM-17, SCRUM-18, plus the new ones below
 
