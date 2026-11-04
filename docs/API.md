@@ -63,8 +63,8 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 9 | Reset password | `POST /auth/reset-password` | — | 4 | `pages/ResetPasswordPage.tsx` at `/reset-password?token=&email=` |
 | 10 | Who am I | `GET /me` | 🔒 | 4 | `refresh()` in `auth/apiStore.ts` on every start; `401` signs the phone out |
 | 11 | Edit profile | `PATCH /me` | 🔒 | 4 | `updateProfile()` in `auth/apiStore.ts`; phone sent as E.164 |
-| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | Not wired yet (backend live since bulig-backend#23): the photo stays on the phone in `bulig.profile.<email>` |
-| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | Not wired yet (backend live) |
+| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | `setPhoto()` in `auth/apiStore.ts`, on Edit profile's Save when the photo changed (a photo kept only on the phone before is sent on the next save) |
+| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | `setPhoto(account, null)` in `auth/apiStore.ts` |
 | 14 | Change password | `PUT /me/password` | 🔒 | 4 | `changePassword()` in `auth/apiStore.ts` |
 | 15 | Delete account | `DELETE /me` | 🔒 | 4 | `deleteAccount()` in `auth/apiStore.ts` (sends `{confirm: "delete"}`) |
 | 16 | List saved | `GET /me/saved` | 🔒 | 4 | `loadSaved()` in `auth/apiStore.ts` after sign-in and on start |

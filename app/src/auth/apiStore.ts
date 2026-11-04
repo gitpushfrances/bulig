@@ -22,6 +22,17 @@ interface ApiUser {
   createdAt?: string | null
   phone?: string | null
   homeArea?: string | null
+  photoUrl?: string | null
+}
+
+// "data:image/webp;base64,..." → a Blob to upload as multipart (no fetch(), so it works everywhere).
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [head, data] = dataUrl.split(',', 2)
+  const type = /data:([^;]+)/.exec(head)?.[1] ?? 'image/webp'
+  const bytes = atob(data)
+  const out = new Uint8Array(bytes.length)
+  for (let i = 0; i < bytes.length; i++) out[i] = bytes.charCodeAt(i)
+  return new Blob([out], { type })
 }
 
 export function toAccount(user: ApiUser): Account {
@@ -34,6 +45,7 @@ export function toAccount(user: ApiUser): Account {
     createdAt: user.createdAt ?? undefined,
     phone: user.phone ?? undefined,
     homeArea: user.homeArea ?? null,
+    photo: user.photoUrl ?? undefined,
   }
 }
 
@@ -168,6 +180,28 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
       } catch (err) {
         if (err instanceof OfflineError) return 'offline'
         if (err instanceof ApiError && err.status === 422) return 'invalid'
+        throw err
+      }
+    },
+
+    async setPhoto(account, photo) {
+      try {
+        let url: string | null = null
+        if (photo) {
+          const form = new FormData()
+          const blob = dataUrlToBlob(photo)
+          form.append('photo', blob, blob.type === 'image/jpeg' ? 'avatar.jpg' : 'avatar.webp')
+          url = (await call<{ photoUrl: string }>('/me/photo', { method: 'POST', body: form })).photoUrl
+        } else {
+          await call('/me/photo', { method: 'DELETE' })
+        }
+        keep(readSaved(TOKEN_KEY), { ...account, photo: url ?? undefined })
+        return { ok: true as const, photo: url }
+      } catch (err) {
+        if (err instanceof OfflineError) return { ok: false as const, reason: 'offline' as const }
+        if (err instanceof ApiError && err.status === 422) return { ok: false as const, reason: 'invalid' as const }
+        if (err instanceof ApiError && err.status === 429) return { ok: false as const, reason: 'busy' as const }
+        if (err instanceof ApiError && err.status === 503) return { ok: false as const, reason: 'unavailable' as const }
         throw err
       }
     },
