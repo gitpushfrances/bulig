@@ -1,20 +1,4 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  CircleCheck,
-  Disc,
-  Fuel,
-  Heart,
-  LocateFixed,
-  OctagonAlert,
-  PhoneCall,
-  ShieldCheck,
-  Sparkles,
-  TriangleAlert,
-  UserPlus,
-  WifiOff,
-  type LucideIcon,
-} from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle, Crosshair, GasPump, Heart, type Icon, PhoneCall, ShieldCheck, Sparkle, Tire, UserPlus, Warning, WarningOctagon, WifiSlash } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -34,7 +18,7 @@ interface Step {
   ropi: MascotVariant
   says: ReactNode
   title: string
-  points?: { icon: LucideIcon; title: string; text: string }[]
+  points?: { icon: Icon; title: string; text: string }[]
 }
 
 // Ropi explains Bulig in four short steps, then the account form. Every step can be skipped.
@@ -54,7 +38,7 @@ const STEPS: Step[] = [
         text: 'Checked emergency numbers and the nearest road services, wherever you travel in the Philippines.',
       },
       {
-        icon: LocateFixed,
+        icon: Crosshair,
         title: 'Built around where you are',
         text: 'Bulig finds your barangay and town from GPS and sorts every place by distance.',
       },
@@ -65,9 +49,9 @@ const STEPS: Step[] = [
     says: "Here's how it helps on a normal day.",
     title: 'Every day on the road',
     points: [
-      { icon: Disc, title: 'Flat tire?', text: 'Open Vulcanizing: the nearest shop first, with Call and Directions.' },
-      { icon: Fuel, title: 'Low on gas or need a mechanic?', text: 'Gas stations and mechanics near you, nearest first.' },
-      { icon: Sparkles, title: 'Hungry or need a room?', text: 'Restos, hotels, and new local stalls under Others.' },
+      { icon: Tire, title: 'Flat tire?', text: 'Open Vulcanizing: the nearest shop first, with Call and Directions.' },
+      { icon: GasPump, title: 'Low on gas or need a mechanic?', text: 'Gas stations and mechanics near you, nearest first.' },
+      { icon: Sparkle, title: 'Hungry or need a room?', text: 'Restos, hotels, and new local stalls under Others.' },
       { icon: Heart, title: 'Keep the good ones', text: 'Tap the heart to save places you trust.' },
     ],
   },
@@ -76,8 +60,8 @@ const STEPS: Step[] = [
     says: 'Why use Bulig and not just search?',
     title: 'Why Bulig',
     points: [
-      { icon: CircleCheck, title: 'Checked, with dates', text: 'Every number and place shows when it was last checked.' },
-      { icon: WifiOff, title: 'Works with no signal', text: 'After one visit, numbers and places stay on your phone.' },
+      { icon: CheckCircle, title: 'Checked, with dates', text: 'Every number and place shows when it was last checked.' },
+      { icon: WifiSlash, title: 'Works with no signal', text: 'After one visit, numbers and places stay on your phone.' },
       { icon: ShieldCheck, title: 'Free and clean', text: 'No ads, no paywall, and nothing ever stands in front of 911.' },
     ],
   },
@@ -86,8 +70,8 @@ const STEPS: Step[] = [
     says: 'One last thing: staying safe.',
     title: 'Safety first',
     points: [
-      { icon: TriangleAlert, title: 'Emergency is one tap away', text: 'The red button on every screen opens 911 and local authorities.' },
-      { icon: OctagonAlert, title: 'Pull over first', text: 'Use your phone only when you have stopped safely.' },
+      { icon: Warning, title: 'Emergency is one tap away', text: 'The red button on every screen opens 911 and local authorities.' },
+      { icon: WarningOctagon, title: 'Pull over first', text: 'Use your phone only when you have stopped safely.' },
       { icon: PhoneCall, title: 'Always call', text: 'Bulig shows numbers. It never sends help or your location by itself.' },
     ],
   },
@@ -240,11 +224,11 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
       )}
       <div className={styles.nav}>
         <button type="button" className={page.secondary} onClick={onBack}>
-          <ArrowLeft size={18} strokeWidth={2} aria-hidden="true" />
+          <ArrowLeft size={18} aria-hidden="true" />
           Back
         </button>
         <button type="submit" className={page.primaryButton} disabled={busy}>
-          <UserPlus size={18} strokeWidth={2} aria-hidden="true" />
+          <UserPlus size={18} aria-hidden="true" />
           Create account
         </button>
       </div>
@@ -308,7 +292,7 @@ export default function SignupPage() {
               <ul className={styles.points}>
                 {step.points.map(({ icon: Icon, title, text }) => (
                   <li key={title} className={styles.point}>
-                    <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
+                    <Icon size={20} aria-hidden="true" />
                     <p>
                       <strong>{title}</strong>
                       <span>{text}</span>
@@ -327,13 +311,13 @@ export default function SignupPage() {
         <div className={styles.nav}>
           {at > 0 && (
             <button type="button" className={page.secondary} onClick={() => setAt(at - 1)}>
-              <ArrowLeft size={18} strokeWidth={2} aria-hidden="true" />
+              <ArrowLeft size={18} aria-hidden="true" />
               Back
             </button>
           )}
           <button type="button" className={`${page.primaryButton} ${styles.submit}`} onClick={() => setAt(at + 1)}>
             {at === FORM_STEP - 1 ? "Let's get started" : 'Next'}
-            <ArrowRight size={18} strokeWidth={2} aria-hidden="true" />
+            <ArrowRight size={18} aria-hidden="true" />
           </button>
         </div>
       )}

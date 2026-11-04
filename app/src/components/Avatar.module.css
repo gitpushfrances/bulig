@@ -26,3 +26,13 @@
   height: auto;
   margin-top: 8%;
 }
+
+/* Home: the name's initials on brand teal (white on teal-700 is 5.4:1). */
+.initials {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}

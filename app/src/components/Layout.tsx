@@ -1,29 +1,37 @@
-import { CloudOff, Heart, House, LayoutGrid, Map as MapIcon, TriangleAlert, type LucideIcon } from 'lucide-react'
+import { CloudSlash, Heart, House, type Icon, MapTrifold as MapIcon, SquaresFour, Warning } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import Avatar from './Avatar.tsx'
-import { ICON_STROKE } from './icons.ts'
 import styles from './Layout.module.css'
 
 interface Tab {
   to: string
   label: string
   // Profile has no icon: it shows the person's photo, or Ropi's head.
-  icon?: LucideIcon
+  icon?: Icon
   // Other paths that belong to this tab, such as /about under Profile.
   also?: string[]
 }
 
 const tabs: Tab[] = [
   { to: '/', label: 'Home', icon: House },
-  { to: '/services', label: 'Services', icon: LayoutGrid, also: ['/nearby', '/place'] },
+  { to: '/services', label: 'Services', icon: SquaresFour, also: ['/nearby', '/place'] },
   { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/saved', label: 'Saved', icon: Heart },
   { to: '/profile', label: 'Profile', also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
 ]
 
 const INSTANT_PATHS = ['/emergency', '/map']
+const TAB_ROOTS = tabs.map((t) => t.to)
+
+// How a page arrives (index.css, "Page enter"): a tab fades up in place, a page opened from one slides
+// in from the right, and Back slides the earlier page in from the left. Emergency and the Map: at once.
+function enterClass(pathname: string, type: 'POP' | 'PUSH' | 'REPLACE'): string | undefined {
+  if (INSTANT_PATHS.includes(pathname)) return undefined
+  if (type === 'POP') return 'page-back'
+  return TAB_ROOTS.includes(pathname) ? 'page-enter' : 'page-push'
+}
 
 function isActive({ to, also }: Tab, pathname: string): boolean {
   if (to === '/') return pathname === '/'
@@ -37,7 +45,7 @@ function EmergencyButton({ pathname }: { pathname: string }) {
   if (pathname === '/emergency' || pathname === '/map') return null
   return (
     <Link to="/emergency" className={styles.fab} aria-label="Emergency numbers">
-      <TriangleAlert size={24} strokeWidth={2.25} aria-hidden="true" />
+      <Warning size={24} aria-hidden="true" />
     </Link>
   )
 }
@@ -71,6 +79,7 @@ function useScrollMemory() {
 export default function Layout() {
   const { online } = useAppData()
   const { pathname } = useLocation()
+  const navType = useNavigationType()
   useScrollMemory()
 
   return (
@@ -94,7 +103,7 @@ export default function Layout() {
               >
                 <span className={`${styles.tabIcon} ${Icon ? '' : styles.tabAvatar}`}>
                   {Icon ? (
-                    <Icon size={22} strokeWidth={active ? 2 : ICON_STROKE} aria-hidden="true" />
+                    <Icon size={22} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
                   ) : (
                     <Avatar size={26} ring={active} />
                   )}
@@ -109,15 +118,15 @@ export default function Layout() {
       <div className={styles.column}>
         {!online && (
           <p className={styles.offline} role="status">
-            <CloudOff size={15} strokeWidth={2} aria-hidden="true" />
+            <CloudSlash size={15} aria-hidden="true" />
             Offline: showing saved info
           </p>
         )}
         <main id="main" className={pathname === '/map' ? `${styles.main} ${styles.flush}` : styles.main}>
-          {/* Keyed by path: each page mounts fresh and fades in (index.css, "Page enter"). The tab bar
-              stays outside, so it never blinks. Emergency and the Map appear at once: one is reached
-              in a hurry, the other is a heavy canvas carrying its own Emergency button. */}
-          <div key={pathname} className={INSTANT_PATHS.includes(pathname) ? undefined : 'page-enter'}>
+          {/* Keyed by path: each page mounts fresh and animates in (enterClass). The tab bar stays
+              outside, so it never blinks. Emergency and the Map appear at once: one is reached in a
+              hurry, the other is a heavy canvas carrying its own Emergency button. */}
+          <div key={pathname} className={enterClass(pathname, navType)}>
             <Outlet />
           </div>
         </main>

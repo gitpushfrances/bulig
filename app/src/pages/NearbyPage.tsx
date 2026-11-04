@@ -1,10 +1,10 @@
-import { Check, ChevronRight, CircleCheck, Map as MapIcon, Phone, Route, Siren } from 'lucide-react'
+import { CaretRight, Check, CheckCircle, MapTrifold as MapIcon, Path as RouteIcon, Phone, Siren } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import BackButton from '../components/BackButton.tsx'
 import { SectionHead } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
-import { CATEGORY_ICONS, ICON_STROKE } from '../components/icons.ts'
+import { CATEGORY_ICONS } from '../components/icons.ts'
 import { FeatureTags, StatusLine } from '../components/PlaceInfo.tsx'
 import RopiSays from '../components/RopiSays.tsx'
 import SaveButton from '../components/SaveButton.tsx'
@@ -33,7 +33,7 @@ function NearestCard({ place, need, labels, now }: { place: Ranked<Service>; nee
     <article className={`${styles.card} ${styles.nearest}`} aria-labelledby={`${s.id}-name`}>
       <div className={styles.cardHead}>
         <p className={styles.nearestDistance}>
-          <Icon size={18} strokeWidth={2} aria-hidden="true" />
+          <Icon size={18} aria-hidden="true" />
           {km !== null ? `${formatDistance(km)} away` : 'Nearest listed'}
         </p>
         {isNew(s, now) && <span className={styles.newBadge}>NEW</span>}
@@ -51,19 +51,19 @@ function NearestCard({ place, need, labels, now }: { place: Ranked<Service>; nee
       <StatusLine service={s} now={now} />
       <FeatureTags service={s} show={need.shows} />
       <p className={styles.checked}>
-        <CircleCheck size={15} strokeWidth={2} aria-hidden="true" />
+        <CheckCircle size={15} aria-hidden="true" />
         Last checked {formatDate(s.verifiedAt)} · hours can change, call first
       </p>
       <div className={`${styles.actions} ${styles.bigActions}`}>
         {s.phone && (
           <a className={styles.call} href={telHref(s.phone)} aria-label={`Call ${s.name}`}>
-            <Phone size={20} strokeWidth={2} aria-hidden="true" />
+            <Phone size={20} aria-hidden="true" />
             {need.urgent ? 'Call hospital' : 'Call'}
           </a>
         )}
         {route && (
           <Link className={styles.secondary} to={route} aria-label={`Route to ${s.name}`}>
-            <Route size={20} strokeWidth={2} aria-hidden="true" />
+            <RouteIcon size={20} aria-hidden="true" />
             Route
           </Link>
         )}
@@ -80,7 +80,7 @@ function MoreRow({ place, labels, now }: { place: Ranked<Service>; labels: Label
   const word = shortStatus(status)
   return (
     <li className={styles.row}>
-      <Icon className={styles.rowIcon} size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
+      <Icon className={styles.rowIcon} size={20} aria-hidden="true" />
       <Link className={`${styles.rowText} ${styles.rowLink}`} to={placeHref(s)}>
         <p className={styles.rowTitle}>
           {s.name}
@@ -99,7 +99,7 @@ function MoreRow({ place, labels, now }: { place: Ranked<Service>; labels: Label
       </Link>
       {s.phone && (
         <a className={styles.rowCall} href={telHref(s.phone)} aria-label={`Call ${s.name}`}>
-          <Phone size={18} strokeWidth={2} aria-hidden="true" />
+          <Phone size={18} aria-hidden="true" />
         </a>
       )}
     </li>
@@ -146,7 +146,7 @@ export default function NearbyPage() {
             to={`/map?cat=${need.category}`}
             aria-label="Show on map"
           >
-            <MapIcon size={18} strokeWidth={2} aria-hidden="true" />
+            <MapIcon size={18} aria-hidden="true" />
             Map
           </Link>
         )}
@@ -162,7 +162,7 @@ export default function NearbyPage() {
               aria-pressed={chips.includes(chip)}
               onClick={() => toggle(chip)}
             >
-              {chips.includes(chip) && <Check size={14} strokeWidth={2.5} aria-hidden="true" />}
+              {chips.includes(chip) && <Check size={14} aria-hidden="true" />}
               {CHIP_LABELS[chip]}
             </button>
           ))}
@@ -202,7 +202,7 @@ export default function NearbyPage() {
                 Nearest usually open at this time: <strong>{nearestOpen.item.name}</strong>
                 {nearestOpen.km !== null && `, ${formatDistance(nearestOpen.km)}`}
               </span>
-              <ChevronRight size={18} strokeWidth={2} aria-hidden="true" />
+              <CaretRight size={18} aria-hidden="true" />
             </Link>
           )}
           {!position && <p className={styles.hint}>Turn on location to sort by distance.</p>}
@@ -224,7 +224,7 @@ export default function NearbyPage() {
 
       {need.urgent && (
         <Link className={`${styles.notice} ${styles.urgentNote}`} to="/emergency">
-          <Siren size={18} strokeWidth={2} aria-hidden="true" />
+          <Siren size={18} aria-hidden="true" />
           <span>
             <strong>Life-threatening?</strong> Call 911 now.
           </span>

@@ -1,4 +1,4 @@
-import { ArrowLeft, Send } from 'lucide-react'
+import { ArrowLeft, PaperPlaneTilt } from '@phosphor-icons/react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -71,12 +71,12 @@ export default function ForgotPasswordPage() {
               }}
             />
             <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
-              <Send size={18} strokeWidth={2} aria-hidden="true" />
+              <PaperPlaneTilt size={18} aria-hidden="true" />
               Send reset link
             </button>
           </form>
           <Link className={`${styles.link} ${styles.forgot}`} to="/login">
-            <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
+            <ArrowLeft size={16} aria-hidden="true" />
             Back to sign in
           </Link>
         </>

@@ -68,6 +68,38 @@ export default defineConfig({
         // With VITE_DATA_SOURCE=api: the last good API answers, for when the server is asleep or the
         // phone is offline (docs/API.md §1, Caching). The bundled JSON files stay the last resort.
         runtimeCaching: [
+          // The map library, kept once it has loaded: the next visit draws the map without the 270 kB
+          // download, and a phone on an older version still finds its file after a deploy.
+          {
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && /\/assets\/maplibre-gl-[^/]+\.(js|css)$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'bulig-maplibre',
+              expiration: { maxEntries: 4 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          // OpenFreeMap: the style, fonts, icons and the tile index (/planet, weekly) change rarely (use the copy, refresh behind it).
+          {
+            urlPattern: /^https:\/\/tiles\.openfreemap\.org\/((styles|fonts|sprites)\/|planet$)/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'bulig-map-style',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          // Map tiles: their URLs carry the data version, so a stored tile never goes wrong. The last
+          // ~500 viewed (a few towns, about 10-20 MB) come back instantly and on a weak signal.
+          {
+            urlPattern: /^https:\/\/tiles\.openfreemap\.org\/(planet|natural_earth)\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'bulig-map-tiles',
+              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/[^/]+\/api\/v1\/(areas|emergency-contacts|services|labels)\?/,
             handler: 'NetworkFirst',

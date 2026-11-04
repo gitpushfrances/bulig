@@ -24,6 +24,49 @@
   background: var(--color-selected);
 }
 
+/* ---------- Location off: one line under the chips, clear of the control stack ---------- */
+
+.locationOff {
+  position: absolute;
+  top: 64px;
+  left: var(--gutter);
+  right: calc(var(--gutter) + 56px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.35;
+  box-shadow: var(--shadow-raised);
+}
+
+.locationOff svg {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.locationOff span {
+  flex: 1;
+  min-width: 0;
+}
+
+.locationOff button {
+  flex: none;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--color-primary-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ---------- Category chips: one scrolling row ---------- */
 
 .chips {
@@ -126,13 +169,34 @@
   height: 36px;
   margin-bottom: 6px;
   padding: 0;
-  border: 2px solid var(--color-surface);
+  border: 2px solid #ffffff;
   border-radius: 999px;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--pin-bg, var(--pin-other));
+  color: var(--pin-fg, #ffffff);
+  outline: 1px solid rgb(0 0 0 / 0.45);
   cursor: pointer;
   box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
   transition: transform 160ms var(--ease-out);
+}
+
+/* Each kind of place has its own pin colour (UI-UX.md, "Map pins"); the icon and the label still
+   say what it is, so colour is never the only cue. Food and store share amber with a dark icon. */
+.pin[data-category='tire_repair'] {
+  --pin-bg: var(--pin-tire);
+}
+.pin[data-category='fuel'] {
+  --pin-bg: var(--pin-fuel);
+}
+.pin[data-category='mechanic'] {
+  --pin-bg: var(--pin-mechanic);
+}
+.pin[data-category='hospital'] {
+  --pin-bg: var(--pin-hospital);
+}
+.pin[data-category='food'],
+.pin[data-category='store'] {
+  --pin-bg: var(--pin-supplies);
+  --pin-fg: #0b2530;
 }
 
 /* The point under the pin. */
@@ -144,14 +208,14 @@
   width: 8px;
   height: 8px;
   margin-left: -4px;
-  background: var(--color-primary);
+  background: var(--pin-bg, var(--pin-other));
   transform: rotate(45deg);
-  border-right: 2px solid var(--color-surface);
-  border-bottom: 2px solid var(--color-surface);
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
 }
 
 .pinOn {
-  border-color: var(--color-primary);
+  border-color: var(--pin-bg, var(--pin-other));
   background: var(--color-surface);
   color: var(--color-text);
   transform: scale(1.15);
@@ -159,7 +223,7 @@
 
 .pinOn::after {
   background: var(--color-surface);
-  border-color: var(--color-primary);
+  border-color: var(--pin-bg, var(--pin-other));
 }
 
 /* Blue is kept for "you are here" only, with the one recurring map cue: a soft halo. */
@@ -315,6 +379,9 @@
   max-width: 34rem;
   margin: 0 auto;
   padding: 16px var(--gutter) 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 @media (min-width: 48rem) {
@@ -326,6 +393,13 @@
   .controls {
     top: 72px;
     right: 24px;
+  }
+
+  .locationOff {
+    top: 72px;
+    left: 24px;
+    right: auto;
+    max-width: 26rem;
   }
 
   .sheet {

@@ -1,4 +1,4 @@
-import { LocateFixed, Phone, Route as RouteIcon, TriangleAlert, X } from 'lucide-react'
+import { ArrowClockwise, Crosshair, GpsSlash, Path as RouteIcon, Phone, Warning, X } from '@phosphor-icons/react'
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -13,6 +13,7 @@ import { placeHref } from '../data/links.ts'
 import { categoryLabel } from '../data/labels.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { usePhoneLocation } from '../location/context.ts'
+import { hasWebGL, LOAD_TIMEOUT_MS, PROBLEM_TEXT, type MapProblem } from '../map/loadMap.ts'
 import { applyMapTheme, MAP_STYLE_URL } from '../map/mapTheme.ts'
 import { fetchRoute, REROUTE_DEG, type Route, type TravelMode } from '../map/route.ts'
 import RouteSheet, { type RouteState } from '../map/RouteSheet.tsx'
@@ -83,7 +84,7 @@ function drawRoute(m: MapLibreMap, path: [number, number][] | null, theme: 'ligh
 export default function MapPage() {
   const { online, data } = useAppData()
   const { ranked, labels, area, position } = useNearby()
-  const { refresh } = usePhoneLocation()
+  const { refresh, status: gps, settling } = usePhoneLocation()
   const { resolved } = useTheme()
 
   const box = useRef<HTMLDivElement>(null)
@@ -94,6 +95,9 @@ export default function MapPage() {
   const themeRef = useRef(resolved)
   const routeToRef = useRef<string | null>(null)
   const [status, setStatus] = useState<Status>('loading')
+  const [problem, setProblem] = useState<MapProblem>('failed')
+  // Try again bumps this, which makes the map from scratch.
+  const [attempt, setAttempt] = useState(0)
   const [pins, setPins] = useState<{ id: string; el: HTMLElement }[]>([])
   const [params] = useSearchParams()
   // /map?cat=<category> (the Map button on Nearby results): open with that kind of place only.
@@ -119,10 +123,17 @@ export default function MapPage() {
   const centre =
     data.status === 'ready' && area ? data.areas.find((a) => a.id === area) : undefined
 
-  // Load MapLibre and make the map, once.
+  // Load MapLibre and make the map, once per attempt.
   useEffect(() => {
     let cancelled = false
+    let timer = 0
+    const fail = (why: MapProblem) => {
+      if (cancelled) return
+      setProblem(why)
+      setStatus('failed')
+    }
     ;(async () => {
+      if (!hasWebGL()) return fail('no-webgl')
       try {
         const [ml] = await Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')])
         if (cancelled || !box.current) return
@@ -137,23 +148,32 @@ export default function MapPage() {
         })
         m.touchZoomRotate.disableRotation()
         m.on('style.load', () => applyMapTheme(m, themeRef.current))
-        m.once('load', () => !cancelled && setStatus('ready'))
+        m.once('load', () => {
+          window.clearTimeout(timer)
+          if (!cancelled) setStatus('ready')
+        })
+        // The style or the first tiles never arrived (weak signal, tile server down): stop waiting.
+        timer = window.setTimeout(() => fail(navigator.onLine ? 'failed' : 'offline'), LOAD_TIMEOUT_MS)
         // Tapping the map closes a place's sheet; a route in progress stays.
         m.on('click', () => setSelected(routeToRef.current))
         map.current = m
       } catch {
-        if (!cancelled) setStatus('failed')
+        fail(navigator.onLine ? 'failed' : 'offline')
       }
     })()
     const pinned = markers.current
     return () => {
       cancelled = true
+      window.clearTimeout(timer)
       pinned.forEach((mk) => mk.remove())
       pinned.clear()
       map.current?.remove()
       map.current = null
+      userMarker.current = null
+      fittedFor.current = null
+      setPins([])
     }
-  }, [])
+  }, [attempt])
 
   // Follow the app theme.
   useEffect(() => {
@@ -306,14 +326,27 @@ export default function MapPage() {
   }
 
   if (status === 'failed' || (!online && status !== 'ready')) {
+    const why = status === 'failed' ? problem : 'offline'
+    const text = PROBLEM_TEXT[why]
+    const retry = () => {
+      setStatus('loading')
+      setAttempt((n) => n + 1)
+    }
     return (
       <section className={`${page.page} ${styles.fallback}`} aria-labelledby="map-title">
         <h1 id="map-title" className="visually-hidden">
           Map of places near you
         </h1>
         <RopiSays variant="thinking" height={110}>
-          The map needs a connection. <strong>Here are the nearest places instead.</strong>
+          {text.lead} <strong>Here are the nearest places instead.</strong>
+          {text.hint && <> {text.hint}</>}
         </RopiSays>
+        {why !== 'no-webgl' && online && (
+          <button type="button" className={page.secondary} onClick={retry}>
+            <ArrowClockwise size={18} aria-hidden="true" />
+            Try the map again
+          </button>
+        )}
         <div className={page.panel}>
           <ul className={page.rows} aria-label="Nearest places">
             {ranked.slice(0, 8).map(({ item, km }) => (
@@ -333,6 +366,25 @@ export default function MapPage() {
       <div ref={box} className={styles.map} />
       {status === 'loading' && <div className={styles.loading} aria-hidden="true" />}
 
+      {/* Without GPS the map still works, centred on the area; this says why there's no blue dot. */}
+      {!settling && (gps === 'denied' || gps === 'error' || gps === 'unavailable') && (
+        <div className={styles.locationOff} role="status">
+          <GpsSlash size={18} aria-hidden="true" />
+          <span>
+            {gps === 'denied'
+              ? 'Location is blocked. Allow it for this site in your browser settings.'
+              : gps === 'unavailable'
+                ? 'This browser has no location. The map shows your area.'
+                : "Couldn't find your location."}
+          </span>
+          {gps === 'error' && (
+            <button type="button" onClick={refresh}>
+              Try again
+            </button>
+          )}
+        </div>
+      )}
+
       <div className={styles.chips} role="group" aria-label="Show on map">
         <button type="button" aria-pressed={filter === null} onClick={() => setFilter(null)}>
           All
@@ -341,7 +393,7 @@ export default function MapPage() {
           const Icon = CATEGORY_ICONS[c]
           return (
             <button key={c} type="button" aria-pressed={filter === c} onClick={() => setFilter(filter === c ? null : c)}>
-              <Icon size={16} strokeWidth={2} aria-hidden="true" />
+              <Icon size={16} aria-hidden="true" />
               {categoryLabel(c, labels)}
             </button>
           )
@@ -350,10 +402,10 @@ export default function MapPage() {
 
       <div className={styles.controls}>
         <Link to="/emergency" className={styles.sos} aria-label="Emergency numbers">
-          <TriangleAlert size={22} strokeWidth={2.25} aria-hidden="true" />
+          <Warning size={22} aria-hidden="true" />
         </Link>
         <button type="button" className={styles.control} onClick={recentre} aria-label="Go to my location">
-          <LocateFixed size={20} strokeWidth={2} aria-hidden="true" />
+          <Crosshair size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -365,9 +417,10 @@ export default function MapPage() {
           <button
             type="button"
             className={`${styles.pin} ${selected === id ? styles.pinOn : ''}`}
+            data-category={r.item.category}
             aria-label={`${r.item.name}, ${r.item.subtype ?? categoryLabel(r.item.category, labels)}`}
           >
-            <Icon size={18} strokeWidth={2} aria-hidden="true" />
+            <Icon size={18} aria-hidden="true" />
           </button>,
           el,
           id,
@@ -390,13 +443,13 @@ export default function MapPage() {
             {picked.item.sample && <span className={page.sample}>SAMPLE</span>}
             <SaveButton id={picked.item.id} name={picked.item.name} />
             <button type="button" className={styles.close} onClick={() => setSelected(routeTo)} aria-label="Close">
-              <X size={20} strokeWidth={2} aria-hidden="true" />
+              <X size={20} aria-hidden="true" />
             </button>
           </div>
           <div className={page.actions}>
             {picked.item.phone && (
               <a className={page.call} href={telHref(picked.item.phone)} aria-label={`Call ${picked.item.name}`}>
-                <Phone size={18} strokeWidth={2} aria-hidden="true" />
+                <Phone size={18} aria-hidden="true" />
                 Call
               </a>
             )}
@@ -406,7 +459,7 @@ export default function MapPage() {
               onClick={() => startRoute(picked.item.id)}
               aria-label={`Route to ${picked.item.name}`}
             >
-              <RouteIcon size={18} strokeWidth={2} aria-hidden="true" />
+              <RouteIcon size={18} aria-hidden="true" />
               {target ? 'Route here instead' : 'Route'}
             </button>
             <Link className={page.secondary} to={placeHref(picked.item)} aria-label={`Details for ${picked.item.name}`}>

@@ -1,4 +1,4 @@
-import { Camera, Save, Trash2 } from 'lucide-react'
+import { Camera, FloppyDisk, Trash } from '@phosphor-icons/react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -79,7 +79,7 @@ export function EditProfilePage() {
           </span>
           <div className={styles.photoActions}>
             <label className={page.secondary}>
-              <Camera size={18} strokeWidth={2} aria-hidden="true" />
+              <Camera size={18} aria-hidden="true" />
               {photo ? 'Change photo' : 'Add a photo'}
               <input
                 type="file"
@@ -100,7 +100,7 @@ export function EditProfilePage() {
             </label>
             {photo && (
               <button type="button" className={page.secondary} onClick={() => setPhoto(undefined)}>
-                <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
+                <Trash size={18} aria-hidden="true" />
                 Remove
               </button>
             )}
@@ -151,7 +151,7 @@ export function EditProfilePage() {
           </p>
         )}
         <button type="submit" className={page.primaryButton} disabled={saving}>
-          <Save size={18} strokeWidth={2} aria-hidden="true" />
+          <FloppyDisk size={18} aria-hidden="true" />
           {saving ? 'Saving…' : 'Save changes'}
         </button>
       </form>

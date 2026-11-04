@@ -1,4 +1,4 @@
-import { Heart } from 'lucide-react'
+import { Heart } from '@phosphor-icons/react'
 import { Link, useLocation } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import styles from '../pages/Page.module.css'
@@ -15,7 +15,7 @@ export default function SaveButton({ id, name }: { id: string; name: string }) {
         to={`/login?next=${encodeURIComponent(pathname)}`}
         aria-label={`Sign in to save ${name}`}
       >
-        <Heart size={22} strokeWidth={1.75} aria-hidden="true" />
+        <Heart size={22} aria-hidden="true" />
       </Link>
     )
   }
@@ -29,7 +29,7 @@ export default function SaveButton({ id, name }: { id: string; name: string }) {
       aria-label={`Save ${name}`}
       onClick={() => toggleSaved(id)}
     >
-      <Heart size={22} strokeWidth={1.75} fill={on ? 'currentColor' : 'none'} aria-hidden="true" />
+      <Heart size={22} weight={on ? 'fill' : 'regular'} aria-hidden="true" />
     </button>
   )
 }

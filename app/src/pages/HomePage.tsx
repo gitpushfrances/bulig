@@ -1,9 +1,11 @@
-import { ChevronRight } from 'lucide-react'
+import { CaretRight } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
+import Avatar from '../components/Avatar.tsx'
 import { HotlineCard, NumberRow, PlaceRow, SectionHead, ServiceBento } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import LocationLine from '../components/LocationLine.tsx'
+import MiniMap, { MINI_PINS } from '../components/MiniMap.tsx'
 import { BentoSkeleton, RowsSkeleton } from '../components/Skeleton.tsx'
 import { useAppData } from '../data/context.ts'
 import { fallbackHotline } from '../data/countries.ts'
@@ -11,13 +13,15 @@ import { countryName } from '../data/format.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { visibleContacts } from '../rules/emergency.ts'
 import styles from './Page.module.css'
+import home from './HomePage.module.css'
 
-// Home answers "what do I need?": the services first, then where you are (a plain line that
-// divides the page), then emergency numbers, the nearest places and what you saved.
+// Home answers "what do I need?": who and where you are, the six common problems, then the nearest
+// places on a real map, the local hotlines and what you saved. The red Emergency button floats over
+// all of it (Layout), so 911 stays one tap away while the hotlines sit lower on the page.
 export default function HomePage() {
   const { country, data, area } = useAppData()
   const { account, saved } = useAuth()
-  const { ready, loading, ranked, labels, position } = useNearby()
+  const { ready, loading, ranked, labels, position, areaName } = useNearby()
 
   const contacts = data.status === 'ready' ? visibleContacts(data.emergency, area, new Date()) : []
   const national = contacts.find((c) => c.kind === 'national' && c.area === null)
@@ -29,48 +33,51 @@ export default function HomePage() {
   const savedPlaces =
     data.status === 'ready' ? saved.flatMap((id) => data.services.filter((s) => s.id === id)).slice(0, 3) : []
 
+  // The map centres on you, else on the area picked; with neither there is no map, only the list.
+  const areaCentre = data.status === 'ready' && area ? data.areas.find((a) => a.id === area) : undefined
+  const centre =
+    position ?? (areaCentre?.lat !== undefined && areaCentre.lng !== undefined ? { lat: areaCentre.lat, lng: areaCentre.lng } : null)
+  const pinned = ranked.filter((r) => r.item.lat !== undefined && r.item.lng !== undefined).slice(0, MINI_PINS)
+  // Without GPS the list is by name, so it must not claim to be nearest (UI-UX.md).
+  const nearestTitle = position ? 'Nearest to you' : areaName ? `Near ${areaName}` : 'First listed'
+  const firstName = account?.name.trim().split(/\s+/)[0]
+
   return (
-    <section className={styles.page} aria-labelledby="home-title">
-      <h1 id="home-title" className={styles.title}>
-        What do you need?
-      </h1>
+    <section className={`${styles.page} ${home.page}`} aria-labelledby="home-title">
+      <header className={home.header}>
+        <Avatar size={44} initials />
+        <div className={home.who}>
+          <p className={home.hello}>{firstName ? `Hi ${firstName}` : 'Hi there'}</p>
+          <LocationLine inHeader />
+        </div>
+      </header>
 
-      {ready && <ServiceBento ranked={ranked} labels={labels} />}
-      {loading && <BentoSkeleton />}
-
-      <LocationLine />
+      <div className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h1 id="home-title" className={home.title}>
+            What do you need?
+          </h1>
+          <Link className={styles.more} to="/services">
+            See all
+            <CaretRight size={16} aria-hidden="true" />
+          </Link>
+        </div>
+        {ready && <ServiceBento ranked={ranked} labels={labels} />}
+        {loading && <BentoSkeleton />}
+      </div>
 
       <DataNotice hasSamples={ranked.some((r) => r.item.sample)} />
 
       <div className={styles.homeGrid}>
         <div className={styles.homeColumn}>
-          <div className={styles.section}>
-            {hotline && <HotlineCard contact={hotline} countryName={countryName(country)} compact />}
-            {local.length > 0 && (
-              <div className={styles.panel}>
-                <ul className={styles.rows} aria-label="Local emergency numbers">
-                  {local.map((c) => (
-                    <NumberRow key={c.id} contact={c} />
-                  ))}
-                </ul>
-              </div>
-            )}
-            <Link className={`${styles.more} ${styles.moreEnd}`} to="/emergency">
-              All emergency numbers
-              <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
-            </Link>
-          </div>
-        </div>
-
-        <div className={styles.homeColumn}>
           {(ready || loading) && (
             <div className={styles.section}>
-              {/* Without GPS the list is by name, so it must not claim to be nearest (UI-UX.md). */}
-              <SectionHead title={position ? 'Nearest to you' : 'First listed'} to="/services" more="All services" />
+              <SectionHead title={nearestTitle} to="/map" more="Open map" />
               {loading ? (
                 <RowsSkeleton />
               ) : (
-                <div className={styles.panel}>
+                <div className={`${styles.panel} ${home.nearest}`}>
+                  {centre && pinned.length > 0 && <MiniMap centre={centre} places={pinned} />}
                   {nearest.length ? (
                     <ul className={styles.rows} aria-label="Nearest places">
                       {nearest.map(({ item, km }) => (
@@ -84,6 +91,26 @@ export default function HomePage() {
               )}
             </div>
           )}
+        </div>
+
+        <div className={styles.homeColumn}>
+          <div className={styles.section}>
+            <SectionHead title="Local hotlines" />
+            {hotline && <HotlineCard contact={hotline} countryName={countryName(country)} compact />}
+            {local.length > 0 && (
+              <div className={styles.panel}>
+                <ul className={styles.rows} aria-label="Local emergency numbers">
+                  {local.map((c) => (
+                    <NumberRow key={c.id} contact={c} />
+                  ))}
+                </ul>
+              </div>
+            )}
+            <Link className={`${styles.more} ${styles.moreEnd}`} to="/emergency">
+              All emergency numbers
+              <CaretRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
 
           <div className={styles.section}>
             <SectionHead title="Saved" to={account ? '/saved' : undefined} />

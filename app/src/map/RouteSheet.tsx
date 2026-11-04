@@ -1,4 +1,4 @@
-import { Car, ChevronDown, ChevronUp, Footprints, Navigation, Phone } from 'lucide-react'
+import { Car, CaretDown, CaretUp, Footprints, NavigationArrow, Phone } from '@phosphor-icons/react'
 import { useRef, useState, type PointerEvent } from 'react'
 import { CATEGORY_ICONS } from '../components/icons.ts'
 import { directionsHref, telHref } from '../data/format.ts'
@@ -60,7 +60,7 @@ export default function RouteSheet({ place, route, mode, onMode, minimized, onMi
           <h2 className={page.cardTitle}>{place.name}</h2>
         </div>
         <button type="button" className={styles.close} onClick={onMinimize} aria-label="Minimize route">
-          <ChevronDown size={22} strokeWidth={2} aria-hidden="true" />
+          <CaretDown size={22} aria-hidden="true" />
         </button>
       </div>
 
@@ -80,11 +80,11 @@ export default function RouteSheet({ place, route, mode, onMode, minimized, onMi
 
       <div className={styles.modes} role="group" aria-label="Travel by">
         <button type="button" aria-pressed={mode === 'car'} onClick={() => onMode('car')}>
-          <Car size={18} strokeWidth={2} aria-hidden="true" />
+          <Car size={18} aria-hidden="true" />
           Car
         </button>
         <button type="button" aria-pressed={mode === 'foot'} onClick={() => onMode('foot')}>
-          <Footprints size={18} strokeWidth={2} aria-hidden="true" />
+          <Footprints size={18} aria-hidden="true" />
           Walk
         </button>
       </div>
@@ -97,12 +97,12 @@ export default function RouteSheet({ place, route, mode, onMode, minimized, onMi
           rel="noreferrer"
           aria-label={`Start in Google Maps to ${place.name}`}
         >
-          <Navigation size={18} strokeWidth={2} aria-hidden="true" />
+          <NavigationArrow size={18} aria-hidden="true" />
           Google Maps
         </a>
         {place.phone && (
           <a className={page.secondary} href={telHref(place.phone)} aria-label={`Call ${place.name}`}>
-            <Phone size={18} strokeWidth={2} aria-hidden="true" />
+            <Phone size={18} aria-hidden="true" />
             Call
           </a>
         )}
@@ -190,13 +190,13 @@ function RouteBar({
       }}
     >
       <span className={styles.routeBarIcon} aria-hidden="true">
-        <Icon size={18} strokeWidth={2} />
+        <Icon size={18} />
       </span>
       <span className={styles.routeBarText}>
         <span className={styles.routeBarName}>{place.name}</span>
         <span className={styles.routeBarMeta}>{text}</span>
       </span>
-      <ChevronUp className={styles.routeBarChevron} size={20} strokeWidth={2} aria-hidden="true" />
+      <CaretUp className={styles.routeBarChevron} size={20} aria-hidden="true" />
     </div>
   )
 }

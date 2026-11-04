@@ -121,6 +121,8 @@
   padding: calc(20px + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px))
     calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 96px)
     max(var(--gutter), env(safe-area-inset-left, 0px));
+  /* A page sliding in (index.css, "Page enter") never makes the screen scroll sideways. */
+  overflow-x: clip;
 }
 
 /* The offline strip already holds the safe area. */
@@ -150,7 +152,7 @@
   color: var(--color-on-emergency);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.2),
-    0 6px 16px rgb(0 0 0 / 0.18);
+    var(--shadow-emergency);
   transition: transform var(--press-ms) var(--ease-out);
   -webkit-touch-callout: none;
 }
