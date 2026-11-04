@@ -25,7 +25,7 @@ import ConfirmEmailPage from './pages/ConfirmEmailPage.tsx'
 import DataProvider from './data/DataProvider.tsx'
 
 // These paths are permanent: links shared on Facebook must keep working.
-// Emergency (/emergency) is open to everyone, always, and every sign-in screen links to it.
+// Emergency (/emergency) is open to everyone, always, with no account (a shared link, the hazard button, the 404 page).
 // Everything else needs an account: /login, then back.
 export default function App() {
   // The app has drawn its first screen: the splash can go.

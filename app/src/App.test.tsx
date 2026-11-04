@@ -59,5 +59,8 @@ describe('App shell', () => {
     renderAt('/nope')
 
     expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
+    // Home needs an account; Emergency never does, so the 404 links it by name.
+    expect(screen.getByRole('link', { name: 'Emergency hotlines' })).toHaveAttribute('href', '/emergency')
   })
 })
