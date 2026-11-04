@@ -39,8 +39,18 @@
   cursor: pointer;
 }
 
-.map :global(.maplibregl-ctrl-attrib) {
-  font-size: 10px;
+.credit {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  z-index: 1;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: var(--color-bg);
+  background: color-mix(in srgb, var(--color-bg) 75%, transparent);
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  line-height: 1.5;
 }
 
 /* Pins: the Map tab's category colours (UI-UX.md, "Map pins"), smaller. */

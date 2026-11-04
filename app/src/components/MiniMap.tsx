@@ -1,10 +1,10 @@
-import type { Map as MapLibreMap } from 'maplibre-gl'
+import type { Map as MapLibreMap, Marker } from 'maplibre-gl'
 import { useEffect, useRef, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { Link } from 'react-router'
 import { useAppData } from '../data/context.ts'
 import { hasWebGL, LOAD_TIMEOUT_MS } from '../map/loadMap.ts'
-import { applyMapTheme, MAP_STYLE_URL } from '../map/mapTheme.ts'
+import { applyMapTheme, MAP_CREDIT, mapRenderOptions, themedStyle } from '../map/mapTheme.ts'
 import type { Position, Ranked } from '../rules/nearby.ts'
 import { useTheme } from '../theme.ts'
 import type { Service } from '../types.ts'
@@ -23,6 +23,10 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
   const { resolved } = useTheme()
   const box = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
+  const meMarker = useRef<Marker | null>(null)
+  // You stay in the middle: the latest position, read when framing (after a resize or a GPS move).
+  const centreRef = useRef(centre)
+  const placesRef = useRef(places)
   const [visible, setVisible] = useState(false)
   const [state, setState] = useState<'idle' | 'ready' | 'failed'>('idle')
 
@@ -43,6 +47,39 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
     return () => seen.disconnect()
   }, [])
 
+  // You in the middle, zoomed so the pinned places fit around you: the bounds are mirrored through
+  // your position, so centring on you never pushes a pin off the card.
+  const frame = (m: MapLibreMap) => {
+    const c = centreRef.current
+    const pts = placesRef.current.map((p) => ({ lat: p.item.lat!, lng: p.item.lng! }))
+    let zoom = 15
+    if (pts.length) {
+      const dLat = Math.max(...pts.map((p) => Math.abs(p.lat - c.lat)), 0.002)
+      const dLng = Math.max(...pts.map((p) => Math.abs(p.lng - c.lng)), 0.002)
+      const camera = m.cameraForBounds(
+        [
+          [c.lng - dLng, c.lat - dLat],
+          [c.lng + dLng, c.lat + dLat],
+        ],
+        { padding: { top: 44, bottom: 20, left: 24, right: 24 }, maxZoom: 16 },
+      )
+      zoom = Math.max(12, camera?.zoom ?? 15)
+    }
+    m.jumpTo({ center: [c.lng, c.lat], zoom })
+  }
+
+  // Follow the phone: move the dot and keep it centred as GPS updates.
+  useEffect(() => {
+    centreRef.current = centre
+    placesRef.current = places
+  })
+  const { lat, lng } = centre
+  useEffect(() => {
+    if (state !== 'ready' || !map.current) return
+    meMarker.current?.setLngLat([lng, lat])
+    map.current.jumpTo({ center: [lng, lat] })
+  }, [lat, lng, state])
+
   const canDraw = visible && online
   useEffect(() => {
     if (!canDraw) return
@@ -56,37 +93,27 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
       if (cancelled || !box.current) return
       if (!hasWebGL()) return setState('failed')
       try {
-        const [ml] = await Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')])
-        if (cancelled || !box.current) return
-        const m = new ml.Map({
-          container: box.current,
-          style: MAP_STYLE_URL,
-          center: [centre.lng, centre.lat],
-          zoom: 14,
-          // A picture, not a widget: no drag, no zoom, so it never traps the page's scroll.
-          interactive: false,
-          attributionControl: { compact: true },
-          fadeDuration: 0,
-        })
-        m.on('style.load', () => applyMapTheme(m, resolved))
         timer = window.setTimeout(() => !cancelled && setState('failed'), LOAD_TIMEOUT_MS)
+        const [[ml], style] = await Promise.all([
+          Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')]),
+          themedStyle(resolved),
+        ])
+        if (cancelled || !box.current) return
+        const c = centreRef.current
+        const m = new ml.Map({
+          ...mapRenderOptions(),
+          container: box.current,
+          style,
+          center: [c.lng, c.lat],
+          zoom: 14,
+          // A picture, not a widget: no drag, no zoom, so it never moves and never traps the scroll.
+          interactive: false,
+        })
         m.once('load', () => {
           window.clearTimeout(timer)
           if (cancelled) return
           setState('ready')
-          // Fit you and the pinned places, with room for the pins' height.
-          const pts = [centre, ...places.map((p) => ({ lat: p.item.lat!, lng: p.item.lng! }))]
-          if (pts.length > 1) {
-            const lngs = pts.map((p) => p.lng)
-            const lats = pts.map((p) => p.lat)
-            m.fitBounds(
-              [
-                [Math.min(...lngs), Math.min(...lats)],
-                [Math.max(...lngs), Math.max(...lats)],
-              ],
-              { padding: { top: 56, bottom: 28, left: 32, right: 32 }, maxZoom: 16, duration: 0 },
-            )
-          }
+          frame(m)
         })
         for (const p of places) {
           const el = document.createElement('span')
@@ -100,12 +127,15 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
         }
         const me = document.createElement('span')
         me.className = styles.me
-        new ml.Marker({ element: me }).setLngLat([centre.lng, centre.lat]).addTo(m)
+        meMarker.current = new ml.Marker({ element: me }).setLngLat([c.lng, c.lat]).addTo(m)
         map.current = m
         // The card can change width after the map is made (fonts, the data notice, rotating the
-        // phone): redraw at the new size instead of leaving a blank strip.
+        // phone): redraw at the new size and put you back in the middle.
         if (typeof ResizeObserver !== 'undefined' && box.current) {
-          resize = new ResizeObserver(() => m.resize())
+          resize = new ResizeObserver(() => {
+            m.resize()
+            frame(m)
+          })
           resize.observe(box.current)
         }
       } catch {
@@ -119,6 +149,7 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
       resize?.disconnect()
       map.current?.remove()
       map.current = null
+      meMarker.current = null
       // Unmount after this render pass: React warns about unmounting a root while rendering.
       queueMicrotask(() => icons.forEach((r) => r.unmount()))
     }
@@ -134,6 +165,8 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
   return (
     <Link to="/map" className={styles.card} aria-label="Open the map">
       <div ref={box} className={`${styles.map} ${state === 'ready' ? styles.shown : ''}`} aria-hidden="true" />
+      {/* The licence credit as quiet text; the full credit and links are on the Map tab and Licences. */}
+      <span className={styles.credit}>{MAP_CREDIT.text}</span>
     </Link>
   )
 }

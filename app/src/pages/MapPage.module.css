@@ -348,31 +348,21 @@
 }
 
 /* Attribution stays readable and out of the sheet's way. */
-.wrap :global(.maplibregl-ctrl.maplibregl-ctrl-attrib),
-.wrap :global(.maplibregl-ctrl-attrib.maplibregl-compact) {
-  background: var(--color-surface);
+/* The map credit: one line of small text in the bottom-left corner, above the sheets' resting place.
+   Required by the OpenStreetMap and OpenMapTiles licences; never hidden behind a button. */
+.credit {
+  position: absolute;
+  left: 8px;
+  bottom: 4px;
+  z-index: 1;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--color-bg);
+  background: color-mix(in srgb, var(--color-bg) 75%, transparent);
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
-}
-
-.wrap :global(.maplibregl-ctrl-attrib a),
-.wrap :global(.maplibregl-ctrl-attrib-button) {
-  color: var(--color-text);
-}
-
-.wrap :global(.maplibregl-ctrl-attrib-button) {
-  background-color: var(--color-surface);
-  filter: none;
-}
-
-:global([data-theme='dark']) .wrap :global(.maplibregl-ctrl-attrib-button) {
-  filter: invert(1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme='light'])) .wrap :global(.maplibregl-ctrl-attrib-button) {
-    filter: invert(1);
-  }
+  font-size: 0.625rem;
+  line-height: 1.5;
+  text-decoration: none;
 }
 
 .fallback {

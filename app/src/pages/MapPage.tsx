@@ -14,7 +14,7 @@ import { categoryLabel } from '../data/labels.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { usePhoneLocation } from '../location/context.ts'
 import { hasWebGL, LOAD_TIMEOUT_MS, PROBLEM_TEXT, type MapProblem } from '../map/loadMap.ts'
-import { applyMapTheme, MAP_STYLE_URL } from '../map/mapTheme.ts'
+import { applyMapTheme, MAP_CREDIT, mapRenderOptions, themedStyle } from '../map/mapTheme.ts'
 import { fetchRoute, REROUTE_DEG, type Route, type TravelMode } from '../map/route.ts'
 import RouteSheet, { type RouteState } from '../map/RouteSheet.tsx'
 import { formatDistance } from '../rules/nearby.ts'
@@ -134,26 +134,29 @@ export default function MapPage() {
     }
     ;(async () => {
       if (!hasWebGL()) return fail('no-webgl')
+      // The style or the first tiles never arrived (weak signal, tile server down): stop waiting.
+      timer = window.setTimeout(() => fail(navigator.onLine ? 'failed' : 'offline'), LOAD_TIMEOUT_MS)
       try {
-        const [ml] = await Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')])
+        const [[ml], style] = await Promise.all([
+          Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')]),
+          // Fetched and recoloured before the map exists, so it never flashes the stock colours.
+          themedStyle(themeRef.current),
+        ])
         if (cancelled || !box.current) return
         lib.current = ml
         const m = new ml.Map({
+          ...mapRenderOptions(),
           container: box.current,
-          style: MAP_STYLE_URL,
+          style,
           bounds: PH_BOUNDS,
-          attributionControl: { compact: true },
           dragRotate: false,
           pitchWithRotate: false,
         })
         m.touchZoomRotate.disableRotation()
-        m.on('style.load', () => applyMapTheme(m, themeRef.current))
         m.once('load', () => {
           window.clearTimeout(timer)
           if (!cancelled) setStatus('ready')
         })
-        // The style or the first tiles never arrived (weak signal, tile server down): stop waiting.
-        timer = window.setTimeout(() => fail(navigator.onLine ? 'failed' : 'offline'), LOAD_TIMEOUT_MS)
         // Tapping the map closes a place's sheet; a route in progress stays.
         m.on('click', () => setSelected(routeToRef.current))
         map.current = m
@@ -364,6 +367,10 @@ export default function MapPage() {
         Map of places near you
       </h1>
       <div ref={box} className={styles.map} />
+      {/* The licence credit as one quiet line, instead of MapLibre's "i" button and pop-up. */}
+      <a className={styles.credit} href={MAP_CREDIT.href} target="_blank" rel="noreferrer">
+        {MAP_CREDIT.text}
+      </a>
       {status === 'loading' && <div className={styles.loading} aria-hidden="true" />}
 
       {/* Without GPS the map still works, centred on the area; this says why there's no blue dot. */}
