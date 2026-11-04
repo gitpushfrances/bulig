@@ -319,6 +319,10 @@
 .actions > .call,
 .actions > .secondary {
   flex: 1 1 8rem;
+  /* Two buttons side by side on a 360px card: a little less padding, and the label never wraps
+     ("Directions" used to break onto a second line). */
+  padding: 0 12px;
+  white-space: nowrap;
 }
 
 /* ---------- Hotline ---------- */
