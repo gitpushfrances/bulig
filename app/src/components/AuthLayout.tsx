@@ -38,7 +38,7 @@ export default function AuthLayout({
 export function AuthMark() {
   return (
     <div className={styles.mark}>
-      <Mascot variant="head" height={88} />
+      <Mascot variant="head" height={72} />
     </div>
   )
 }

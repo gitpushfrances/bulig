@@ -106,6 +106,12 @@
   --shadow-emergency: 0 6px 16px rgb(220 38 38 / 0.35);
   /* A 1px light edge on top of dark-mode cards, where shadows can't be seen. */
   --card-highlight: none;
+  /* Sign-in screens: a teal glow from the top, a soft lift under the main button, and a sheen that
+     only ever raises the button's text contrast (darker under white text, lighter under dark text). */
+  --auth-glow: var(--teal-100);
+  --shadow-primary: 0 1px 2px rgb(14 116 144 / 0.2), 0 6px 16px rgb(14 116 144 / 0.28);
+  --button-sheen: linear-gradient(180deg, transparent, rgb(0 0 0 / 0.14));
+  --focus-ring: 0 0 0 3px rgb(14 116 144 / 0.22);
 
   color-scheme: light dark;
   font: 16px/1.5 var(--font-body);
@@ -152,6 +158,10 @@
     --shadow-raised: 0 2px 4px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.6);
     --shadow-emergency: 0 6px 16px rgb(220 38 38 / 0.3);
     --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
+    --auth-glow: rgb(34 211 238 / 0.16);
+    --shadow-primary: 0 6px 18px rgb(34 211 238 / 0.18);
+    --button-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.18), transparent);
+    --focus-ring: 0 0 0 3px rgb(34 211 238 / 0.3);
   }
 }
 
@@ -184,6 +194,10 @@
   --shadow-raised: 0 2px 4px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.6);
   --shadow-emergency: 0 6px 16px rgb(220 38 38 / 0.3);
   --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --auth-glow: rgb(34 211 238 / 0.16);
+  --shadow-primary: 0 6px 18px rgb(34 211 238 / 0.18);
+  --button-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.18), transparent);
+  --focus-ring: 0 0 0 3px rgb(34 211 238 / 0.3);
 }
 
 :root[data-theme='light'] {

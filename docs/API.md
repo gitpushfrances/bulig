@@ -254,7 +254,7 @@ The country's own words for categories (`"Vulcanizing"`), per language, and the 
 
 ## 4. Accounts
 
-Everything except Emergency needs an account; "Continue without an account" (guest) is a phone-only choice with no request. Sign-up is the onboarding's last step (`pages/SignupPage.tsx`).
+Everything except Emergency needs an account; there is no guest mode (removed 2026-11-04). Sign-up is the onboarding's last step (`pages/SignupPage.tsx`).
 
 ### 4.1 `POST /auth/register`
 
@@ -576,7 +576,7 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.session` | Email of the signed-in account | **Token** (Sanctum) in localStorage; `GET /me` on start |
 | `bulig.profile.<email>` | name, phone, home area, photo (data URL) | `PATCH /me`, `POST /me/photo` |
 | `bulig.saved.<email>` | Saved record IDs | `/me/saved` (sent once on first sign-in, then cleared) |
-| `bulig.guest` | "Continue without an account" | Stays on the phone |
+| `bulig.guest` | Old guest flag (guest mode removed 2026-11-04) | Cleared on start |
 | `bulig.area`, `bulig.country` | Picked area and country | Stay on the phone (`homeArea` is the server-side preference) |
 | `bulig.address` | Last looked-up address | Stays on the phone |
 | `bulig.theme` | System / Light / Dark | Stays on the phone |

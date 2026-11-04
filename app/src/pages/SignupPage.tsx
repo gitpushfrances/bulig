@@ -8,6 +8,7 @@ import AuthLayout from '../components/AuthLayout.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT, looksLikeEmail } from '../components/fieldRules.ts'
 import type { MascotVariant } from '../components/Mascot.tsx'
+import { shake, shakeInvalid } from '../components/shake.ts'
 import RopiSays from '../components/RopiSays.tsx'
 import page from './Page.module.css'
 import styles from './Auth.module.css'
@@ -99,6 +100,7 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; agreed?: string }>({})
   const [formError, setFormError] = useState<'taken' | 'unavailable' | 'offline' | 'invalid' | null>(null)
   const [busy, setBusy] = useState(false)
+  const form = useRef<HTMLFormElement>(null)
 
   const check = {
     name: (v: string) => (v.trim() ? '' : 'Enter your name.'),
@@ -122,12 +124,13 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
       agreed: agreed ? '' : 'Agree to the Terms and Privacy Policy to continue.',
     }
     setErrors(found)
-    if (Object.values(found).some(Boolean)) return
+    if (Object.values(found).some(Boolean)) return shakeInvalid(form.current, `.${page.field}`)
     setBusy(true)
     const result = await register({ name, email, password })
     setBusy(false)
     if (!result.ok) {
       setFormError(result.reason)
+      shake(form.current?.querySelector(`.${page.field}:nth-child(2)`)) // the email: "taken" is the usual one
       return
     }
     navigate(next, { replace: true })
@@ -138,7 +141,7 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
   }
 
   return (
-    <form className={styles.form} onSubmit={submit} noValidate>
+    <form ref={form} className={styles.form} onSubmit={submit} noValidate>
       <TextField
         label="Name"
         type="text"

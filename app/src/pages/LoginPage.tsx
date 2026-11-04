@@ -1,11 +1,12 @@
 import { SignIn } from '@phosphor-icons/react'
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT } from '../components/fieldRules.ts'
+import { shake } from '../components/shake.ts'
 import page from './Page.module.css'
 import styles from './Auth.module.css'
 
@@ -16,10 +17,10 @@ const LOGIN_ERRORS = {
   busy: 'Too many tries. Wait a minute, then try again.',
 } as const
 
-// The front door. An account unlocks everything; "Continue without an account" opens Emergency
-// only (911 and local authorities), so nobody is ever stuck behind a login when they need help.
+// The front door. An account unlocks everything. Emergency (/emergency) stays open without one,
+// through a shared link or the hazard button; there is no guest mode (John, 2026-11-04).
 export default function LoginPage() {
-  const { account, signIn, continueAsGuest } = useAuth()
+  const { account, signIn } = useAuth()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const next = safeNext(params.get('next')) ?? '/'
@@ -28,6 +29,7 @@ export default function LoginPage() {
   const [emailError, setEmailError] = useState('')
   const [formError, setFormError] = useState('')
   const [busy, setBusy] = useState(false)
+  const fields = useRef<HTMLDivElement>(null)
 
   if (account) return <Navigate to={next} replace />
 
@@ -35,6 +37,7 @@ export default function LoginPage() {
     e.preventDefault()
     if (!email.trim() || !password) {
       setFormError('Enter your email and password.')
+      shake(fields.current)
       return
     }
     setBusy(true)
@@ -42,14 +45,10 @@ export default function LoginPage() {
     setBusy(false)
     if (!result.ok) {
       setFormError(LOGIN_ERRORS[result.reason])
+      if (result.reason === 'wrong') shake(fields.current)
       return
     }
     navigate(next, { replace: true })
-  }
-
-  const asGuest = () => {
-    continueAsGuest()
-    navigate('/emergency', { replace: true })
   }
 
   const withNext = (path: string) => (next === '/' ? path : `${path}?next=${encodeURIComponent(next)}`)
@@ -63,29 +62,31 @@ export default function LoginPage() {
       </div>
 
       <form className={styles.form} onSubmit={submit} noValidate>
-        <TextField
-          label="Email"
-          {...EMAIL_INPUT}
-          autoComplete="username"
-          enterKeyHint="next"
-          value={email}
-          error={emailError}
-          onChange={(v) => {
-            setEmail(v)
-            setEmailError('')
-            setFormError('')
-          }}
-          onBlur={() => setEmailError(email && !email.includes('@') ? 'Enter an email like name@example.com.' : '')}
-        />
-        <PasswordField
-          autoComplete="current-password"
-          enterKeyHint="go"
-          value={password}
-          onChange={(v) => {
-            setPassword(v)
-            setFormError('')
-          }}
-        />
+        <div ref={fields} className={styles.fields}>
+          <TextField
+            label="Email"
+            {...EMAIL_INPUT}
+            autoComplete="username"
+            enterKeyHint="next"
+            value={email}
+            error={emailError}
+            onChange={(v) => {
+              setEmail(v)
+              setEmailError('')
+              setFormError('')
+            }}
+            onBlur={() => setEmailError(email && !email.includes('@') ? 'Enter an email like name@example.com.' : '')}
+          />
+          <PasswordField
+            autoComplete="current-password"
+            enterKeyHint="go"
+            value={password}
+            onChange={(v) => {
+              setPassword(v)
+              setFormError('')
+            }}
+          />
+        </div>
         {formError && (
           <p className={page.error} role="alert">
             {formError}
@@ -104,13 +105,6 @@ export default function LoginPage() {
       <Link className={`${page.secondary} ${styles.full}`} to={withNext('/signup')}>
         Create an account
       </Link>
-
-      <div className={styles.guest}>
-        <button type="button" className={styles.link} onClick={asGuest}>
-          Continue without an account
-        </button>
-        <span className={styles.guestNote}>Emergency numbers only</span>
-      </div>
     </AuthLayout>
   )
 }

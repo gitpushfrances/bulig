@@ -19,7 +19,7 @@ Bulig covers the whole Philippines, then any country. Town names in the wirefram
 | Location | GPS finds the area by itself (`watchPosition`), asked only once you are in the app (never on the sign-in screens or over the splash); until the first fix, places show skeletons. **Shown on Home between the bento and the 911 card** (and on Emergency) as one plain text line between hairlines: "Lahug · Cebu City · Cebu · 6000" over "Updated 2:41 PM", with a reload button right after it. Address from OpenStreetMap Nominatim. Area picker in the same spot only when GPS is off. |
 | Home | "What do you need?" bento = the **"What's wrong?" buttons**: each tile is a problem (Flat tire, Breakdown, Out of gas, Hospital, Food, Hotel, Store, Others) over the kind of place that solves it, and opens **Nearby results**. Then the location line, the national hotline (Call 911), local numbers, nearest places, Saved. |
 | Map | MapLibre + OpenFreeMap (free, no key), recoloured to Graphite light/dark; category pins, chips, a place sheet. **In-app routes** from OSRM on OpenStreetMap roads (FOSSGIS, free, no key): a blue line, distance and time, Car or Walk, rerouting as you move, and a Google Maps button for voice navigation. Card **Directions** open `/map?to=<id>`. See [Map](#map-map). |
-| Accounts | Everything but Emergency needs an account ([Accounts and access](#accounts-and-access-decided-by-john-2026-10-30)). [Login](#login-login), [Sign up = onboarding](#sign-up--onboarding-signup) with Ropi, [Forgot password](#forgot-password-forgot-password). "Continue without an account" = Emergency only. Test logins (typed, no shortcuts): `test@`, `moderator@`, `admin@bulig.com` / `password`. Sign-ups are users kept on the phone (hashed password). |
+| Accounts | Everything but Emergency needs an account ([Accounts and access](#accounts-and-access-decided-by-john-2026-10-30)). [Login](#login-login), [Sign up = onboarding](#sign-up--onboarding-signup) with Ropi, [Forgot password](#forgot-password-forgot-password). No guest mode (John, 2026-11-04); `/emergency` still opens without an account from a shared link. Test logins (typed, no shortcuts): `test@`, `moderator@`, `admin@bulig.com` / `password`. Sign-ups are users kept on the phone (hashed password). |
 | Profile | Production-style settings: your photo (or Ropi), role, member since, edit profile (photo, name, mobile, home area), change password, theme (System/Light/Dark), install, help, Terms, Privacy, licences, sign out, delete account, "Bulig v0.3.0 · build <commit>". |
 | Mascot | Ropi on quiet screens only, now **talking** in speech bubbles (`RopiSays`): login (head mark / side panel), onboarding (all four poses), forgot password, guest gate, Saved empty ("Let's get started!"), empty category, offline, map offline, About, Profile avatar. Never on Home or Emergency. See [Mascot: Ropi](#mascot-ropi). |
 | Loading and motion | A **splash** (logo, "Bulig", "Help along the way.") on opening, never in front of Emergency. Pages **fade in** (160ms, none on Emergency and the Map) and open at the top; Back returns to the exact scroll position. **Skeletons** in the real layout while data or the first location loads. Works on iOS 14+, Chrome 87+ and in-app browsers. See [§7 States](#7-states-to-design) and [§10 Motion](#motion-touch-forms-and-browser-chrome). |
@@ -248,7 +248,7 @@ The original spec:
 - **Everything except Emergency needs an account.** Home, Services, Map, Saved and Profile sit behind `RequireAccount`.
 - **Emergency (`/emergency`) is open to everyone, always:** signed in, guest, or a stranger opening a shared link. Nothing about calling 911 or local authorities ever waits on a login.
 - Not signed in and not a guest: any other screen redirects to `/login?next=<that screen>` and returns there after signing in or signing up.
-- **Guest** ("Continue without an account" on the login, `bulig.guest`): lands on Emergency. Any other tab shows the **gate**: Ropi `thinking` says "This part needs a free account. Emergency numbers stay open to everyone.", then "Sign in to see what's near you" with **Sign in**, **Create an account** and **Emergency numbers**.
+- **No guest mode** (removed 2026-11-04, John): anyone signed out goes to the login and back after. `/emergency` stays open without an account.
 - Signing in or signing up clears guest mode.
 
 ### Login (`/login`)
@@ -258,7 +258,8 @@ The original spec:
 - **From 60rem (tablet landscape, desktop):** a split screen. Left: a quiet panel with Ropi `ready` waving (260px, tap for the reaction), "Bulig", "Help along the way." Right: the form.
 - Form: Email, Password (show/hide), a full-width **Sign in**. Directly under the button: **Forgot password?**
 - A divider "New to Bulig?", then **Create an account** (outlined, full width), which opens the onboarding.
-- At the bottom: **Continue without an account**, with "Emergency numbers only" under it.
+- No guest mode and no emergency link here (John, 2026-11-04).
+- Look (all sign-in screens): one card (24px corners, layered shadow, a light top edge in dark mode) on a soft teal glow; the main button has a sheen that only raises its text contrast and a teal lift. Blocks stack in a beat apart; a field shakes once when it turns invalid, and the fields shake on a wrong password. All motion is off under reduced motion.
 - The test logins still work when typed: `test@bulig.com`, `moderator@bulig.com`, `admin@bulig.com`, password `password` (see [WORKFLOW.md](WORKFLOW.md#sign-in)).
 
 ### Sign up = onboarding (`/signup`)

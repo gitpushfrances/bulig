@@ -20,7 +20,7 @@ npm run build
 
 ## Hard rules
 
-- Emergency (`/emergency`: 911 and local authorities) is open to everyone with no login, and one tap away from every screen (the red hazard button). Everything else needs an account ("Continue without an account" = Emergency only). Nothing heavy loads before 911; no ad or paywall near emergencies.
+- Emergency (`/emergency`: 911 and local authorities) is open to everyone with no login, and one tap away from every in-app screen (the red hazard button). Everything else needs an account. There is no guest mode and no emergency link on the sign-in screens (John, 2026-11-04); a shared `/emergency` link still opens without one. Nothing heavy loads before 911; no ad or paywall near emergencies.
 - Free services only: no paid APIs or subscriptions (the map is MapLibre + OpenFreeMap, addresses are Nominatim, routes are OSRM on routing.openstreetmap.de, voice navigation is a Google Maps URL).
 - Never say Bulig dispatches help, sends location, or that a place is "open now".
 - Works offline after one visit. Low-cost Android, 360px, sunlight: 16px body, 48px targets.

@@ -6,9 +6,6 @@ export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | { photo: 'offli
 
 export interface Auth {
   account: Account | null
-  // Browsing without an account: Emergency only (911 and local authorities).
-  guest: boolean
-  continueAsGuest: () => void
   signIn: (email: string, password: string) => Promise<SignInResult>
   register: (details: NewAccount) => Promise<RegisterResult>
   signOut: () => void

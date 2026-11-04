@@ -3,12 +3,12 @@
 .head {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   text-align: center;
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -22,12 +22,43 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* A form-level error (wrong password, no signal) slides in under the fields. */
+.form [role='alert'] {
+  animation: alert-in 200ms var(--ease-out);
+}
+
+@keyframes alert-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* The main button on these screens: a sheen that only raises its text contrast, and a soft
+   teal lift that presses down with the button. */
+.form button[type='submit'],
 .submit {
   width: 100%;
   min-height: 52px;
+  background-image: var(--button-sheen);
+  box-shadow: var(--shadow-primary);
+  transition:
+    transform var(--press-ms) var(--ease-out),
+    box-shadow var(--press-ms) var(--ease-out);
+}
+
+.form button[type='submit']:active,
+.submit:active {
+  box-shadow: none;
 }
 
 /* A text link that is still a 44px target. */
@@ -72,19 +103,6 @@
 
 .full {
   width: 100%;
-}
-
-.guest {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  text-align: center;
-}
-
-.guestNote {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
 }
 
 .center {
@@ -179,7 +197,7 @@
   padding: 12px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  background: var(--color-surface);
+  background: var(--color-bg);
 }
 
 .point svg {
@@ -205,6 +223,12 @@
 
 .nav > * {
   flex: 1;
+}
+
+/* Back next to the main button stays narrow, so "Create account" fits on one line at 360px. */
+.nav > button[type='button']:first-child:not(:last-child) {
+  flex: none;
+  padding: 0 16px;
 }
 
 /* A notice in preview builds: what a screen will do once accounts move online. */

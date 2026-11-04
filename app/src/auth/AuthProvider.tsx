@@ -6,7 +6,8 @@ import type { UpdateProfileResult } from './context.ts'
 import type { AccountStore, NewAccount, SetPhotoResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
-const GUEST_KEY = 'bulig.guest'
+// Guest mode is gone (2026-11-04): Emergency is open to everyone without it. Old phones drop the flag.
+const OLD_GUEST_KEY = 'bulig.guest'
 const profileKey = (email: string) => `bulig.profile.${email}`
 
 function readDetails(email: string): Partial<ProfileDetails> {
@@ -31,7 +32,6 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   const [account, setAccount] = useState(() => withDetails(store.restore(), store))
   // The hearts, tagged with whose they are, so a stale list never shows for another account.
   const [loaded, setLoaded] = useState<{ email: string; ids: string[] } | null>(null)
-  const [guest, setGuest] = useState(() => !account && readSaved(GUEST_KEY) === '1')
   const email = account?.email ?? null
 
   // On start: ask the server who this is (a revoked token signs the phone out), then the hearts.
@@ -61,9 +61,9 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   const setSaved = (update: (ids: string[]) => string[]) =>
     setLoaded((now) => (email ? { email, ids: update(now?.email === email ? now.ids : []) } : now))
 
+  useEffect(() => writeSaved(OLD_GUEST_KEY, null), [])
+
   const start = (next: Account) => {
-    writeSaved(GUEST_KEY, null)
-    setGuest(false)
     setAccount(withDetails(next, store))
   }
 
@@ -82,11 +82,6 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   const signOut = () => {
     void store.signOut()
     setAccount(null)
-  }
-
-  const continueAsGuest = () => {
-    writeSaved(GUEST_KEY, '1')
-    setGuest(true)
   }
 
   const updateProfile = async (details: ProfileDetails): Promise<UpdateProfileResult> => {
@@ -170,8 +165,6 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     <AuthContext.Provider
       value={{
         account,
-        guest,
-        continueAsGuest,
         signIn,
         register,
         signOut,
