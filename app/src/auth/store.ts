@@ -21,6 +21,15 @@ export type RegisterResult =
 
 export type ChangePasswordResult = 'ok' | 'wrong' | 'offline'
 
+// API.md §5.7. 'same': already this account's email. 'wrong': not the current password.
+// 'busy': 5 asks an hour used. 'unavailable': any other answer (e.g. a server without this yet). 'preview': this build sends no email (phone-only accounts).
+export type EmailChangeResult =
+  | { ok: true; account: Account }
+  | { ok: false; reason: 'same' | 'taken' | 'wrong' | 'invalid' | 'busy' | 'offline' | 'preview' | 'unavailable' }
+
+// API.md §4.6, the link. 'invalid': unknown, used, cancelled or expired. 'taken': someone took the address meanwhile.
+export type ConfirmEmailResult = { ok: true; email: string } | { ok: false; reason: 'invalid' | 'taken' | 'offline' | 'preview' }
+
 // The photo's new address (a Cloudinary URL online, the data URL on the phone), null once removed.
 // 'invalid': wrong type or too big. 'busy': 30 photos a day used. 'unavailable': storage not set up.
 export type SetPhotoResult = { ok: true; photo: string | null } | { ok: false; reason: 'offline' | 'invalid' | 'busy' | 'unavailable' }
@@ -46,6 +55,12 @@ export interface AccountStore {
   changePassword(account: Account, current: string, next: string): Promise<ChangePasswordResult>
   // Replaces the photo (a 256px data URL from auth/photo.ts), or removes it with null.
   setPhoto(account: Account, photo: string | null): Promise<SetPhotoResult>
+  // Sends a link to the new address; nothing changes until it is opened. The account comes back with pendingEmail.
+  requestEmailChange(account: Account, newEmail: string, password: string): Promise<EmailChangeResult>
+  // The link stops working. Returns the account without pendingEmail, or null if the server didn't answer.
+  cancelEmailChange(account: Account): Promise<Account | null>
+  // The link from the email; works signed out too.
+  confirmEmail(token: string): Promise<ConfirmEmailResult>
   // False when this account can't be deleted here (test logins), or the server said no.
   deleteAccount(account: Account): Promise<boolean>
   // Whether this account can change its password and be deleted.

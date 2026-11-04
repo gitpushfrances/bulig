@@ -197,6 +197,18 @@ describe('Profile', () => {
     expect(await screen.findByRole('heading', { name: 'Juan Dela Cruz' })).toBeInTheDocument()
   })
 
+  it('explains that accounts kept on this phone keep their email', async () => {
+    renderAt('/profile')
+    fireEvent.click(await screen.findByRole('link', { name: /Change email/ }))
+    expect(await screen.findByRole('heading', { name: 'Change email' })).toBeInTheDocument()
+    expect(screen.getByText(/can't change their email/)).toBeInTheDocument()
+  })
+
+  it('says an email link is incomplete or unusable on this version', async () => {
+    renderAt('/confirm-email')
+    expect(await screen.findByText(/This link is incomplete/)).toBeInTheDocument()
+  })
+
   it('switches the theme and remembers it', () => {
     renderAt('/profile')
 

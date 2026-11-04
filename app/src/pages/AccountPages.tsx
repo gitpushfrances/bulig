@@ -259,3 +259,112 @@ export function ChangePasswordPage() {
     </SubPage>
   )
 }
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// API.md §5.7. Nothing changes until the link sent to the new address is opened, so a typo can't lock
+// anyone out. The current password stops a phone left signed in from being used to take the account.
+export function ChangeEmailPage() {
+  const { account, accountsOnline, requestEmailChange, cancelEmailChange } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({})
+  const [busy, setBusy] = useState(false)
+
+  if (!account) return null
+
+  if (!accountsOnline) {
+    return (
+      <SubPage title="Change email">
+        <p className={styles.draft}>Accounts kept on this phone can&apos;t change their email. Accounts on Bulig&apos;s server can.</p>
+      </SubPage>
+    )
+  }
+
+  const pending = account.pendingEmail
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    const found = {
+      email: EMAIL_PATTERN.test(email.trim()) ? '' : 'Enter an email like name@example.com.',
+      password: password ? '' : 'Enter your current password.',
+    }
+    setErrors(found)
+    if (found.email || found.password) return
+    setBusy(true)
+    const result = await requestEmailChange(email, password)
+    setBusy(false)
+    if (result.ok) {
+      setEmail('')
+      setPassword('')
+      return
+    }
+    const words: Record<typeof result.reason, { email?: string; password?: string; form?: string }> = {
+      same: { email: "That's already your email." },
+      taken: { email: 'That email already has an account.' },
+      invalid: { email: 'Enter an email like name@example.com.' },
+      wrong: { password: "That isn't your current password." },
+      busy: { form: 'Too many tries. Wait an hour and try again.' },
+      offline: { form: "Couldn't reach Bulig. Check your connection and try again." },
+      preview: { form: "This version of Bulig can't send emails." },
+      unavailable: { form: "Bulig couldn't send the link right now. Try again later." },
+    }
+    setErrors(words[result.reason])
+  }
+
+  const cancel = async () => {
+    setBusy(true)
+    const ok = await cancelEmailChange()
+    setBusy(false)
+    setErrors(ok ? {} : { form: "Couldn't reach Bulig. Check your connection and try again." })
+  }
+
+  return (
+    <SubPage title="Change email" lead={`You sign in with ${account.email}.`}>
+      {pending && (
+        <div className={styles.form}>
+          <p className={page.lead} role="status">
+            We sent a link to <strong>{pending}</strong>. Open it within an hour to finish. Until then you still sign in with{' '}
+            {account.email}.
+          </p>
+          <button type="button" className={page.secondary} onClick={cancel} disabled={busy}>
+            Cancel the change
+          </button>
+        </div>
+      )}
+      <form className={styles.form} onSubmit={submit} noValidate>
+        <TextField
+          label={pending ? 'Use a different new email' : 'New email'}
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          value={email}
+          error={errors.email}
+          onChange={(v) => {
+            setEmail(v)
+            setErrors((e) => ({ ...e, email: '', form: '' }))
+          }}
+        />
+        <PasswordField
+          label="Current password"
+          autoComplete="current-password"
+          hint="So nobody else can change it from your phone."
+          value={password}
+          error={errors.password}
+          onChange={(v) => {
+            setPassword(v)
+            setErrors((e) => ({ ...e, password: '', form: '' }))
+          }}
+        />
+        {errors.form && (
+          <p className={page.error} role="alert">
+            {errors.form}
+          </p>
+        )}
+        <button type="submit" className={page.primaryButton} disabled={busy}>
+          Send the link
+        </button>
+      </form>
+    </SubPage>
+  )
+}

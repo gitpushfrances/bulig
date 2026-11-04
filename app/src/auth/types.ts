@@ -19,6 +19,8 @@ export interface Account {
   homeArea?: AreaId | null
   // A small square photo (WebP data URL, 256px) chosen in Edit profile. None = Ropi's head.
   photo?: string
+  // A new email waiting for its confirmation link (API.md §5.7). Sign-in still uses `email` until then.
+  pendingEmail?: string
 }
 
 // The fields Edit profile may change.

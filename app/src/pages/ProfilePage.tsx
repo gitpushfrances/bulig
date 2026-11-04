@@ -1,4 +1,4 @@
-import { DownloadSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, MapPin, Palette, Scales, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
+import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, MapPin, Palette, Scales, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -147,6 +147,12 @@ export default function ProfilePage() {
       <SettingsGroup title="Account">
         <SettingsLink to="/profile/edit" icon={UserGear} label="Edit profile" />
         <SettingsLink to="/profile/password" icon={Key} label="Change password" />
+        <SettingsLink
+          to="/profile/email"
+          icon={EnvelopeSimple}
+          label="Change email"
+          value={account.pendingEmail ? 'Waiting for link' : undefined}
+        />
         <SettingsLink to="/saved" icon={Heart} label="Saved places" value={saved.length} />
         {homeArea && <SettingsInfo icon={MapPin} label="Home area" value={homeArea} />}
       </SettingsGroup>

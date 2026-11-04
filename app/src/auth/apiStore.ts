@@ -23,6 +23,7 @@ interface ApiUser {
   phone?: string | null
   homeArea?: string | null
   photoUrl?: string | null
+  pendingEmail?: string | null
 }
 
 // "data:image/webp;base64,..." → a Blob to upload as multipart (no fetch(), so it works everywhere).
@@ -46,6 +47,7 @@ export function toAccount(user: ApiUser): Account {
     phone: user.phone ?? undefined,
     homeArea: user.homeArea ?? null,
     photo: user.photoUrl ?? undefined,
+    pendingEmail: user.pendingEmail ?? undefined,
   }
 }
 
@@ -214,6 +216,51 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
         if (err instanceof OfflineError) return 'offline'
         if (err instanceof ApiError && err.status === 422) return 'wrong'
         throw err
+      }
+    },
+
+    async requestEmailChange(account, newEmail, password) {
+      try {
+        const { pendingEmail } = await call<{ pendingEmail: string }>('/me/email', {
+          method: 'POST',
+          body: { newEmail: newEmail.trim().toLowerCase(), currentPassword: password },
+        })
+        const next = { ...account, pendingEmail }
+        keep(readSaved(TOKEN_KEY), next)
+        return { ok: true as const, account: next }
+      } catch (err) {
+        if (err instanceof OfflineError) return { ok: false as const, reason: 'offline' as const }
+        if (err instanceof ApiError && err.status === 429) return { ok: false as const, reason: 'busy' as const }
+        if (err instanceof ApiError && err.status === 422) {
+          const errors = (err.body.errors ?? {}) as Record<string, string[] | undefined>
+          if (errors.currentPassword) return { ok: false as const, reason: 'wrong' as const }
+          const why = errors.newEmail?.[0]
+          return { ok: false as const, reason: why === 'same' || why === 'taken' ? why : ('invalid' as const) }
+        }
+        if (signedOut(err)) keep(null, null)
+        return { ok: false as const, reason: 'unavailable' as const }
+      }
+    },
+
+    async cancelEmailChange(account) {
+      try {
+        await call('/me/email', { method: 'DELETE' })
+        const next = { ...account, pendingEmail: undefined }
+        keep(readSaved(TOKEN_KEY), next)
+        return next
+      } catch {
+        return null
+      }
+    },
+
+    async confirmEmail(token) {
+      try {
+        const { email } = await call<{ email: string }>('/auth/confirm-email', { method: 'POST', body: { token }, token: null })
+        return { ok: true as const, email }
+      } catch (err) {
+        if (err instanceof OfflineError) return { ok: false as const, reason: 'offline' as const }
+        const why = err instanceof ApiError ? ((err.body.errors ?? {}) as Record<string, string[] | undefined>).token?.[0] : undefined
+        return { ok: false as const, reason: why === 'taken' ? ('taken' as const) : ('invalid' as const) }
       }
     },
 
