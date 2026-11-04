@@ -59,12 +59,14 @@ function useLocationPermission(): string {
 }
 
 function DeleteAccount() {
-  const { deleteAccount, isLocal } = useAuth()
+  const { deleteAccount, canManage, accountsOnline } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [typed, setTyped] = useState('')
 
-  if (!isLocal) {
+  const [failed, setFailed] = useState(false)
+
+  if (!canManage) {
     return (
       <div className={styles.danger}>
         <h2 className={styles.dangerTitle}>Delete account</h2>
@@ -77,7 +79,9 @@ function DeleteAccount() {
     <div className={styles.danger}>
       <h2 className={styles.dangerTitle}>Delete account</h2>
       <p className={page.hint}>
-        Removes your account, saved places and details from this phone. This can&apos;t be undone.
+        {accountsOnline
+          ? 'Deletes your account and saved places from Bulig. This can\u2019t be undone.'
+          : 'Removes your account, saved places and details from this phone. This can\u2019t be undone.'}
       </p>
       {open ? (
         <>
@@ -88,6 +92,11 @@ function DeleteAccount() {
             value={typed}
             onChange={setTyped}
           />
+          {failed && (
+            <p className={page.error} role="alert">
+              Couldn&apos;t delete your account. Check your connection and try again.
+            </p>
+          )}
           <div className={page.actions}>
             <button type="button" className={page.secondary} onClick={() => setOpen(false)}>
               Keep my account
@@ -96,9 +105,10 @@ function DeleteAccount() {
               type="button"
               className={`${page.secondary} ${styles.dangerButton}`}
               disabled={typed.trim().toLowerCase() !== 'delete'}
-              onClick={() => {
-                deleteAccount()
-                navigate('/login', { replace: true })
+              onClick={async () => {
+                setFailed(false)
+                if (await deleteAccount()) navigate('/login', { replace: true })
+                else setFailed(true)
               }}
             >
               <Trash2 size={18} strokeWidth={2} aria-hidden="true" />

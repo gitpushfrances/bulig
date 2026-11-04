@@ -20,6 +20,7 @@ import NotFoundPage from './pages/NotFoundPage.tsx'
 import LoginPage from './pages/LoginPage.tsx'
 import SignupPage from './pages/SignupPage.tsx'
 import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx'
+import ResetPasswordPage from './pages/ResetPasswordPage.tsx'
 import DataProvider from './data/DataProvider.tsx'
 
 // These paths are permanent: links shared on Facebook must keep working.
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="login" element={<LoginPage />} />
             <Route path="signup" element={<SignupPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="reset-password" element={<ResetPasswordPage />} />
             <Route path="welcome" element={<Navigate to="/login" replace />} />
             <Route element={<Layout />}>
               <Route path="emergency" element={<EmergencyPage />} />

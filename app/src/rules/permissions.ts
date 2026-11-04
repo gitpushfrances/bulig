@@ -8,6 +8,7 @@ export type Action = (typeof ACTIONS)[number]
 
 const ROLE_ACTIONS: Record<Account['role'], readonly Action[]> = {
   user: ['save', 'report'],
+  contributor: ['save', 'report'],
   moderator: ['save', 'report', 'review', 'verify'],
   admin: ACTIONS,
 }

@@ -5,7 +5,7 @@ import type { Account, Role } from './types.ts'
 // let testers try each role. Never put a real password here.
 export const TEST_PASSWORD = 'password'
 
-export const TEST_ACCOUNTS: Record<Role, Account> = {
+export const TEST_ACCOUNTS: Record<Exclude<Role, 'contributor'>, Account> = {
   user: { email: 'test@bulig.com', name: 'Test traveller', role: 'user', areas: [], createdAt: '2026-10-01' },
   moderator: {
     email: 'moderator@bulig.com',
@@ -17,7 +17,7 @@ export const TEST_ACCOUNTS: Record<Role, Account> = {
   admin: { email: 'admin@bulig.com', name: 'Test admin', role: 'admin', areas: [], createdAt: '2026-10-01' },
 }
 
-export const TEST_LOGIN = { email: TEST_ACCOUNTS.user.email, password: TEST_PASSWORD }
+export const TEST_LOGIN = { email: 'test@bulig.com', password: TEST_PASSWORD }
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()

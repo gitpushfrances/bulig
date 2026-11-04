@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-29T00:00:00Z",
+  "items": [
+    {
+      "id": "ph-metro-manila-quezon-city",
+      "country": "PH",
+      "name": "Quezon City",
+      "region": "Metro Manila",
+      "level": "city",
+      "parent": null,
+      "lat": 14.676,
+      "lng": 121.0437,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-benguet-baguio",
+      "country": "PH",
+      "name": "Baguio",
+      "region": "Benguet",
+      "level": "city",
+      "parent": null,
+      "lat": 16.4023,
+      "lng": 120.596,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-camarines-sur-naga",
+      "country": "PH",
+      "name": "Naga",
+      "region": "Camarines Sur",
+      "level": "city",
+      "parent": null,
+      "lat": 13.6218,
+      "lng": 123.1948,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-palawan-puerto-princesa",
+      "country": "PH",
+      "name": "Puerto Princesa",
+      "region": "Palawan",
+      "level": "city",
+      "parent": null,
+      "lat": 9.7392,
+      "lng": 118.7353,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-iloilo-iloilo-city",
+      "country": "PH",
+      "name": "Iloilo City",
+      "region": "Iloilo",
+      "level": "city",
+      "parent": null,
+      "lat": 10.7202,
+      "lng": 122.5621,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-cebu-cebu-city",
+      "country": "PH",
+      "name": "Cebu City",
+      "region": "Cebu",
+      "level": "city",
+      "parent": null,
+      "lat": 10.3157,
+      "lng": 123.8854,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-leyte-tacloban",
+      "country": "PH",
+      "name": "Tacloban",
+      "region": "Leyte",
+      "level": "city",
+      "parent": null,
+      "lat": 11.2443,
+      "lng": 125.0039,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-eastern-samar-guiuan",
+      "country": "PH",
+      "name": "Guiuan",
+      "region": "Eastern Samar",
+      "level": "municipality",
+      "parent": null,
+      "lat": 11.0333,
+      "lng": 125.7245,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-eastern-samar-mercedes",
+      "country": "PH",
+      "name": "Mercedes",
+      "region": "Eastern Samar",
+      "level": "municipality",
+      "parent": null,
+      "lat": 11.1036,
+      "lng": 125.7175,
+      "languages": ["en", "fil"]
+    },
+    {
+      "id": "ph-davao-del-sur-davao-city",
+      "country": "PH",
+      "name": "Davao City",
+      "region": "Davao del Sur",
+      "level": "city",
+      "parent": null,
+      "lat": 7.1907,
+      "lng": 125.4553,
+      "languages": ["en", "fil"]
+    }
+  ]
+}

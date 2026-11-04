@@ -7,6 +7,8 @@ coverage/
 # Env files (keep secrets out of git)
 .env
 .env.*
+# Public build settings (no secrets: the API URL is visible in the app anyway).
+!app/.env.production
 !.env.example
 *.local
 

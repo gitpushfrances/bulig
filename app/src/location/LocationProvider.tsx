@@ -16,7 +16,7 @@ const FRESH: PositionOptions = { enableHighAccuracy: true, maximumAge: 0, timeou
 const ADDRESS_KEY = 'bulig.address'
 const STALE_KM = 2
 const SETTLE_MS = 8_000
-const AUTH_PATHS = ['/login', '/signup', '/forgot-password']
+const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password']
 
 function readAddress(): PlacedAddress | null {
   try {

@@ -9,7 +9,7 @@ import { useAppData } from '../data/context.ts'
 import page from './Page.module.css'
 import styles from './Profile.module.css'
 
-const MIN_PASSWORD = 8
+export const MIN_PASSWORD = 8
 
 // A sub-screen of Profile: Back (to where the person came from), a title, then the content.
 export function SubPage({ title, lead, children }: { title: string; lead?: string; children: ReactNode }) {
@@ -28,7 +28,7 @@ export function SubPage({ title, lead, children }: { title: string; lead?: strin
 }
 
 export function EditProfilePage() {
-  const { account, updateProfile } = useAuth()
+  const { account, updateProfile, accountsOnline } = useAuth()
   const { data } = useAppData()
   const navigate = useNavigate()
   const [name, setName] = useState(account?.name ?? '')
@@ -38,6 +38,8 @@ export function EditProfilePage() {
   const [photoError, setPhotoError] = useState('')
   const [nameError, setNameError] = useState('')
   const [phoneError, setPhoneError] = useState('')
+  const [saveError, setSaveError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   if (!account) return null
   const areas = data.status === 'ready' ? [...data.areas].sort((a, b) => a.name.localeCompare(b.name)) : []
@@ -45,19 +47,31 @@ export function EditProfilePage() {
   const checkPhone = (v: string) =>
     !v.trim() || /^(\+?63|0)9\d{9}$/.test(v.replace(/[\s-]/g, '')) ? '' : 'Enter a mobile number like 0917 123 4567.'
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault()
     const n = name.trim() ? '' : 'Enter your name.'
     const p = checkPhone(phone)
     setNameError(n)
     setPhoneError(p)
+    setSaveError('')
     if (n || p) return
-    updateProfile({ name, phone, homeArea: homeArea || null, photo })
-    navigate('/profile')
+    setSaving(true)
+    const result = await updateProfile({ name, phone, homeArea: homeArea || null, photo })
+    setSaving(false)
+    if (result === 'ok') navigate('/profile')
+    else
+      setSaveError(
+        result === 'offline'
+          ? "Couldn't reach Bulig. Check your connection and try again."
+          : 'Bulig couldn\u2019t save that. Check your name and phone number.',
+      )
   }
 
   return (
-    <SubPage title="Edit profile" lead="This stays on this phone until accounts move online.">
+    <SubPage
+      title="Edit profile"
+      lead={accountsOnline ? 'Your photo stays on this phone for now.' : 'This stays on this phone until accounts move online.'}
+    >
       <form className={styles.form} onSubmit={submit} noValidate>
         <div className={styles.photoRow}>
           <span className={styles.photoPreview} aria-hidden="true">
@@ -131,9 +145,14 @@ export function EditProfilePage() {
             ))}
           </select>
         </div>
-        <button type="submit" className={page.primaryButton}>
+        {saveError && (
+          <p className={page.error} role="alert">
+            {saveError}
+          </p>
+        )}
+        <button type="submit" className={page.primaryButton} disabled={saving}>
           <Save size={18} strokeWidth={2} aria-hidden="true" />
-          Save changes
+          {saving ? 'Saving…' : 'Save changes'}
         </button>
       </form>
     </SubPage>
@@ -141,7 +160,7 @@ export function EditProfilePage() {
 }
 
 export function ChangePasswordPage() {
-  const { isLocal, changePassword } = useAuth()
+  const { canManage, changePassword } = useAuth()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -149,7 +168,7 @@ export function ChangePasswordPage() {
   const [done, setDone] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  if (!isLocal) {
+  if (!canManage) {
     return (
       <SubPage title="Change password">
         <p className={styles.draft}>Test accounts keep the password &quot;password&quot;. Accounts you create can change theirs here.</p>
@@ -168,10 +187,13 @@ export function ChangePasswordPage() {
     setDone(false)
     if (Object.values(found).some(Boolean)) return
     setBusy(true)
-    const ok = await changePassword(current, next)
+    const result = await changePassword(current, next)
     setBusy(false)
-    if (!ok) {
-      setErrors({ current: "That isn't your current password." })
+    if (result !== 'ok') {
+      setErrors({
+        current:
+          result === 'offline' ? "Couldn't reach Bulig. Check your connection and try again." : "That isn't your current password.",
+      })
       return
     }
     setCurrent('')

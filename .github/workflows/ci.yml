@@ -22,3 +22,11 @@ jobs:
       - run: npm run lint
       - run: npx vitest run
       - run: npm run build
+      # The production build talks to the API (app/.env.production), so it must not ship the
+      # phone-only test logins or their password.
+      - name: No test logins in the production bundle
+        run: |
+          if grep -rlE 'test@bulig\.com|moderator@bulig\.com|admin@bulig\.com' dist/; then
+            echo "::error::Test logins ended up in the production bundle (see src/auth/appAccounts.ts)."
+            exit 1
+          fi

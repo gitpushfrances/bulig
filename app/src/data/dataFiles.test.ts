@@ -23,6 +23,11 @@ describe.each(LIVE_COUNTRIES.map((c) => c.toLowerCase()))('data for %s', (cc) =>
     expect(validateEnvelope('services', services)).toEqual([])
   })
 
+  it('ships no sample records: those live in src/test/fixtures/ for the tests', () => {
+    const samples = [...emergency.items, ...services.items].filter((r) => r.sample)
+    expect(samples.map((r) => r.id)).toEqual([])
+  })
+
   it('only holds records for this country', () => {
     const all = [...areas.items, ...emergency.items, ...services.items]
     expect(all.filter((r) => r.country.toLowerCase() !== cc)).toEqual([])
