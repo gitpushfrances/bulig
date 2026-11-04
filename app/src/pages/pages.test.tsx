@@ -20,8 +20,15 @@ describe('Home', () => {
     expect(within(hotline).getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
     // The bento is "What's wrong?": the problem over the kind of place, opening Nearby results.
     expect(await screen.findByRole('link', { name: /^Flat tire/ })).toHaveAttribute('href', '/nearby/flat-tire')
-    expect(screen.getByRole('link', { name: 'All emergency numbers' })).toHaveAttribute('href', '/emergency')
+    expect(screen.getByRole('link', { name: 'All numbers' })).toHaveAttribute('href', '/emergency')
     expect(screen.getByRole('list', { name: 'Nearest places' })).toBeInTheDocument()
+  })
+})
+
+describe('Profile', () => {
+  it('has a Back button, since Profile is not a tab', async () => {
+    renderAt('/profile')
+    expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
   })
 })
 
