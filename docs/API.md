@@ -348,14 +348,14 @@ Edit profile (`/profile/edit`). Send only what changed.
 **Request**
 
 ```json
-{ "name": "Juan Dela Cruz", "phone": "+639171234567", "homeArea": "ph-cebu-cebu-city" }
+{ "name": "Juan Dela Cruz", "phone": "+639171234567", "homeArea": "Surok, Guiuan, Eastern Samar" }
 ```
 
 | Field | Rules |
 | --- | --- |
 | `name` | 1–80 characters |
 | `phone` | `null`, or a PH mobile number. The form accepts `0917 123 4567` or `+63 917 123 4567`; send it normalised to E.164 (`+639171234567`). |
-| `homeArea` | `null` or an existing area ID |
+| `homeArea` | `null`, or free text up to 120 characters: the barangay and town the person calls home, listed in Bulig or not (2026-11-04; it was an area ID, and older accounts were converted to "Name, Region"). Never a house address. |
 
 `email` and `role` can't be changed here (`422` if sent); email changes go through [§5.7](#57-post-meemail-). **200:** the updated User.
 
@@ -536,7 +536,7 @@ Not part of the app's contract: `POST /internal/schedule` (alpha and beta on Ren
   "areas": [],
   "createdAt": "2026-10-30",
   "phone": "+639171234567",
-  "homeArea": "ph-cebu-cebu-city",
+  "homeArea": "Surok, Guiuan, Eastern Samar",
   "photoUrl": null,
   "pendingEmail": null
 }
@@ -579,6 +579,7 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.guest` | Old guest flag (guest mode removed 2026-11-04) | Cleared on start |
 | `bulig.area`, `bulig.country` | Picked area and country | Stay on the phone (`homeArea` is the server-side preference) |
 | `bulig.address` | Last looked-up address | Stays on the phone |
+| `bulig.mapView` | Last Map view (centre rounded to ~100 m, zoom), to reopen the map there | Stays on the phone |
 | `bulig.theme` | System / Light / Dark | Stays on the phone |
 | `bulig.route` (sessionStorage) | The route in progress | Stays on the phone |
 | Test logins (`auth/testAccount.ts`) | `test@`, `moderator@`, `admin@bulig.com` | **Removed.** Seed real accounts in Filament |

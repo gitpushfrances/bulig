@@ -18,6 +18,12 @@
   height: 100%;
 }
 
+/* MapLibre's own element (mapKeeper.ts moves it in and out of .map between visits). */
+.canvasBox {
+  position: absolute;
+  inset: 0;
+}
+
 .loading {
   position: absolute;
   inset: 0;

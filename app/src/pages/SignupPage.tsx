@@ -6,7 +6,7 @@ import { canRegister } from '../auth/canRegister.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
-import Spinner from '../components/Spinner.tsx'
+import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT, looksLikeEmail } from '../components/fieldRules.ts'
 import type { MascotVariant } from '../components/Mascot.tsx'
@@ -219,8 +219,10 @@ function SignupForm({ next }: { next: string }) {
         </FormAlert>
       )}
       <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy} aria-busy={busy}>
-        {busy ? <Spinner /> : <UserPlus size={18} aria-hidden="true" />}
-        {busy ? 'Creating your account…' : 'Create account'}
+        <BusyContent busy={busy} busyLabel="Creating your account…">
+          <UserPlus size={18} aria-hidden="true" />
+          Create account
+        </BusyContent>
       </button>
     </form>
   )

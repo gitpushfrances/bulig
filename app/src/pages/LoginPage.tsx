@@ -5,7 +5,7 @@ import { useAuth } from '../auth/context.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
-import Spinner from '../components/Spinner.tsx'
+import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT } from '../components/fieldRules.ts'
 import { shake } from '../components/shake.ts'
@@ -117,8 +117,10 @@ export default function LoginPage() {
           </FormAlert>
         )}
         <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy} aria-busy={busy}>
-          {busy ? <Spinner /> : <SignIn size={18} aria-hidden="true" />}
-          {busy ? 'Signing in…' : 'Sign in'}
+          <BusyContent busy={busy} busyLabel="Signing in…">
+            <SignIn size={18} aria-hidden="true" />
+            Sign in
+          </BusyContent>
         </button>
         <Link className={`${styles.link} ${styles.forgot}`} to="/forgot-password">
           Forgot password?

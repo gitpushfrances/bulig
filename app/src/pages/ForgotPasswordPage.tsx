@@ -2,7 +2,7 @@ import { ArrowLeft, PaperPlaneTilt } from '@phosphor-icons/react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
-import Spinner from '../components/Spinner.tsx'
+import { BusyContent } from '../components/Spinner.tsx'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import { TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT, looksLikeEmail } from '../components/fieldRules.ts'
@@ -73,8 +73,10 @@ export default function ForgotPasswordPage() {
               }}
             />
             <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy} aria-busy={busy}>
-              {busy ? <Spinner /> : <PaperPlaneTilt size={18} aria-hidden="true" />}
-              {busy ? 'Sending…' : 'Send reset link'}
+              <BusyContent busy={busy} busyLabel="Sending…">
+                <PaperPlaneTilt size={18} aria-hidden="true" />
+                Send reset link
+              </BusyContent>
             </button>
           </form>
           <Link className={`${styles.link} ${styles.forgot}`} to="/login">

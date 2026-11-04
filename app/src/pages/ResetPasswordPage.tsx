@@ -1,3 +1,4 @@
+import { BusyContent } from '../components/Spinner.tsx'
 import { Key } from '@phosphor-icons/react'
 import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
@@ -92,9 +93,11 @@ export default function ResetPasswordPage() {
                 {error}
               </p>
             )}
-            <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
-              <Key size={18} aria-hidden="true" />
-              Save new password
+            <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy} aria-busy={busy}>
+              <BusyContent busy={busy} busyLabel="Saving…">
+                <Key size={18} aria-hidden="true" />
+                Save new password
+              </BusyContent>
             </button>
           </form>
         </>

@@ -1,11 +1,13 @@
-import { Camera, FloppyDisk, Trash } from '@phosphor-icons/react'
+import { Camera, Check, FloppyDisk, Trash } from '@phosphor-icons/react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { toAvatar } from '../auth/photo.ts'
 import BackButton from '../components/BackButton.tsx'
+import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { useAppData } from '../data/context.ts'
+import { HOME_AREA_MAX, homeAreaText } from '../auth/homeArea.ts'
 import page from './Page.module.css'
 import styles from './Profile.module.css'
 
@@ -27,98 +29,202 @@ export function SubPage({ title, lead, children }: { title: string; lead?: strin
   )
 }
 
+type PhotoStep =
+  | { kind: 'idle' }
+  | { kind: 'preview'; photo: string } // picked, waiting for "Use this photo"
+  | { kind: 'remove' } // waiting for "Remove photo"
+
 export function EditProfilePage() {
   const { account, updateProfile, accountsOnline } = useAuth()
   const { data } = useAppData()
   const navigate = useNavigate()
+  const areas = data.status === 'ready' ? data.areas : []
   const [name, setName] = useState(account?.name ?? '')
   const [phone, setPhone] = useState(account?.phone ?? '')
-  const [homeArea, setHomeArea] = useState(account?.homeArea ?? '')
-  const [photo, setPhoto] = useState(account?.photo)
-  const [photoError, setPhotoError] = useState('')
+  // null until the person types: the saved value then shows even if the area list loads late.
+  const [homeEdit, setHomeEdit] = useState<string | null>(null)
+  const [photoStep, setPhotoStep] = useState<PhotoStep>({ kind: 'idle' })
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoNote, setPhotoNote] = useState<{ ok: boolean; text: string } | null>(null)
   const [nameError, setNameError] = useState('')
   const [phoneError, setPhoneError] = useState('')
+  const [homeError, setHomeError] = useState('')
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
 
   if (!account) return null
-  const areas = data.status === 'ready' ? [...data.areas].sort((a, b) => a.name.localeCompare(b.name)) : []
+  const photo = account.photo
+  const homeArea = homeEdit ?? homeAreaText(account.homeArea, areas)
   // A Philippine mobile number: 09XX XXX XXXX or +63 9XX XXX XXXX. Optional.
   const checkPhone = (v: string) =>
     !v.trim() || /^(\+?63|0)9\d{9}$/.test(v.replace(/[\s-]/g, '')) ? '' : 'Enter a mobile number like 0917 123 4567.'
+  const checkHome = (v: string) => (v.trim().length > HOME_AREA_MAX ? `Keep it under ${HOME_AREA_MAX} characters.` : '')
+
+  // The photo saves on its own, right after the person confirms it, with the details already saved
+  // (not the ones being edited below).
+  const savePhoto = async (next: string | undefined) => {
+    setPhotoBusy(true)
+    setPhotoNote(null)
+    const result = await updateProfile({
+      name: account.name,
+      phone: account.phone,
+      homeArea: account.homeArea ?? null,
+      photo: next,
+    })
+    setPhotoBusy(false)
+    if (result === 'ok') {
+      setPhotoStep({ kind: 'idle' })
+      setPhotoNote({ ok: true, text: next ? 'Photo updated.' : 'Photo removed.' })
+      return
+    }
+    const reason = typeof result === 'object' ? result.photo : result
+    setPhotoNote({
+      ok: false,
+      text:
+        reason === 'offline'
+          ? "Couldn't reach Bulig. Check your connection and try again."
+          : reason === 'invalid'
+            ? "Bulig couldn't use that photo. Try another one."
+            : reason === 'busy'
+              ? 'You changed your photo many times today. Try again tomorrow.'
+              : "Photos can't be saved right now. Try again later.",
+    })
+  }
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const n = name.trim() ? '' : 'Enter your name.'
     const p = checkPhone(phone)
+    const h = checkHome(homeArea)
     setNameError(n)
     setPhoneError(p)
+    setHomeError(h)
     setSaveError('')
-    if (n || p) return
+    if (n || p || h) return
     setSaving(true)
-    const result = await updateProfile({ name, phone, homeArea: homeArea || null, photo })
+    const result = await updateProfile({ name, phone, homeArea: homeArea.trim() || null, photo })
     setSaving(false)
-    if (result === 'ok') navigate('/profile')
-    else if (typeof result === 'object')
-      // The details saved; only the photo didn't.
-      setSaveError(
-        result.photo === 'offline'
-          ? "Your details are saved, but the photo didn't upload. Check your connection and save again."
-          : result.photo === 'invalid'
-            ? "Your details are saved, but Bulig couldn't use that photo. Try another one."
-            : result.photo === 'busy'
-              ? 'Your details are saved. You changed your photo many times today; try again tomorrow.'
-              : "Your details are saved. Photos can't be uploaded right now; try again later.",
-      )
+    if (result === 'ok' || typeof result === 'object') navigate('/profile')
     else
       setSaveError(
         result === 'offline'
           ? "Couldn't reach Bulig. Check your connection and try again."
-          : 'Bulig couldn\u2019t save that. Check your name and phone number.',
+          : 'Bulig couldn\u2019t save that. Check your name, phone number and home area.',
       )
   }
+
+  const pickPhoto = (
+    <label className={page.secondary}>
+      <Camera size={18} aria-hidden="true" />
+      {photoStep.kind === 'preview' ? 'Choose another' : photo ? 'Change photo' : 'Add a photo'}
+      <input
+        type="file"
+        accept="image/*"
+        className="visually-hidden"
+        disabled={photoBusy}
+        onChange={async (e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (!file) return
+          try {
+            setPhotoStep({ kind: 'preview', photo: await toAvatar(file) })
+            setPhotoNote(null)
+          } catch {
+            setPhotoNote({ ok: false, text: "That file couldn't be opened as a picture. Try a JPG or PNG." })
+          }
+        }}
+      />
+    </label>
+  )
 
   return (
     <SubPage
       title="Edit profile"
       lead={accountsOnline ? 'Saved to your account, so it follows you to any phone.' : 'This stays on this phone until accounts move online.'}
     >
-      <form className={styles.form} onSubmit={submit} noValidate>
+      {photoStep.kind === 'preview' ? (
+        <section className={styles.photoConfirm} aria-labelledby="photo-confirm-title">
+          <h2 id="photo-confirm-title" className={styles.photoConfirmTitle}>
+            Use this photo?
+          </h2>
+          <span className={styles.photoBig}>
+            <img src={photoStep.photo} alt="Your new profile photo" className={styles.photoImg} />
+          </span>
+          <p className={page.hint}>It shows on Home and your Profile.</p>
+          <div className={styles.photoConfirmActions}>
+            <button
+              type="button"
+              className={page.primaryButton}
+              disabled={photoBusy}
+              aria-busy={photoBusy}
+              onClick={() => savePhoto(photoStep.photo)}
+            >
+              <BusyContent busy={photoBusy} busyLabel="Saving your photo…">
+                <Check size={18} aria-hidden="true" />
+                Use this photo
+              </BusyContent>
+            </button>
+            {pickPhoto}
+            <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
+              Cancel
+            </button>
+          </div>
+          {photoNote && !photoNote.ok && (
+            <p className={page.error} role="alert">
+              {photoNote.text}
+            </p>
+          )}
+        </section>
+      ) : (
         <div className={styles.photoRow}>
           <span className={styles.photoPreview} aria-hidden="true">
             <img src={photo ?? '/assets/mascot/ropi-head.webp'} alt="" className={photo ? styles.photoImg : styles.photoRopi} />
           </span>
           <div className={styles.photoActions}>
-            <label className={page.secondary}>
-              <Camera size={18} aria-hidden="true" />
-              {photo ? 'Change photo' : 'Add a photo'}
-              <input
-                type="file"
-                accept="image/*"
-                className="visually-hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  e.target.value = ''
-                  if (!file) return
-                  try {
-                    setPhoto(await toAvatar(file))
-                    setPhotoError('')
-                  } catch {
-                    setPhotoError("That file couldn't be opened as a picture. Try a JPG or PNG.")
-                  }
-                }}
-              />
-            </label>
-            {photo && (
-              <button type="button" className={page.secondary} onClick={() => setPhoto(undefined)}>
-                <Trash size={18} aria-hidden="true" />
-                Remove
-              </button>
+            {photoStep.kind === 'remove' ? (
+              <>
+                <p className={page.hint}>Remove your photo? Your initials show instead.</p>
+                <button
+                  type="button"
+                  className={page.primaryButton}
+                  disabled={photoBusy}
+                  aria-busy={photoBusy}
+                  onClick={() => savePhoto(undefined)}
+                >
+                  <BusyContent busy={photoBusy} busyLabel="Removing your photo…">
+                    Remove photo
+                  </BusyContent>
+                </button>
+                <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
+                  Keep it
+                </button>
+              </>
+            ) : (
+              <>
+                {pickPhoto}
+                {photo && (
+                  <button type="button" className={page.secondary} onClick={() => setPhotoStep({ kind: 'remove' })}>
+                    <Trash size={18} aria-hidden="true" />
+                    Remove
+                  </button>
+                )}
+                {!photoNote && (
+                  <p className={page.hint}>
+                    {photo ? 'Shown on Home and your Profile.' : 'Until you add one, Ropi stands in on Profile and your initials on Home.'}
+                  </p>
+                )}
+              </>
             )}
-            <p className={page.hint}>{photo ? 'Shown on Home and your Profile.' : 'Until you add one, Ropi stands in on Profile and your initials on Home.'}</p>
-            {photoError && <p className={page.error}>{photoError}</p>}
+            {photoNote && (
+              <p className={photoNote.ok ? styles.done : page.error} role={photoNote.ok ? 'status' : 'alert'}>
+                {photoNote.text}
+              </p>
+            )}
           </div>
         </div>
+      )}
+
+      <form className={styles.form} onSubmit={submit} noValidate>
         <TextField
           label="Name"
           autoComplete="name"
@@ -129,7 +235,14 @@ export function EditProfilePage() {
             setNameError('')
           }}
         />
-        <TextField label="Email" type="email" value={account.email} readOnly hint="Your email can't be changed yet." onChange={() => {}} />
+        <TextField
+          label="Email"
+          type="email"
+          value={account.email}
+          readOnly
+          hint="To change it, use Change email on your Profile."
+          onChange={() => {}}
+        />
         <TextField
           label="Mobile number (optional)"
           type="tel"
@@ -143,27 +256,37 @@ export function EditProfilePage() {
           }}
           onBlur={() => setPhoneError(checkPhone(phone))}
         />
-        <div className={page.field}>
-          <label htmlFor="home-area" className={page.fieldLabel}>
-            Home area (optional)
-          </label>
-          <select id="home-area" className={styles.select} value={homeArea} onChange={(e) => setHomeArea(e.target.value)}>
-            <option value="">None</option>
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}, {a.region}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Free text, so any barangay or town works, listed in Bulig or not. The listed areas are
+            only suggestions. Town level on purpose: no house address (Data Privacy Act). */}
+        <TextField
+          label="Home area (optional)"
+          autoComplete="off"
+          list="home-area-suggestions"
+          placeholder="e.g. Surok, Guiuan, Eastern Samar"
+          maxLength={HOME_AREA_MAX}
+          value={homeArea}
+          error={homeError}
+          hint="Your barangay and town are enough. Don't enter your house address."
+          onChange={(v) => {
+            setHomeEdit(v)
+            setHomeError('')
+          }}
+        />
+        <datalist id="home-area-suggestions">
+          {areas.map((a) => (
+            <option key={a.id} value={`${a.name}, ${a.region}`} />
+          ))}
+        </datalist>
         {saveError && (
           <p className={page.error} role="alert">
             {saveError}
           </p>
         )}
-        <button type="submit" className={page.primaryButton} disabled={saving}>
-          <FloppyDisk size={18} aria-hidden="true" />
-          {saving ? 'Saving…' : 'Save changes'}
+        <button type="submit" className={page.primaryButton} disabled={saving} aria-busy={saving}>
+          <BusyContent busy={saving} busyLabel="Saving…">
+            <FloppyDisk size={18} aria-hidden="true" />
+            Save changes
+          </BusyContent>
         </button>
       </form>
     </SubPage>
@@ -252,8 +375,10 @@ export function ChangePasswordPage() {
             Password changed.
           </p>
         )}
-        <button type="submit" className={page.primaryButton} disabled={busy}>
-          Change password
+        <button type="submit" className={page.primaryButton} disabled={busy} aria-busy={busy}>
+          <BusyContent busy={busy} busyLabel="Changing your password…">
+            Change password
+          </BusyContent>
         </button>
       </form>
     </SubPage>
@@ -361,8 +486,10 @@ export function ChangeEmailPage() {
             {errors.form}
           </p>
         )}
-        <button type="submit" className={page.primaryButton} disabled={busy}>
-          Send the link
+        <button type="submit" className={page.primaryButton} disabled={busy} aria-busy={busy}>
+          <BusyContent busy={busy} busyLabel="Sending…">
+            Send the link
+          </BusyContent>
         </button>
       </form>
     </SubPage>

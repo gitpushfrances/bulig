@@ -14,7 +14,7 @@ import MapPage from './pages/MapPage.tsx'
 import SavedPage from './pages/SavedPage.tsx'
 import ProfilePage from './pages/ProfilePage.tsx'
 import { ChangeEmailPage, ChangePasswordPage, EditProfilePage } from './pages/AccountPages.tsx'
-import { HelpPage, LicensesPage, PrivacyPage, TermsPage } from './pages/InfoPages.tsx'
+import { HelpPage, PrivacyPage, TermsPage } from './pages/InfoPages.tsx'
 import AboutPage from './pages/AboutPage.tsx'
 import NotFoundPage from './pages/NotFoundPage.tsx'
 import LoginPage from './pages/LoginPage.tsx'
@@ -47,7 +47,8 @@ export default function App() {
               <Route path="help" element={<HelpPage />} />
               <Route path="terms" element={<TermsPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
-              <Route path="licenses" element={<LicensesPage />} />
+              {/* The licences page is gone (John, 2026-11-04); its credits are on About. */}
+              <Route path="licenses" element={<Navigate to="/about" replace />} />
               <Route element={<RequireAccount />}>
                 <Route index element={<HomePage />} />
                 <Route path="services" element={<ServicesPage />} />

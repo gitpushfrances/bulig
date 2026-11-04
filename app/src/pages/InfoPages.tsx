@@ -1,7 +1,7 @@
 import { SubPage } from './AccountPages.tsx'
 import styles from './Profile.module.css'
 
-const UPDATED = '30 October 2026'
+const UPDATED = '4 November 2026'
 
 // Shown on Terms and Privacy until a lawyer has reviewed them. Keep until then.
 function Draft() {
@@ -72,45 +72,91 @@ export function TermsPage() {
       <article className={styles.doc}>
         <Draft />
         <section>
-          <h2>1. What Bulig is</h2>
+          <h2>1. Agreeing to these terms</h2>
           <p>
-            Bulig is a free directory of emergency numbers and road services in the Philippines. It shows
-            information; it does not provide emergency services, dispatch anyone, or guarantee that a place is
-            open or a number answers.
+            By using Bulig (the app and the website) you agree to these terms. If you don’t agree, please don’t
+            use it. If you are under 18, use Bulig with a parent’s or guardian’s permission.
           </p>
         </section>
         <section>
-          <h2>2. In an emergency</h2>
+          <h2>2. What Bulig is</h2>
           <p>
-            Call 911 or the local number shown. Bulig is a help, never a replacement for calling. Do not use your
-            phone while driving; pull over first (Republic Act No. 10913).
+            Bulig is a free directory of emergency numbers and road services in the Philippines: vulcanizing
+            shops, gas, mechanics, hospitals, food, stores and places to stay. It shows information. It does not
+            provide emergency services, does not dispatch anyone, does not send your location to anyone, and does
+            not guarantee that a place is open, has stock or a service, or that a number answers.
           </p>
         </section>
         <section>
-          <h2>3. Information can change</h2>
-          <p>
-            Every number and place shows when it was last checked. Hours and numbers change; call ahead. Records
-            marked SAMPLE are made up for testing and must not be called.
-          </p>
-        </section>
-        <section>
-          <h2>4. Your account</h2>
-          <p>
-            Keep your password to yourself. In this preview, accounts are stored on your phone only. You can
-            delete an account you created from Profile at any time.
-          </p>
-        </section>
-        <section>
-          <h2>5. Fair use</h2>
+          <h2>3. In an emergency</h2>
           <ul>
-            <li>Don’t submit false information or pretend to be someone else.</li>
-            <li>Don’t try to break, overload or copy the service.</li>
-            <li>Listings for new and local businesses must be real and lawful.</li>
+            <li>Call 911 or the local number shown. Bulig helps you find the number; it never replaces the call.</li>
+            <li>If a number doesn’t answer, try 911 or another number on the Emergency screen.</li>
+            <li>
+              Don’t use your phone while driving. Pull over safely first (Anti-Distracted Driving Act, Republic Act
+              No. 10913).
+            </li>
           </ul>
         </section>
         <section>
-          <h2>6. Changes</h2>
-          <p>We may update these terms. The date at the top shows the latest version.</p>
+          <h2>4. Information can be wrong or out of date</h2>
+          <p>
+            Numbers, hours, prices and services change. Each one shows when it was last checked; prices are shown
+            as “seen” on a date. Call ahead when it matters. Records marked SAMPLE are made up for testing and must
+            not be called. Distances and routes come from OpenStreetMap and can differ from the road you see:
+            follow road signs and traffic rules.
+          </p>
+        </section>
+        <section>
+          <h2>5. Your account</h2>
+          <ul>
+            <li>Emergency works without an account. Everything else needs one.</li>
+            <li>Give your real name and an email you can open. Keep your password to yourself.</li>
+            <li>You are responsible for what is done with your account. Tell us if someone else used it.</li>
+            <li>You can edit your details or delete your account from Profile at any time.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>6. Updates and photos you send (coming soon)</h2>
+          <ul>
+            <li>Only send what you saw yourself: real prices, hours, services and places.</li>
+            <li>Photos must be of the place (a sign, a price board), taken by you, and show no one’s face or plate number.</li>
+            <li>
+              A moderator checks every update before it shows, and may edit or reject it. Once approved, it is
+              shown to everyone with the date it was seen.
+            </li>
+            <li>
+              You keep the rights to your photos and give Bulig a free, worldwide permission to show, resize and
+              keep them as part of the place’s record.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h2>7. Fair use</h2>
+          <ul>
+            <li>Don’t submit false information, spam, or ads, or pretend to be someone else.</li>
+            <li>Don’t harass anyone or post anything unlawful, hateful or private about others.</li>
+            <li>Don’t try to break, overload, scrape or copy the service.</li>
+            <li>Listings for new and local businesses must be real and lawful.</li>
+          </ul>
+          <p>Breaking these rules can get updates removed and an account suspended or deleted.</p>
+        </section>
+        <section>
+          <h2>8. Liability</h2>
+          <p>
+            Bulig is provided free and “as is”. As far as the law allows, Bulig and the people behind it are not
+            liable for loss or harm that comes from relying on a number, place, price, route or time shown, from a
+            place being closed, or from the app being unavailable. Nothing here limits rights you have under
+            Philippine law that can’t be waived.
+          </p>
+        </section>
+        <section>
+          <h2>9. Changes and ending</h2>
+          <p>
+            We may update Bulig and these terms. The date at the top shows the latest version; big changes will be
+            shown in the app. We may stop or change the service at any time. These terms follow the laws of the
+            Philippines.
+          </p>
         </section>
       </article>
     </SubPage>
@@ -123,84 +169,107 @@ export function PrivacyPage() {
       <article className={styles.doc}>
         <Draft />
         <section>
-          <h2>What stays on your phone</h2>
+          <h2>The short version</h2>
           <ul>
-            <li>Your account (name, email, and a scrambled hash of your password, never the password itself).</li>
-            <li>Your saved places, profile details, theme and last area.</li>
-            <li>Your exact GPS position. Bulig uses it on the phone to find your area and sort places.</li>
-          </ul>
-        </section>
-        <section>
-          <h2>What leaves your phone</h2>
-          <ul>
-            <li>
-              To show your barangay and town, a rounded position (about 100 m) goes to OpenStreetMap’s Nominatim,
-              only when you are online and after you move or tap refresh.
-            </li>
-            <li>
-              When you open the Map, map images load from OpenFreeMap, which sees the area being viewed, as any
-              map service does.
-            </li>
-            <li>
-              When you ask for a route, your position and the place’s go to the OpenStreetMap routing service
-              run by FOSSGIS (routing.openstreetmap.de), again when you have moved about 200 m along the way.
-            </li>
-            <li>Google Maps opens with the place’s location, only when you tap Google Maps.</li>
-          </ul>
-        </section>
-        <section>
-          <h2>What we never do</h2>
-          <ul>
-            <li>No ads, no tracking, no analytics, no selling of data.</li>
+            <li>We keep only what Bulig needs: your account, profile and saved places.</li>
+            <li>Your exact GPS position stays on your phone.</li>
+            <li>No ads, no tracking, no analytics, and we never sell your data.</li>
             <li>We never send your location to emergency services or anyone else.</li>
           </ul>
-        </section>
-        <section>
-          <h2>Your choices</h2>
           <p>
-            Turn location off in your phone’s settings: Bulig then asks you to pick an area. Delete an account
-            you created from Profile. Clearing the browser’s site data removes everything Bulig stored.
+            This policy follows the Data Privacy Act of 2012 (Republic Act No. 10173) and its implementing rules.
           </p>
         </section>
         <section>
-          <h2>When accounts move online</h2>
+          <h2>What we collect, and why</h2>
+          <ul>
+            <li>
+              <strong>Account:</strong> your name, email and password, to sign you in and to send account emails
+              (password reset, email change). The password is stored only as a one-way hash, never as itself.
+            </li>
+            <li>
+              <strong>Profile (optional):</strong> mobile number, home area (barangay and town, never a house
+              address) and a profile photo. Shown to you; moderators and admins can see them to handle reports.
+            </li>
+            <li>
+              <strong>Saved places:</strong> so your list follows you to any phone.
+            </li>
+            <li>
+              <strong>Updates you send (coming soon):</strong> the details and photos, the date you saw them and your account, so
+              a moderator can check them.
+            </li>
+            <li>
+              <strong>Security records:</strong> when your email, name, phone or role changed and by whom, kept for
+              one year to stop abuse. Passwords and sign-in tokens are never logged.
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h2>Your location</h2>
+          <ul>
+            <li>Your exact GPS position stays on your phone. Bulig uses it there to find your area and sort places.</li>
+            <li>
+              To show your barangay and town, a position rounded to about 100 m goes to OpenStreetMap’s Nominatim,
+              only when you are online and after you move about 250 m.
+            </li>
+            <li>
+              When you ask for a route, your position and the place’s go to the OpenStreetMap routing service run
+              by FOSSGIS (routing.openstreetmap.de).
+            </li>
+            <li>The Map loads map images from OpenFreeMap, which sees the area being shown, as any map does.</li>
+            <li>Google Maps opens with the place’s location only when you tap Google Maps.</li>
+            <li>Turn location off in your phone’s settings at any time; Bulig then asks you to pick an area.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Where your data is kept</h2>
+          <ul>
+            <li>Accounts and saved places: a PostgreSQL database run by Neon, in Singapore.</li>
+            <li>The Bulig server: Render, in Singapore.</li>
+            <li>Profile and update photos: Cloudinary.</li>
+            <li>Account emails: sent through Brevo, which sees your email address and the message.</li>
+            <li>
+              On your phone: your sign-in token, theme, last area and address, the last map view, and a copy of the data for offline
+              use. Clearing the browser’s site data removes them.
+            </li>
+          </ul>
           <p>
-            This policy will be updated before any account data is stored on a server, in line with the Data
-            Privacy Act of 2012 (Republic Act No. 10173).
+            These providers handle data for us under their own security and privacy terms. Data is sent over
+            encrypted connections (HTTPS).
+          </p>
+        </section>
+        <section>
+          <h2>How long we keep it</h2>
+          <ul>
+            <li>Your account, for as long as you keep it.</li>
+            <li>
+              When you delete your account, it is hidden at once and kept 30 days in case of abuse, then deleted
+              for good with your photo and saved places.
+            </li>
+            <li>Security records: one year. Photos picked for an update that was never sent: one day.</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Your rights</h2>
+          <p>
+            Under the Data Privacy Act you can ask what we hold about you, correct it, object to its use, ask for
+            a copy, and have it deleted. Most of this you can do yourself: edit your details and photo on
+            Profile, change your email or password there, and delete your account from the bottom of Profile.
+            You can also complain to the National Privacy Commission (privacy.gov.ph).
+          </p>
+        </section>
+        <section>
+          <h2>Children</h2>
+          <p>Bulig is meant for drivers and riders. Users under 18 need a parent’s or guardian’s permission.</p>
+        </section>
+        <section>
+          <h2>Changes</h2>
+          <p>
+            We will update this policy when Bulig changes how it uses data. The date at the top shows the latest
+            version; big changes will be shown in the app.
           </p>
         </section>
       </article>
-    </SubPage>
-  )
-}
-
-export function LicensesPage() {
-  const credits: [string, string, string][] = [
-    ['OpenStreetMap', 'Map data © OpenStreetMap contributors', 'ODbL 1.0'],
-    ['OpenMapTiles', 'Vector tile schema and style', 'BSD-3-Clause and CC-BY 4.0'],
-    ['OpenFreeMap', 'Free map tile hosting', 'Free to use, no key'],
-    ['MapLibre GL JS', 'Map rendering', 'BSD-3-Clause'],
-    ['Nominatim', 'Address lookup from OpenStreetMap', 'ODbL 1.0 (data)'],
-    ['OSRM (FOSSGIS)', 'Routes along OpenStreetMap roads', 'BSD-2-Clause'],
-    ['React and React Router', 'App framework and routing', 'MIT'],
-    ['Phosphor Icons', 'Icons', 'MIT'],
-    ['IBM Plex Sans', 'Font', 'SIL Open Font License 1.1'],
-    ['Workbox (vite-plugin-pwa)', 'Offline support', 'MIT'],
-  ]
-  return (
-    <SubPage title="Open-source licences" lead="Bulig is built on free and open-source work. Thank you.">
-      <ul className={styles.rows}>
-        {credits.map(([name, what, licence]) => (
-          <li key={name} className={`${styles.row} ${styles.static}`}>
-            <span className={styles.rowLabel}>
-              {name}
-              <br />
-              <span className={styles.email}>{what}</span>
-            </span>
-            <span className={styles.rowValue}>{licence}</span>
-          </li>
-        ))}
-      </ul>
     </SubPage>
   )
 }

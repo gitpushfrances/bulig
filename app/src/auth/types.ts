@@ -16,7 +16,8 @@ export interface Account {
   createdAt?: string
   // Optional details the person adds in Profile > Edit profile.
   phone?: string
-  homeArea?: AreaId | null
+  // Free text ("Surok, Guiuan, Eastern Samar"); older accounts may hold a listed area's ID.
+  homeArea?: string | null
   // A small square photo (WebP data URL, 256px) chosen in Edit profile. None = Ropi's head.
   photo?: string
   // A new email waiting for its confirmation link (API.md §5.7). Sign-in still uses `email` until then.
