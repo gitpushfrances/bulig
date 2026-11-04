@@ -17,7 +17,7 @@ import styles from './Page.module.css'
 export default function HomePage() {
   const { country, data, area } = useAppData()
   const { account, saved } = useAuth()
-  const { ready, loading, ranked, labels } = useNearby()
+  const { ready, loading, ranked, labels, position } = useNearby()
 
   const contacts = data.status === 'ready' ? visibleContacts(data.emergency, area, new Date()) : []
   const national = contacts.find((c) => c.kind === 'national' && c.area === null)
@@ -65,7 +65,8 @@ export default function HomePage() {
         <div className={styles.homeColumn}>
           {(ready || loading) && (
             <div className={styles.section}>
-              <SectionHead title="Nearest to you" to="/services" more="All services" />
+              {/* Without GPS the list is by name, so it must not claim to be nearest (UI-UX.md). */}
+              <SectionHead title={position ? 'Nearest to you' : 'First listed'} to="/services" more="All services" />
               {loading ? (
                 <RowsSkeleton />
               ) : (

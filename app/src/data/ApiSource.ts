@@ -1,7 +1,7 @@
 import type { Area, CountryCode, EmergencyContact, Envelope, Labels, Service } from '../types.ts'
 import type { DataSource } from './DataSource.ts'
 import { jsonSource } from './JsonSource.ts'
-import { validateEnvelope, type FileKind } from './validate.ts'
+import { splitEnvelope, type FileKind } from './validate.ts'
 
 // Reads the same envelopes from the backend (docs/API.md §3). The API is on a free server that
 // sleeps and takes about a minute to wake, so every call gives up after a few seconds and the
@@ -11,7 +11,13 @@ export const API_TIMEOUT_MS = 4000
 
 type Fetch = typeof fetch
 
-export function createApiSource(baseUrl: string, fetchFn: Fetch = fetch, timeoutMs = API_TIMEOUT_MS): DataSource {
+export function createApiSource(
+  baseUrl: string,
+  fetchFn: Fetch = fetch,
+  timeoutMs = API_TIMEOUT_MS,
+  onDropped: (path: string, problems: string[]) => void = (path, problems) =>
+    console.warn(`Bulig: ${path} skipped ${problems.length} record(s) that break the contract.`, problems),
+): DataSource {
   const base = baseUrl.replace(/\/+$/, '')
 
   async function get(path: string, country: CountryCode): Promise<unknown> {
@@ -20,6 +26,9 @@ export function createApiSource(baseUrl: string, fetchFn: Fetch = fetch, timeout
     try {
       const res = await fetchFn(`${base}/${path}?country=${encodeURIComponent(country)}`, {
         headers: { Accept: 'application/json' },
+        // The API lets browsers keep these for an hour. Always ask again (a cheap 304 when nothing
+        // changed), so a place added in the admin panel shows on the next open, not an hour later.
+        cache: 'no-cache',
         signal: controller.signal,
       })
       if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`)
@@ -34,9 +43,10 @@ export function createApiSource(baseUrl: string, fetchFn: Fetch = fetch, timeout
 
   async function envelope<T>(path: string, country: CountryCode, kind: FileKind): Promise<Envelope<T>> {
     const data = await get(path, country)
-    const problems = validateEnvelope(kind, data)
+    const { problems, items, dropped } = splitEnvelope(kind, data)
     if (problems.length) throw new Error(`${path}: ${problems.join('; ')}`)
-    return data as Envelope<T>
+    if (dropped.length) onDropped(path, dropped)
+    return { ...(data as Envelope<T>), items: items as T[] }
   }
 
   return {
@@ -52,17 +62,18 @@ export function createApiSource(baseUrl: string, fetchFn: Fetch = fetch, timeout
   }
 }
 
-// Each call tries the API first and, if it fails for any reason, answers from the fallback.
+// Each call tries the API first and, if it fails for any reason, answers from the fallback,
+// marked fromBackup so DataProvider knows to try the API again once the server is awake.
 export function withFallback(
   primary: DataSource,
   fallback: DataSource,
   onFallback: (what: string, err: unknown) => void = (what, err) =>
     console.warn(`Bulig: API unavailable for ${what}, using the bundled data.`, err),
 ): DataSource {
-  const rescue = <T>(what: string, attempt: Promise<T>, backup: () => Promise<T>): Promise<T> =>
-    attempt.catch((err: unknown) => {
+  const rescue = <T extends object>(what: string, attempt: Promise<T>, backup: () => Promise<T>): Promise<T> =>
+    attempt.catch(async (err: unknown) => {
       onFallback(what, err)
-      return backup()
+      return { ...(await backup()), fromBackup: true as const }
     })
 
   return {

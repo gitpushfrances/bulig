@@ -65,6 +65,28 @@ function checkItem(kind: FileKind, item: Rec): string[] {
   return problems
 }
 
+// For data from the server: one bad record should not hide every other place. Keeps the good
+// items and names the dropped ones; problems with the envelope itself still fail the whole read.
+export function splitEnvelope(
+  kind: FileKind,
+  data: unknown,
+): { problems: string[]; items: unknown[]; dropped: string[] } {
+  if (!isRec(data)) return { problems: ['file is not an object'], items: [], dropped: [] }
+  const problems: string[] = []
+  if (data.version !== 1) problems.push('version must be 1')
+  if (!isDate(data.updatedAt)) problems.push('updatedAt')
+  if (!Array.isArray(data.items)) return { problems: [...problems, 'items must be a list'], items: [], dropped: [] }
+
+  const items: unknown[] = []
+  const dropped: string[] = []
+  data.items.forEach((item, i) => {
+    const bad = isRec(item) ? checkItem(kind, item) : ['not an object']
+    if (bad.length) dropped.push(`items[${i}] (${String(isRec(item) ? item.id : item)}): bad ${bad.join(', ')}`)
+    else items.push(item)
+  })
+  return { problems, items, dropped }
+}
+
 export function validateEnvelope(kind: FileKind, data: unknown): string[] {
   if (!isRec(data)) return ['file is not an object']
   const problems: string[] = []

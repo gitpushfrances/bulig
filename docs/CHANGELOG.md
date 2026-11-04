@@ -32,6 +32,11 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Fixed
 
+- **Places added in the admin panel seemed missing from Home** (2026-11-04): Home and Map read the same data, so nothing was lost, but Home only names the 3 places at the top of the list, while Map pins all of them. Without GPS that list is by name across every area, and Home still titled it "Nearest to you". Three fixes in `app/src/data/`:
+  - Home now says "First listed" without GPS, as UI-UX.md already asked (Nearby already did).
+  - `ApiSource` asks with `cache: 'no-cache'`. The API sends `Cache-Control: max-age=3600`, so the browser kept serving the old list for up to an hour after a panel edit; now each open revalidates (a body-less 304 via the ETag when nothing changed).
+  - When the sleeping Render server misses the 4 s timeout, the app still shows the bundled files at once, but `DataProvider` now tries the API again after 20, 45 and 90 s and swaps the live data in without a reload. Before, the bundled sample data stayed until the next reload.
+  - One record that breaks the contract is now skipped (with a console warning) instead of throwing away the whole API answer and silently falling back to the bundled samples.
 - **Glitches on the first preview** (PR #33, 2026-11-01), found by driving the preview on a phone-sized browser:
   - Every page change showed the old and new page through each other (React `<ViewTransition>` cross-fade). Replaced by a fade-in of the new page only.
   - The location prompt opened on the login screen and behind the splash, and allowing it flipped all of Home from "10 places" (every area) to the nearest town (layout shift 0.05). Now asked only inside the app, with placeholders until the first fix.

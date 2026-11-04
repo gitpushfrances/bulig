@@ -97,6 +97,8 @@ export interface Envelope<T> {
   version: 1
   updatedAt: string
   items: T[]
+  // Set by the app, never by the server: the API did not answer, so this came from the bundled files.
+  fromBackup?: true
 }
 
 // A thing a place can have a price for: { category: "fuel", unit: "L", names: { en: "Diesel" } }
@@ -113,4 +115,6 @@ export interface Labels {
   categories: Partial<Record<Category, Record<string, string>>>
   currency?: string
   priceItems?: Record<string, PriceItem>
+  // Set by the app: see Envelope.fromBackup.
+  fromBackup?: true
 }
