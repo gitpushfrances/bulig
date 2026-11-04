@@ -15,6 +15,12 @@ import { visibleContacts } from '../rules/emergency.ts'
 import styles from './Page.module.css'
 import home from './HomePage.module.css'
 
+// "Good morning" until noon, "Good afternoon" until 6 PM, then "Good evening", by the phone's clock.
+function greeting(now: Date): string {
+  const h = now.getHours()
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
+}
+
 // Home answers "what do I need?": who and where you are, the six common problems, then the nearest
 // places on a real map, the local hotlines and what you saved. The red Emergency button floats over
 // all of it (Layout), so 911 stays one tap away while the hotlines sit lower on the page.
@@ -47,7 +53,8 @@ export default function HomePage() {
       {/* Profile lives here, not in the tab bar: the avatar on the right opens it. */}
       <header className={home.header}>
         <div className={home.who}>
-          <p className={home.hello}>{firstName ? `Hi ${firstName}` : 'Hi there'}</p>
+          <p className={home.greeting}>{greeting(new Date())}</p>
+          <p className={home.hello}>{firstName ?? 'there'}</p>
           <LocationLine inHeader />
         </div>
         <Link to="/profile" className={home.profile} aria-label="Profile">
@@ -98,7 +105,7 @@ export default function HomePage() {
 
         <div className={styles.homeColumn}>
           <div className={styles.section}>
-            <SectionHead title="Local hotlines" />
+            <SectionHead title="Local hotlines" to="/emergency" more="All numbers" />
             {hotline && <HotlineCard contact={hotline} countryName={countryName(country)} compact />}
             {local.length > 0 && (
               <div className={styles.panel}>
@@ -109,10 +116,6 @@ export default function HomePage() {
                 </ul>
               </div>
             )}
-            <Link className={`${styles.more} ${styles.moreEnd}`} to="/emergency">
-              All emergency numbers
-              <CaretRight size={16} aria-hidden="true" />
-            </Link>
           </div>
 
           <div className={styles.section}>

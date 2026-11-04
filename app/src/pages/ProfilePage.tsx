@@ -1,3 +1,4 @@
+import BackButton from '../components/BackButton.tsx'
 import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, MapPin, Palette, Scales, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -128,6 +129,7 @@ export default function ProfilePage() {
 
   return (
     <section className={styles.page} aria-labelledby="profile-title">
+      <BackButton fallback="/" />
       <h1 id="profile-title" className={page.title}>
         Profile
       </h1>

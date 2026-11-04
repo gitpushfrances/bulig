@@ -41,6 +41,9 @@ export default function LocationLine({ inHeader = false }: { inHeader?: boolean 
   if (!place && fromGps && listed)
     place = areaKm <= NEAR_KM ? `${listed.name} · ${listed.region}` : `${listed.name}, ${formatDistance(areaKm)} away`
 
+  // GPS is on and following the phone: Home's header shows a green dot instead of the crosshair.
+  const live = inHeader && status === 'ready' && fromGps
+
   const when = address?.at ?? updatedAt
   // The header updates live, so it skips "Updated <time>".
   const note = locating ? 'Finding your location…' : when && !inHeader ? `Updated ${timeFormat.format(when)}` : null
@@ -49,9 +52,14 @@ export default function LocationLine({ inHeader = false }: { inHeader?: boolean 
     <div className={inHeader ? `${styles.line} ${styles.inHeader}` : styles.line}>
       {place ? (
         <div className={styles.text} aria-live="polite">
-          <Crosshair className={styles.icon} size={18} aria-hidden="true" />
+          {live ? (
+            <span className={styles.live} aria-hidden="true" />
+          ) : (
+            <Crosshair className={styles.icon} size={18} aria-hidden="true" />
+          )}
           <div className={styles.words}>
             <p className={styles.place} title={place}>
+              {live && <span className="visually-hidden">Live location: </span>}
               {place}
             </p>
             {note && <p className={styles.meta}>{note}</p>}
