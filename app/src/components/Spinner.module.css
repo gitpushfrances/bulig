@@ -1,0 +1,17 @@
+.spinner {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion stops every animation (index.css); the ring then reads as a steady "busy" mark. */
