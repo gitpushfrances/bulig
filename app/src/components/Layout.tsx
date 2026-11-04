@@ -23,6 +23,15 @@ const tabs: Tab[] = [
 ]
 
 const INSTANT_PATHS = ['/emergency', '/map']
+const TAB_ROOTS = tabs.map((t) => t.to)
+
+// How a page arrives (index.css, "Page enter"): a tab fades up in place, a page opened from one slides
+// in from the right, and Back slides the earlier page in from the left. Emergency and the Map: at once.
+function enterClass(pathname: string, type: 'POP' | 'PUSH' | 'REPLACE'): string | undefined {
+  if (INSTANT_PATHS.includes(pathname)) return undefined
+  if (type === 'POP') return 'page-back'
+  return TAB_ROOTS.includes(pathname) ? 'page-enter' : 'page-push'
+}
 
 function isActive({ to, also }: Tab, pathname: string): boolean {
   if (to === '/') return pathname === '/'
@@ -70,6 +79,7 @@ function useScrollMemory() {
 export default function Layout() {
   const { online } = useAppData()
   const { pathname } = useLocation()
+  const navType = useNavigationType()
   useScrollMemory()
 
   return (
@@ -113,10 +123,10 @@ export default function Layout() {
           </p>
         )}
         <main id="main" className={pathname === '/map' ? `${styles.main} ${styles.flush}` : styles.main}>
-          {/* Keyed by path: each page mounts fresh and fades in (index.css, "Page enter"). The tab bar
-              stays outside, so it never blinks. Emergency and the Map appear at once: one is reached
-              in a hurry, the other is a heavy canvas carrying its own Emergency button. */}
-          <div key={pathname} className={INSTANT_PATHS.includes(pathname) ? undefined : 'page-enter'}>
+          {/* Keyed by path: each page mounts fresh and animates in (enterClass). The tab bar stays
+              outside, so it never blinks. Emergency and the Map appear at once: one is reached in a
+              hurry, the other is a heavy canvas carrying its own Emergency button. */}
+          <div key={pathname} className={enterClass(pathname, navType)}>
             <Outlet />
           </div>
         </main>

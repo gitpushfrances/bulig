@@ -89,9 +89,23 @@
   --skeleton-bg: var(--color-status-bg);
   --radius-card: 14px;
   --radius-control: 10px;
-  --gutter: 16px;
+  /* Side margin: 16px on a 360px phone, growing with the screen up to 32px on tablets. */
+  --gutter: clamp(16px, 4vw, 32px);
   --content-max: 72rem;
   --tabbar-h: 64px;
+  /* Spacing scale (4px base). Sections are --space-6 apart, items inside them --space-3. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: clamp(24px, 5vw, 32px);
+  /* Elevation: two soft layers, never one grey smudge. Raised = sheets, the tab bar, map overlays. */
+  --shadow-card: 0 1px 2px rgb(9 9 11 / 0.06), 0 4px 12px rgb(9 9 11 / 0.06);
+  --shadow-raised: 0 2px 4px rgb(9 9 11 / 0.08), 0 8px 24px rgb(9 9 11 / 0.12);
+  --shadow-emergency: 0 6px 16px rgb(220 38 38 / 0.35);
+  /* A 1px light edge on top of dark-mode cards, where shadows can't be seen. */
+  --card-highlight: none;
 
   color-scheme: light dark;
   font: 16px/1.5 var(--font-body);
@@ -134,6 +148,10 @@
     --color-selection: var(--teal-900);
     --color-error: var(--red-400);
     --color-icon-brand: var(--teal-300);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow-raised: 0 2px 4px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.6);
+    --shadow-emergency: 0 6px 16px rgb(220 38 38 / 0.3);
+    --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
   }
 }
 
@@ -162,6 +180,10 @@
   --color-selection: var(--teal-900);
   --color-error: var(--red-400);
   --color-icon-brand: var(--teal-300);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-raised: 0 2px 4px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.6);
+  --shadow-emergency: 0 6px 16px rgb(220 38 38 / 0.3);
+  --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 :root[data-theme='light'] {
@@ -250,17 +272,43 @@ button,
 }
 
 /* ---------- Page enter ----------
-   The new page fades in as it mounts (Layout keys it by path; AuthLayout mounts per screen). The old
-   page is gone at once, so two pages never show together. Opacity only, on one layer: cheap on a
-   low-cost phone, and pages are opened tens of times a day. Off under reduced motion (above). */
+   The new page animates in as it mounts (Layout keys it by path and picks the class). The old page is
+   gone at once, so two pages never show together. Opacity and a short move only (both run on the
+   GPU): cheap on a low-cost phone, and pages are opened tens of times a day. Off under reduced motion.
+   - page-enter: a tab. Fades up 8px in place: tabs are siblings, so nothing slides sideways.
+   - page-push: a page opened from a tab (a list, a place). Comes in from the right.
+   - page-back: Back. The earlier page comes in from the left. */
 
 .page-enter {
-  animation: page-in 160ms var(--ease-out);
+  animation: page-in 220ms var(--ease-out);
+}
+
+.page-push {
+  animation: page-push 240ms var(--ease-out);
+}
+
+.page-back {
+  animation: page-back 240ms var(--ease-out);
 }
 
 @keyframes page-in {
   from {
     opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes page-push {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes page-back {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
   }
 }
 

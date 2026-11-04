@@ -198,3 +198,16 @@ describe('Loading', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })
+
+describe('Map page', () => {
+  it('says the browser cannot draw the map (not "no connection") and lists the nearest places', async () => {
+    // jsdom has no WebGL, like some cheap phones and in-app browsers.
+    renderAt('/map')
+
+    expect(await screen.findByText(/This browser can.t draw the map\./)).toBeInTheDocument()
+    expect(screen.getByText(/open it in Chrome instead/)).toBeInTheDocument()
+    expect(screen.queryByText(/needs a connection/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Try the map again' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('list', { name: 'Nearest places' })).toBeInTheDocument()
+  })
+})

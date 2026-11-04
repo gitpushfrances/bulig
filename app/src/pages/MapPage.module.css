@@ -24,6 +24,49 @@
   background: var(--color-selected);
 }
 
+/* ---------- Location off: one line under the chips, clear of the control stack ---------- */
+
+.locationOff {
+  position: absolute;
+  top: 64px;
+  left: var(--gutter);
+  right: calc(var(--gutter) + 56px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.35;
+  box-shadow: var(--shadow-raised);
+}
+
+.locationOff svg {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.locationOff span {
+  flex: 1;
+  min-width: 0;
+}
+
+.locationOff button {
+  flex: none;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--color-primary-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ---------- Category chips: one scrolling row ---------- */
 
 .chips {
@@ -336,6 +379,9 @@
   max-width: 34rem;
   margin: 0 auto;
   padding: 16px var(--gutter) 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 @media (min-width: 48rem) {
@@ -347,6 +393,13 @@
   .controls {
     top: 72px;
     right: 24px;
+  }
+
+  .locationOff {
+    top: 72px;
+    left: 24px;
+    right: auto;
+    max-width: 26rem;
   }
 
   .sheet {
