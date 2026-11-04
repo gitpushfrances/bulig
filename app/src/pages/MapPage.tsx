@@ -22,6 +22,7 @@ import { formatDistance } from '../rules/nearby.ts'
 import { isNew } from '../rules/services.ts'
 import { useTheme } from '../theme.ts'
 import { CATEGORIES, type Category } from '../types.ts'
+import { prefetchTiles } from '../map/tilePrefetch.ts'
 import page from './Page.module.css'
 import styles from './MapPage.module.css'
 
@@ -161,7 +162,10 @@ export default function MapPage() {
       m.on('click', onClick)
       m.on('dragstart', onDrag)
       m.on('moveend', onMoveEnd)
+      // Fetch the streets just off screen while the map is still, so panning isn't blank.
+      const stopPrefetch = prefetchTiles(m)
       return () => {
+        stopPrefetch()
         m.off('click', onClick)
         m.off('dragstart', onDrag)
         m.off('moveend', onMoveEnd)
