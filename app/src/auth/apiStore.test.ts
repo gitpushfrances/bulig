@@ -137,6 +137,58 @@ describe('apiStore', () => {
     expect(await store.setPhoto(account, photo)).toEqual({ ok: false, reason: 'offline' })
   })
 
+  it('asks for an email change, keeps the pending address, cancels it, and says why it failed', async () => {
+    const { fetchFn, calls } = server(
+      { status: 202, body: { pendingEmail: 'juan@example.com' } },
+      { status: 204 },
+      { status: 422, body: { errors: { currentPassword: ['incorrect'] } } },
+      { status: 422, body: { errors: { newEmail: ['taken'] } } },
+      { status: 422, body: { errors: { newEmail: ['same'] } } },
+      { status: 429, body: {} },
+      new TypeError('Failed to fetch'),
+    )
+    const store = createApiStore(BASE, fetchFn)
+    localStorage.setItem('bulig.token', '1|abc')
+    const account = { email: 'ana@example.com', name: 'Ana', role: 'user' as const, areas: [] }
+
+    const asked = await store.requestEmailChange(account, ' Juan@Example.com ', 'long enough')
+    expect(asked).toEqual({ ok: true, account: { ...account, pendingEmail: 'juan@example.com' } })
+    expect(calls[0].url).toBe(`${BASE}/me/email`)
+    expect(body(calls[0].init)).toEqual({ newEmail: 'juan@example.com', currentPassword: 'long enough' })
+    expect(store.restore()?.pendingEmail).toBe('juan@example.com')
+
+    expect(await store.cancelEmailChange({ ...account, pendingEmail: 'juan@example.com' })).toEqual({ ...account, pendingEmail: undefined })
+    expect(calls[1].init.method).toBe('DELETE')
+    expect(store.restore()?.pendingEmail).toBeUndefined()
+
+    const reasons = []
+    for (let i = 0; i < 5; i++) reasons.push(await store.requestEmailChange(account, 'x@example.com', 'pw'))
+    expect(reasons.map((r) => !r.ok && r.reason)).toEqual(['wrong', 'taken', 'same', 'busy', 'offline'])
+  })
+
+  it('confirms an email link without a sign-in token, and tells used and taken links apart', async () => {
+    const { fetchFn, calls } = server(
+      { body: { email: 'juan@example.com' } },
+      { status: 422, body: { errors: { token: ['invalid'] } } },
+      { status: 422, body: { errors: { token: ['taken'] } } },
+    )
+    const store = createApiStore(BASE, fetchFn)
+    localStorage.setItem('bulig.token', '1|abc')
+
+    expect(await store.confirmEmail('t0k3n')).toEqual({ ok: true, email: 'juan@example.com' })
+    expect(calls[0].url).toBe(`${BASE}/auth/confirm-email`)
+    expect(body(calls[0].init)).toEqual({ token: 't0k3n' })
+    expect(header(calls[0].init, 'Authorization')).toBeUndefined()
+    expect(await store.confirmEmail('used')).toEqual({ ok: false, reason: 'invalid' })
+    expect(await store.confirmEmail('raced')).toEqual({ ok: false, reason: 'taken' })
+  })
+
+  it('reads the pending email from the server account', async () => {
+    const { fetchFn } = server({ body: { token: '1|abc', user: { ...user, pendingEmail: 'new@example.com' } } })
+    const result = await createApiStore(BASE, fetchFn).signIn('ana@example.com', 'long enough')
+    expect(result.ok && result.account.pendingEmail).toBe('new@example.com')
+  })
+
   it('reads the photo URL from the server account', async () => {
     const { fetchFn } = server({ body: { token: '1|abc', user: { ...user, photoUrl: 'https://res.cloudinary.com/p.webp' } } })
     const result = await createApiStore(BASE, fetchFn).signIn('ana@example.com', 'long enough')

@@ -124,6 +124,30 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   const changePassword = (current: string, next: string) =>
     account ? store.changePassword(account, current, next) : Promise.resolve('wrong' as const)
 
+  const requestEmailChange = async (newEmail: string, password: string) => {
+    if (!account) return { ok: false as const, reason: 'offline' as const }
+    const result = await store.requestEmailChange(account, newEmail, password)
+    if (result.ok) setAccount(withDetails(result.account, store))
+    return result
+  }
+
+  const cancelEmailChange = async () => {
+    if (!account) return false
+    const next = await store.cancelEmailChange(account)
+    if (next) setAccount(withDetails(next, store))
+    return !!next
+  }
+
+  const confirmEmail = async (token: string) => {
+    const result = await store.confirmEmail(token)
+    if (result.ok && account) {
+      // This phone may be signed in to another account (the link opened elsewhere): only refresh, never swap.
+      const fresh = await store.refresh()
+      if (fresh) setAccount(withDetails(fresh, store))
+    }
+    return result
+  }
+
   const deleteAccount = async () => {
     if (!account || !(await store.deleteAccount(account))) return false
     writeSaved(profileKey(account.email), null)
@@ -153,6 +177,9 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
         signOut,
         updateProfile,
         changePassword,
+        requestEmailChange,
+        cancelEmailChange,
+        confirmEmail,
         deleteAccount,
         canManage: !!account && store.canManage(account),
         accountsOnline: store.online,

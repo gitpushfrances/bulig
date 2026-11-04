@@ -68,6 +68,19 @@ export const localStore: AccountStore = {
     return (await changeLocalPassword(account.email, current, next)) ? 'ok' : 'wrong'
   },
 
+  // Phone-only accounts have no mailbox to confirm, so they keep their email.
+  async requestEmailChange() {
+    return { ok: false, reason: 'preview' }
+  },
+
+  async cancelEmailChange(account) {
+    return account
+  },
+
+  async confirmEmail() {
+    return { ok: false, reason: 'preview' }
+  },
+
   async deleteAccount(account) {
     if (!isLocalAccount(account.email)) return false
     deleteLocalAccount(account.email)

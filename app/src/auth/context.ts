@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { ChangePasswordResult, NewAccount, RegisterResult, SignInResult } from './store.ts'
+import type { ChangePasswordResult, ConfirmEmailResult, EmailChangeResult, NewAccount, RegisterResult, SignInResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
 export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | { photo: 'offline' | 'invalid' | 'busy' | 'unavailable' }
@@ -17,6 +17,12 @@ export interface Auth {
   updateProfile: (details: ProfileDetails) => Promise<UpdateProfileResult>
   // Test logins keep their password.
   changePassword: (current: string, next: string) => Promise<ChangePasswordResult>
+  // API.md §5.7: sends a link to the new address; the account shows pendingEmail until it is opened.
+  requestEmailChange: (newEmail: string, password: string) => Promise<EmailChangeResult>
+  // False if the server didn't answer (the link still works then).
+  cancelEmailChange: () => Promise<boolean>
+  // The link (API.md §4.6). If this phone is signed in, its account picks up the new email.
+  confirmEmail: (token: string) => Promise<ConfirmEmailResult>
   // Removes the account and its saved places (on the server, or from this phone). False if it couldn't.
   deleteAccount: () => Promise<boolean>
   // False for the built-in test logins, which can't change their password or be deleted.
