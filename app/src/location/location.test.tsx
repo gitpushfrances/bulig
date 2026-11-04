@@ -63,7 +63,8 @@ describe('Location from GPS', () => {
 
   it('asks for a fresh fix when the refresh button is tapped', async () => {
     const geo = fakeGeo(CEBU)
-    renderAt('/')
+    // Emergency keeps the full location line with its refresh button (Home's header updates live).
+    renderAt('/emergency')
 
     await screen.findByText('Cebu City · Cebu')
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Update my location' })))
@@ -81,7 +82,7 @@ describe('Location from GPS', () => {
         : serveData(input, init),
     )
     vi.stubGlobal('fetch', lookup)
-    renderAt('/')
+    renderAt('/emergency')
 
     // The full address as one line of text: barangay, city or municipality, province, ZIP code.
     expect(await screen.findByText('Lahug · Cebu City · Cebu · 6000')).toBeInTheDocument()
@@ -129,5 +130,26 @@ describe('Asking for location', () => {
     expect(screen.getAllByText('Loading…').length).toBeGreaterThan(0)
     // The national number never waits for location.
     expect(screen.getByRole('link', { name: /911/ })).toHaveAttribute('href', 'tel:911')
+  })
+})
+
+describe("Home's header", () => {
+  it('shows the barangay and town on one line, live, without the time or a refresh button', async () => {
+    fakeGeo(CEBU)
+    const serveData = globalThis.fetch
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
+        String(input).startsWith('https://nominatim.openstreetmap.org/reverse')
+          ? Promise.resolve(Response.json({ address: { village: 'Lahug', city: 'Cebu City', state: 'Cebu', postcode: '6000' } }))
+          : serveData(input, init),
+      ),
+    )
+    renderAt('/')
+
+    expect(await screen.findByText('Lahug · Cebu City')).toBeInTheDocument()
+    expect(screen.queryByText(/^Updated /)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Update my location' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/profile')
   })
 })

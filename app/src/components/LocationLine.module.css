@@ -121,6 +121,23 @@
 }
 
 .inHeader .place {
+  overflow: hidden;
   font-weight: 500;
   font-size: 0.9375rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inHeader .text,
+.inHeader .words {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.inHeader .text {
+  align-items: center;
+}
+
+.inHeader .icon {
+  margin-top: 0;
 }

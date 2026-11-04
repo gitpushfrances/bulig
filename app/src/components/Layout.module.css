@@ -89,11 +89,6 @@
   color: var(--color-primary-text);
 }
 
-/* The Profile tab shows the person's photo (or Ropi); its ring marks it selected, not a pill. */
-.tab.active .tabAvatar {
-  background: none;
-}
-
 /* ---------- Offline ---------- */
 
 .offline {
@@ -280,7 +275,7 @@
     color: var(--color-text);
   }
 
-  .tab:hover .tabIcon:not(.tabAvatar) {
+  .tab:hover .tabIcon {
     background: var(--color-selected);
   }
 }

@@ -2,14 +2,12 @@ import { CloudSlash, Heart, House, type Icon, MapTrifold as MapIcon, SquaresFour
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAppData } from '../data/context.ts'
-import Avatar from './Avatar.tsx'
 import styles from './Layout.module.css'
 
 interface Tab {
   to: string
   label: string
-  // Profile has no icon: it shows the person's photo, or Ropi's head.
-  icon?: Icon
+  icon: Icon
   // Other paths that belong to this tab, such as /about under Profile.
   also?: string[]
 }
@@ -19,8 +17,9 @@ const tabs: Tab[] = [
   { to: '/services', label: 'Services', icon: SquaresFour, also: ['/nearby', '/place'] },
   { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/saved', label: 'Saved', icon: Heart },
-  { to: '/profile', label: 'Profile', also: ['/about', '/help', '/terms', '/privacy', '/licenses'] },
 ]
+// Profile is not a tab (John, 2026-11-04): the avatar in Home's header opens it, so the bar keeps
+// four roomier targets. Its pages (Profile, About, Help, Terms...) still slide in like any other.
 
 const INSTANT_PATHS = ['/emergency', '/map']
 const TAB_ROOTS = tabs.map((t) => t.to)
@@ -101,12 +100,8 @@ export default function Layout() {
                 aria-current={active ? 'page' : undefined}
                 className={active ? `${styles.tab} ${styles.active}` : styles.tab}
               >
-                <span className={`${styles.tabIcon} ${Icon ? '' : styles.tabAvatar}`}>
-                  {Icon ? (
-                    <Icon size={22} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
-                  ) : (
-                    <Avatar size={26} ring={active} />
-                  )}
+                <span className={styles.tabIcon}>
+                  <Icon size={22} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
                 </span>
                 <span>{tab.label}</span>
               </Link>

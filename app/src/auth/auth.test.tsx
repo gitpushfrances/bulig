@@ -60,7 +60,7 @@ describe('Login', () => {
 
     submitSignIn(` ${email.toUpperCase()} `, 'password')
     expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
-    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Profile' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Profile' })) // the avatar in Home's header
     expect(screen.getByRole('heading', { name })).toBeInTheDocument()
     expect(screen.getByText(role)).toBeInTheDocument()
     expect(localStorage.getItem('bulig.session')).toBe(email)
@@ -213,7 +213,7 @@ describe('Profile', () => {
     toSignupForm()
     fillSignup('Temp', 'temp@example.com', 'long enough')
     await screen.findByRole('heading', { name: 'What do you need?' })
-    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Profile' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Profile' })) // the avatar in Home's header
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
     const confirm = screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!

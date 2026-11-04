@@ -44,12 +44,15 @@ export default function HomePage() {
 
   return (
     <section className={`${styles.page} ${home.page}`} aria-labelledby="home-title">
+      {/* Profile lives here, not in the tab bar: the avatar on the right opens it. */}
       <header className={home.header}>
-        <Avatar size={44} initials />
         <div className={home.who}>
           <p className={home.hello}>{firstName ? `Hi ${firstName}` : 'Hi there'}</p>
           <LocationLine inHeader />
         </div>
+        <Link to="/profile" className={home.profile} aria-label="Profile">
+          <Avatar size={44} initials />
+        </Link>
       </header>
 
       <div className={styles.section}>
@@ -66,7 +69,7 @@ export default function HomePage() {
         {loading && <BentoSkeleton />}
       </div>
 
-      <DataNotice hasSamples={ranked.some((r) => r.item.sample)} />
+      <DataNotice />
 
       <div className={styles.homeGrid}>
         <div className={styles.homeColumn}>

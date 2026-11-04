@@ -15,7 +15,7 @@ Bulig covers the whole Philippines, then any country. Town names in the wirefram
 | Area | Built and live on `main` |
 | --- | --- |
 | Theme | **Graphite**: near-black, zinc greys, white; light and dark. Red only for Call 911 and emergency actions, green only for checked. See [§10 Theme: Graphite](#theme-graphite-current-2026-10-29). Ocean Depths is retired. |
-| Navigation | **No top bar** and no logo tile: content starts at the top of the screen. Five tabs: Home `/`, Services `/services`, Map `/map`, Saved `/saved`, **Profile** (shows your photo, or Ropi's head by default). **Emergency is not a tab:** a red hazard button floats on every screen and opens `/emergency`; Back returns. Bottom bar on phones, rail on tablets, sidebar (with the word "Bulig") on desktop. Offline shows a slim strip at the top. |
+| Navigation | **No top bar** and no logo tile: content starts at the top of the screen. Four tabs: Home `/`, Services `/services`, Map `/map`, Saved `/saved`. **Profile is not a tab** (John, 2026-11-04): the avatar on the right of Home's header opens it. **Emergency is not a tab:** a red hazard button floats on every screen and opens `/emergency`; Back returns. Bottom bar on phones, rail on tablets, sidebar (with the word "Bulig") on desktop. Offline shows a slim strip at the top. |
 | Location | GPS finds the area by itself (`watchPosition`), asked only once you are in the app (never on the sign-in screens or over the splash); until the first fix, places show skeletons. **Shown on Home between the bento and the 911 card** (and on Emergency) as one plain text line between hairlines: "Lahug · Cebu City · Cebu · 6000" over "Updated 2:41 PM", with a reload button right after it. Address from OpenStreetMap Nominatim. Area picker in the same spot only when GPS is off. |
 | Home | "What do you need?" bento = the **"What's wrong?" buttons**: each tile is a problem (Flat tire, Breakdown, Out of gas, Hospital, Food, Hotel, Store, Others) over the kind of place that solves it, and opens **Nearby results**. Then the location line, the national hotline (Call 911), local numbers, nearest places, Saved. |
 | Map | MapLibre + OpenFreeMap (free, no key), recoloured to Graphite light/dark; category pins, chips, a place sheet. **In-app routes** from OSRM on OpenStreetMap roads (FOSSGIS, free, no key): a blue line, distance and time, Car or Walk, rerouting as you move, and a Google Maps button for voice navigation. Card **Directions** open `/map?to=<id>`. See [Map](#map-map). |
@@ -107,8 +107,8 @@ Bulig never sends help and never shares the exact location (only a rounded one, 
 
 ```text
 ┌────────────────────────────────┐
-│ (JC) Hi John                   │  initials avatar (photo if added)
-│      ⌖ Guiuan · Eastern Samar ⟳│  GPS location line, teal wash behind
+│ Hi John                   (JC) │  avatar opens Profile
+│ ⌖ Sapao · Guiuan               │  live GPS location, one line
 ├────────────────────────────────┤
 │ What do you need?      See all ›│  See all = Services
 │ [Flat tire][Breakdown][Out of gas]│
@@ -127,11 +127,11 @@ Bulig never sends help and never shares the exact location (only a rounded one, 
 │ Pull over safely before using   │
 │ your phone.                     │
 ├────────────────────────────────┤
-│ Home Services Map Saved Profile │  + the red hazard button, always
+│ Home  Services  Map  Saved      │  + the red hazard button, always
 └────────────────────────────────┘
 ```
 
-- **Header:** a 44px avatar (the person's photo, else their **initials** on teal: Ropi never goes on Home), "Hi <first name>", and under it the **location line** from GPS ("Barangay · Municipality · Province", "Updated <time>", reload). Without GPS the same spot is the area picker ("Location is off. Pick your area"). No bell (there are no notifications yet) and no settings gear (Profile is a tab). A soft teal wash fades out behind it.
+- **Header:** "Hi <first name>" over the **live location** on one line (barangay · town from GPS, cut with "…" when long; no time, no refresh button: it updates by itself), and on the right a 44px avatar (photo, else **initials** on teal: Ropi never goes on Home) that opens **Profile**. Profile is not a tab (John, 2026-11-04): this avatar is the way in. Without GPS the location spot is the area picker ("Location is off. Pick your area"). No bell (there are no notifications yet) and no settings gear. A soft teal wash fades out behind it.
 - **What do you need?:** the six commonest problems as tiles: Flat tire, Breakdown, Out of gas, Hospital, Food, Hotel. Each tile is one link: a 28px teal icon, the problem, and the nearest one's distance ("160 m"), else the count, else "None yet". No arrows: at 360px a tile is 104px wide and the whole tile is the target. Store and Others are under **See all** (Services).
 - **Nearest to you** ("Near <area>" without GPS): one card with the **live mini map** on top and the three nearest places under it. The map is MapLibre with the same style, pins and blue dot as the Map tab, **centred on you** (it follows GPS and re-centres after any resize) and zoomed so the five nearest places fit around you, and not draggable (it never traps the page's scroll); tapping it opens the Map tab. It loads only once the card is on screen and the phone is idle, so Home and 911 never wait for it. Offline, without WebGL, or not drawn within 20 s, the map is left out and the list does the job.
 - **Local hotlines:** the national 911 card (deep teal, red Call 911), then up to three verified local numbers, then "All emergency numbers". The red hazard button floats over every screen, so 911 stays one tap away even though the card sits lower on the page.
@@ -290,7 +290,7 @@ After **Create account** the person lands on Home (or the screen that asked for 
 ### Profile (`/profile`)
 
 Built like a production settings screen:
-- **Header card:** the person's photo as the avatar (Ropi's head until they add one), name, email, a role badge (User / Contributor / Moderator / Admin), "Member since <month year>". The **Profile tab** in the nav shows the same avatar (26px, a ring when selected) instead of an icon.
+- **Header card:** the person's photo as the avatar (Ropi's head until they add one), name, email, a role badge (User / Contributor / Moderator / Admin), "Member since <month year>". (No Profile tab since 2026-11-04: Home's header avatar, with initials instead of Ropi, opens this page.)
 - **Account:** Edit profile (`/profile/edit`: **photo** (Add a photo / Change photo / Remove; centre-cropped to a 256px WebP, about 15–30 KB, kept on the phone), name, email read-only, optional mobile number checked as a PH number, optional home area), Change password (`/profile/password`: current, new, confirm; test logins can't change theirs), Saved places with the count, Home area when set.
 - **Preferences:** Appearance (System / Light / Dark, remembered and applied before the first paint), Language (English), Location (Allowed / Blocked / Not asked yet, from the phone's permission).
 - **App:** **Install Bulig**: the browser's install prompt on Android/Chrome, or the Share → Add to Home Screen steps on iPhone. Hidden once installed. Offline data: "<n> places · <n> numbers".

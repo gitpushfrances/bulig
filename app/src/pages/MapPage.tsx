@@ -98,6 +98,7 @@ export default function MapPage() {
   const [problem, setProblem] = useState<MapProblem>('failed')
   // Try again bumps this, which makes the map from scratch.
   const [attempt, setAttempt] = useState(0)
+  const [following, setFollowing] = useState(true)
   const [pins, setPins] = useState<{ id: string; el: HTMLElement }[]>([])
   const [params] = useSearchParams()
   // /map?cat=<category> (the Map button on Nearby results): open with that kind of place only.
@@ -159,6 +160,8 @@ export default function MapPage() {
         })
         // Tapping the map closes a place's sheet; a route in progress stays.
         m.on('click', () => setSelected(routeToRef.current))
+        // Moving the map yourself stops it following you; Go to my location turns following back on.
+        m.on('dragstart', () => setFollowing(false))
         map.current = m
       } catch {
         fail(navigator.onLine ? 'failed' : 'offline')
@@ -191,9 +194,19 @@ export default function MapPage() {
     if (status !== 'ready' || !m) return
     if (position) m.jumpTo({ center: [position.lng, position.lat], zoom: 14 })
     else if (centre?.lat !== undefined && centre.lng !== undefined) m.jumpTo({ center: [centre.lng, centre.lat], zoom: 13 })
-    // Only on first load and when GPS first finds the person, not on every small move.
+    // Only on first load and when GPS first finds the person; following (below) does the rest.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, hasFix, centre?.id])
+
+  // Follow you live (a new fix every 3 s at most, LocationProvider), like a navigation app, until
+  // you drag the map. Not during a route: the route view stays fitted to the whole trip.
+  const followLat = position?.lat
+  const followLng = position?.lng
+  useEffect(() => {
+    const m = map.current
+    if (status !== 'ready' || !m || !following || routeTo || followLat === undefined || followLng === undefined) return
+    m.easeTo({ center: [followLng, followLat], duration: 800 })
+  }, [status, following, routeTo, followLat, followLng])
 
   // The blue dot for the person.
   useEffect(() => {
@@ -324,6 +337,7 @@ export default function MapPage() {
   }, [status, path, resolved])
 
   const recentre = () => {
+    setFollowing(true)
     refresh()
     if (position) map.current?.flyTo({ center: [position.lng, position.lat], zoom: 15, duration: 600 })
   }

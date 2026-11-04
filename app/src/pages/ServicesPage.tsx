@@ -23,7 +23,7 @@ export default function ServicesPage() {
         </p>
       </div>
 
-      <DataNotice hasSamples={ranked.some((r) => r.item.sample)} ropi />
+      <DataNotice ropi />
       {loading && <OfferGridSkeleton />}
 
       {ready && (

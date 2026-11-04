@@ -3,15 +3,15 @@ import styles from '../pages/Page.module.css'
 import RopiSays from './RopiSays.tsx'
 
 interface Props {
-  hasSamples: boolean
   // Ropi explains when offline with nothing cached. Off on Home and Emergency: never near
   // getting help.
   ropi?: boolean
 }
 
-// Error and sample-data notes, shared by every page that shows records. Loading is each page's
+// Load errors, shared by every page that shows records. (The "Sample data" banner was removed on
+// 2026-11-04, John: real data is coming; sample rows still carry their own SAMPLE badge.) Loading is each page's
 // own skeleton (Skeleton.tsx); being offline is shown once, at the top (Layout).
-export default function DataNotice({ hasSamples, ropi = false }: Props) {
+export default function DataNotice({ ropi = false }: Props) {
   const { data, retry, online } = useAppData()
   const failed = data.status === 'error'
 
@@ -35,14 +35,6 @@ export default function DataNotice({ hasSamples, ropi = false }: Props) {
             Try again
           </button>
         </div>
-      )}
-      {hasSamples && (
-        <p className={`${styles.notice} ${styles.warn}`}>
-          <span>
-            <strong>Sample data.</strong> Places and local numbers marked SAMPLE are made up for testing.
-            Don&apos;t call them.
-          </span>
-        </p>
       )}
     </>
   )

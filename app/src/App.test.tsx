@@ -25,21 +25,22 @@ describe('App shell', () => {
     ['/nearby/flat-tire', 'Flat tire', 'Services'],
     ['/map', 'Map of places near you', 'Map'],
     ['/saved', 'Saved', 'Saved'],
-    ['/profile', 'Profile', 'Profile'],
-    ['/about', 'About Bulig', 'Profile'],
-    ['/terms', 'Terms of Use', 'Profile'],
+    ['/profile', 'Profile', null],
+    ['/about', 'About Bulig', null],
+    ['/terms', 'Terms of Use', null],
   ])('%s shows its page and marks its tab active', async (path, heading, tab) => {
     renderAt(path)
 
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
     const active = tabLinks().filter((link) => link.getAttribute('aria-current') === 'page')
-    expect(active.map((link) => link.textContent)).toEqual([tab])
+    // Profile and its pages have no tab: the avatar on Home opens them.
+    expect(active.map((link) => link.textContent)).toEqual(tab ? [tab] : [])
   })
 
-  it('always shows the five tabs in order', () => {
+  it('always shows the four tabs in order', () => {
     renderAt('/services')
 
-    expect(tabLinks().map((link) => link.textContent)).toEqual(['Home', 'Services', 'Map', 'Saved', 'Profile'])
+    expect(tabLinks().map((link) => link.textContent)).toEqual(['Home', 'Services', 'Map', 'Saved'])
   })
 
   it('opens Emergency from the red button on any screen, with no tab marked, and goes back', async () => {
