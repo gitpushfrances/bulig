@@ -1,7 +1,13 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from '../App.tsx'
+
+// jsdom has no canvas: picking a photo returns a tiny stand-in image.
+vi.mock('./photo.ts', async (orig) => ({
+  ...(await orig<typeof import('./photo.ts')>()),
+  toAvatar: vi.fn(async () => 'data:image/webp;base64,UklGRg=='),
+}))
 
 function renderAt(path: string) {
   return render(
@@ -193,6 +199,41 @@ describe('Profile', () => {
     fireEvent.change(screen.getByLabelText('Mobile number (optional)'), { target: { value: '0917 123 4567' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     expect(await screen.findByRole('heading', { name: 'Juan Dela Cruz' })).toBeInTheDocument()
+  })
+
+  it('takes any home area as text, listed or not, and shows it on Profile', async () => {
+    renderAt('/profile/edit')
+
+    const home = screen.getByLabelText('Home area (optional)')
+    expect(home.tagName).toBe('INPUT')
+    fireEvent.change(home, { target: { value: 'Surok, Guiuan, Eastern Samar' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(await screen.findByText('Surok, Guiuan, Eastern Samar')).toBeInTheDocument()
+  })
+
+  it('previews a new photo and saves it only after "Use this photo"', async () => {
+    renderAt('/profile/edit')
+
+    const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' })
+    fireEvent.change(screen.getByLabelText(/Add a photo|Change photo/), { target: { files: [file] } })
+    expect(await screen.findByRole('heading', { name: 'Use this photo?' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Your new profile photo' })).toBeInTheDocument()
+
+    // Cancel keeps the old one.
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('heading', { name: 'Use this photo?' })).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText(/Add a photo|Change photo/), { target: { files: [file] } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Use this photo' }))
+    expect(await screen.findByText('Photo updated.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument()
+  })
+
+  it('sends the old licences link to About, which carries the credits', async () => {
+    renderAt('/licenses')
+    expect(await screen.findByRole('heading', { name: 'About Bulig' })).toBeInTheDocument()
+    expect(screen.getByText(/© OpenStreetMap contributors/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument()
   })
 
   it('explains that accounts kept on this phone keep their email', async () => {

@@ -67,7 +67,7 @@
   box-shadow: none;
 }
 
-/* Waiting on the server: the button keeps its full colour, with a spinner and "Signing in…". */
+/* Waiting on the server: the button keeps its full colour, with only the spinning ring. */
 .submit[aria-busy='true'] {
   opacity: 1;
   cursor: progress;

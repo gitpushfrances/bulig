@@ -165,7 +165,7 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
   return (
     <Link to="/map" className={styles.card} aria-label="Open the map">
       <div ref={box} className={`${styles.map} ${state === 'ready' ? styles.shown : ''}`} aria-hidden="true" />
-      {/* The licence credit as quiet text; the full credit and links are on the Map tab and Licences. */}
+      {/* The licence credit as quiet text; the full credit and links are on the Map tab and About. */}
       <span className={styles.credit}>{MAP_CREDIT.text}</span>
     </Link>
   )

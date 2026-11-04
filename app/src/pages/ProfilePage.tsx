@@ -1,5 +1,5 @@
 import BackButton from '../components/BackButton.tsx'
-import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, MapPin, Palette, Scales, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
+import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, MapPin, Palette, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -8,6 +8,7 @@ import { TextField } from '../components/Fields.tsx'
 import Avatar from '../components/Avatar.tsx'
 import { SettingsButton, SettingsGroup, SettingsInfo, SettingsLink } from '../components/Settings.tsx'
 import { useAppData } from '../data/context.ts'
+import { homeAreaText } from '../auth/homeArea.ts'
 import { promptInstall, useInstall } from '../install.ts'
 import { setTheme, useTheme, type ThemeChoice } from '../theme.ts'
 import page from './Page.module.css'
@@ -124,7 +125,7 @@ export default function ProfilePage() {
   if (!account) return null
 
   const ready = data.status === 'ready'
-  const homeArea = ready && account.homeArea ? data.areas.find((a) => a.id === account.homeArea)?.name : undefined
+  const homeArea = homeAreaText(account.homeArea, ready ? data.areas : [])
   const since = monthYear(account.createdAt)
 
   return (
@@ -216,7 +217,6 @@ export default function ProfilePage() {
         <SettingsLink to="/about" icon={Info} label="About Bulig" />
         <SettingsLink to="/terms" icon={FileText} label="Terms of Use" />
         <SettingsLink to="/privacy" icon={Shield} label="Privacy Policy" />
-        <SettingsLink to="/licenses" icon={Scales} label="Open-source licences" />
       </SettingsGroup>
 
       <button

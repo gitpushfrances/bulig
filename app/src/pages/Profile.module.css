@@ -288,6 +288,50 @@ button.row:active {
   flex-basis: 100%;
 }
 
+/* Picked a photo: a big preview and a clear choice before it replaces the current one. */
+.photoConfirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card, 16px);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.photoConfirmTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.photoBig {
+  display: block;
+  width: 132px;
+  height: 132px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-selected);
+  box-shadow: 0 0 0 4px var(--color-surface), 0 0 0 6px var(--color-primary-text);
+}
+
+.photoConfirmActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.photoConfirmActions label {
+  cursor: pointer;
+}
+
+.photoConfirmActions label:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .select {
   min-height: 48px;
   width: 100%;

@@ -45,6 +45,18 @@
   text-decoration: none;
 }
 
+/* Always in reach: Back sits in a full-width bar that stays at the top while long pages (Terms,
+   Privacy, Edit profile) scroll under it. */
+.backBar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  margin: calc(-20px - env(safe-area-inset-top, 0px)) calc(-1 * var(--gutter)) 0;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) var(--gutter) 2px;
+  background: var(--color-bg);
+}
+
 .section {
   display: flex;
   flex-direction: column;
@@ -1154,6 +1166,11 @@
 .primaryButton:disabled {
   opacity: 0.6;
   cursor: progress;
+}
+
+/* Waiting on the server: full colour, with only the spinning ring (BusyContent). */
+.primaryButton[aria-busy='true'] {
+  opacity: 1;
 }
 
 /* ---------- Sign in / Create account ---------- */
