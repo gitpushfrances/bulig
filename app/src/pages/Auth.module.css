@@ -8,7 +8,8 @@
 }
 
 .title {
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -16,7 +17,25 @@
 
 .lead {
   color: var(--color-text-muted);
+  font-size: 0.9375rem;
   text-wrap: pretty;
+}
+
+/* Fields on these screens: a quiet label, and a filled input that turns white with a teal ring
+   when focused. The border stays strong enough to see in sunlight. */
+.form label:not(.check) {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.form input:not([type='checkbox']) {
+  min-height: 50px;
+  border-radius: 12px;
+  background: var(--color-bg);
+}
+
+.form input:not([type='checkbox']):focus {
+  background: var(--color-surface);
 }
 
 .form {
@@ -31,25 +50,12 @@
   gap: 14px;
 }
 
-/* A form-level error (wrong password, no signal) slides in under the fields. */
-.form [role='alert'] {
-  animation: alert-in 200ms var(--ease-out);
-}
-
-@keyframes alert-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-}
-
-/* The main button on these screens: a sheen that only raises its text contrast, and a soft
-   teal lift that presses down with the button. */
+/* The main button on these screens: solid teal with a soft teal lift that presses down with it. */
 .form button[type='submit'],
 .submit {
   width: 100%;
   min-height: 52px;
-  background-image: var(--button-sheen);
+  border-radius: 12px;
   box-shadow: var(--shadow-primary);
   transition:
     transform var(--press-ms) var(--ease-out),
@@ -66,6 +72,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   min-height: 44px;
   padding: 0 8px;
   border: 0;
@@ -83,6 +90,13 @@
 .forgot {
   align-self: center;
   margin-top: -4px;
+}
+
+/* Sign in / Sign up links in teal, like the rest of Bulig's links. */
+.center .link,
+.forgot {
+  color: var(--color-primary-text);
+  text-decoration-color: color-mix(in srgb, var(--color-primary-text) 40%, transparent);
 }
 
 .divider {
@@ -103,9 +117,12 @@
 
 .full {
   width: 100%;
+  border-radius: 12px;
 }
 
 .center {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
   text-align: center;
 }
 

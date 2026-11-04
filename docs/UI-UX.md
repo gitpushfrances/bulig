@@ -259,7 +259,7 @@ The original spec:
 - Form: Email, Password (show/hide), a full-width **Sign in**. Directly under the button: **Forgot password?**
 - A divider "New to Bulig?", then **Create an account** (outlined, full width), which opens the onboarding.
 - No guest mode and no emergency link here (John, 2026-11-04).
-- Look (all sign-in screens): one card (24px corners, layered shadow, a light top edge in dark mode) on a soft teal glow; the main button has a sheen that only raises its text contrast and a teal lift. Blocks stack in a beat apart; a field shakes once when it turns invalid, and the fields shake on a wrong password. All motion is off under reduced motion.
+- Look (all sign-in screens): one card (24px corners, layered shadow, a light top edge in dark mode) on a soft teal glow. Ropi's head in a teal ring with a shield badge, a bold title, quiet labels, filled fields with placeholders, a solid teal main button with a teal lift, teal links, and form errors in a tinted box with an X. Footer under the card: "Bulig · Road help for the Philippines". Blocks stack in a beat apart; a field shakes once when it turns invalid, and the fields shake on a wrong password. All motion is off under reduced motion.
 - The test logins still work when typed: `test@bulig.com`, `moderator@bulig.com`, `admin@bulig.com`, password `password` (see [WORKFLOW.md](WORKFLOW.md#sign-in)).
 
 ### Sign up = onboarding (`/signup`)

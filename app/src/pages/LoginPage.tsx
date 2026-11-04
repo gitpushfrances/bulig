@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
+import FormAlert from '../components/FormAlert.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT } from '../components/fieldRules.ts'
 import { shake } from '../components/shake.ts'
@@ -65,6 +66,7 @@ export default function LoginPage() {
         <div ref={fields} className={styles.fields}>
           <TextField
             label="Email"
+            placeholder="you@example.com"
             {...EMAIL_INPUT}
             autoComplete="username"
             enterKeyHint="next"
@@ -87,11 +89,7 @@ export default function LoginPage() {
             }}
           />
         </div>
-        {formError && (
-          <p className={page.error} role="alert">
-            {formError}
-          </p>
-        )}
+        {formError && <FormAlert onClose={() => setFormError('')}>{formError}</FormAlert>}
         <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
           <SignIn size={18} aria-hidden="true" />
           {busy ? 'Signing in…' : 'Sign in'}

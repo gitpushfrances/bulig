@@ -31,7 +31,7 @@ function toSignupForm(skip = true) {
 }
 
 function fillSignup(name: string, email: string, password: string, agree = true) {
-  fireEvent.change(screen.getByLabelText('Name'), { target: { value: name } })
+  fireEvent.change(screen.getByLabelText('Full name'), { target: { value: name } })
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
   if (agree) fireEvent.click(screen.getByRole('checkbox'))

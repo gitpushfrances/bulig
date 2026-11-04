@@ -16,7 +16,9 @@
 
 .main {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   padding: calc(32px + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px))
     calc(32px + env(safe-area-inset-bottom, 0px)) max(var(--gutter), env(safe-area-inset-left, 0px));
 }
@@ -28,7 +30,6 @@
   gap: 20px;
   width: 100%;
   max-width: 24rem;
-  align-self: flex-start;
   padding: 24px 20px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
@@ -71,7 +72,40 @@
 .mark {
   display: flex;
   justify-content: center;
-  margin-bottom: -8px;
+}
+
+/* Ropi's head in a teal ring on a soft teal disc, with a shield badge at the bottom right. */
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border: 3px solid var(--color-primary);
+  border-radius: 50%;
+  background: var(--color-selected);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.badge {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary, #fff);
+}
+
+.footer {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+  animation: stack-in 320ms var(--ease-out) 200ms both;
 }
 
 /* Short phones: a little less air above the mark. */
@@ -125,12 +159,11 @@
   }
 
   .main {
-    align-items: center;
+    justify-content: center;
     padding: 48px 40px;
   }
 
   .column {
-    align-self: center;
     padding: 32px 28px;
   }
 
@@ -140,5 +173,9 @@
 
   .mark {
     display: none;
+  }
+
+  .mark.markAlways {
+    display: flex;
   }
 }

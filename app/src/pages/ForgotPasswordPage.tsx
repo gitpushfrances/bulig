@@ -60,6 +60,7 @@ export default function ForgotPasswordPage() {
           <form className={styles.form} onSubmit={submit} noValidate>
             <TextField
               label="Email"
+              placeholder="you@example.com"
               {...EMAIL_INPUT}
               autoComplete="email"
               enterKeyHint="send"
