@@ -22,10 +22,29 @@
 }
 
 .header {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   min-width: 0;
+}
+
+/* A faint winding road behind the header's right side: decoration only, under the avatar. */
+.header::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -12px;
+  right: calc(-1 * var(--gutter));
+  width: 180px;
+  height: 150px;
+  background: var(--color-primary-text);
+  opacity: 0.07;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 150' fill='none' stroke='black' stroke-linecap='round'%3E%3Cpath d='M190 6C130 16 150 58 100 70S34 96 52 128' stroke-width='22'/%3E%3C/svg%3E")
+    no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 150' fill='none' stroke='black' stroke-linecap='round'%3E%3Cpath d='M190 6C130 16 150 58 100 70S34 96 52 128' stroke-width='22'/%3E%3C/svg%3E")
+    no-repeat center / contain;
+  pointer-events: none;
 }
 
 .who {
@@ -37,6 +56,7 @@
 
 .profile {
   flex: none;
+  margin-top: 6px;
   display: grid;
   place-items: center;
   width: 48px;
@@ -53,9 +73,19 @@
 }
 
 .greeting {
+  color: var(--color-primary-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The line under the name: changes each visit (welcome.ts), two lines at most. */
+.message {
+  margin-top: 2px;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1.35;
 }
 
 .hello {

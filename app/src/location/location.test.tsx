@@ -46,7 +46,7 @@ describe('Location from GPS', () => {
     renderAt('/')
 
     // Home's location line, between the services and the emergency numbers.
-    expect(await screen.findByText('Cebu City · Cebu')).toBeInTheDocument()
+    expect(await screen.findByText('Cebu City, Cebu')).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: 'Area' })).not.toBeInTheDocument()
     // Saved in an effect after the render, so wait for it rather than race it.
     await waitFor(() => expect(localStorage.getItem('bulig.area')).toBe('ph-cebu-cebu-city'))
@@ -97,7 +97,7 @@ describe('Location from GPS', () => {
     fakeGeo(CEBU)
     renderAt('/')
 
-    expect(await screen.findByText('Cebu City · Cebu')).toBeInTheDocument()
+    expect(await screen.findByText('Cebu City, Cebu')).toBeInTheDocument()
   })
 
   it('falls back to picking an area when location is denied', async () => {
@@ -147,9 +147,25 @@ describe("Home's header", () => {
     )
     renderAt('/')
 
-    expect(await screen.findByText('Lahug · Cebu City')).toBeInTheDocument()
+    expect(await screen.findByText(/^(Live location: )?Lahug, Cebu City, Cebu$/)).toBeInTheDocument()
     expect(screen.queryByText(/^Updated /)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Update my location' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/profile')
+  })
+
+  it('fills the town and province from the listed area when OSM has only the barangay', async () => {
+    fakeGeo({ lat: 11.04, lng: 125.73 }) // just outside Guiuan town
+    const serveData = globalThis.fetch
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
+        String(input).startsWith('https://nominatim.openstreetmap.org/reverse')
+          ? Promise.resolve(Response.json({ address: { village: 'Surok' } }))
+          : serveData(input, init),
+      ),
+    )
+    renderAt('/')
+
+    expect(await screen.findByText(/^(Live location: )?Surok, Guiuan, Eastern Samar$/)).toBeInTheDocument()
   })
 })

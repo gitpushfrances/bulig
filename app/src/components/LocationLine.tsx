@@ -14,6 +14,17 @@ function byRegion(areas: Area[]): [string, Area[]][] {
   return [...groups].sort(([x], [y]) => x.localeCompare(y))
 }
 
+// Without blanks or repeats ("Guiuan, Guiuan" when the barangay shares the town's name).
+function unique(parts: (string | undefined)[]): string[] {
+  const seen = new Set<string>()
+  return parts.filter((p): p is string => {
+    const key = p?.trim().toLowerCase()
+    if (!key || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 const timeFormat = new Intl.DateTimeFormat('en-PH', { hour: 'numeric', minute: '2-digit' })
 
 // Where the phone is, as one plain line of text between hairlines: a divider, not a card.
@@ -31,15 +42,22 @@ export default function LocationLine({ inHeader = false }: { inHeader?: boolean 
   const canRetry = status !== 'unavailable'
 
   // The looked-up address wins; without it, the nearest listed area (and how far, when it isn't here).
-  // In Home's header: one line, so the barangay and town only (no province, no postcode).
+  // In Home's header: "Surok, Guiuan, Eastern Samar" (barangay, town, province; no postcode). OSM
+  // often leaves the town or province off a rural barangay, so the listed area the phone is in
+  // fills those gaps.
+  const near = fromGps && listed && areaKm <= NEAR_KM ? listed : undefined
   const parts = address
     ? inHeader
-      ? [address.address.locality, address.address.municipality]
+      ? [
+          address.address.locality,
+          address.address.municipality ?? near?.name,
+          address.address.province ?? near?.region,
+        ]
       : [address.address.locality, address.address.municipality, address.address.province, address.address.postcode]
     : []
-  let place = parts.filter(Boolean).join(' · ')
+  let place = unique(parts).join(inHeader ? ', ' : ' · ')
   if (!place && fromGps && listed)
-    place = areaKm <= NEAR_KM ? `${listed.name} · ${listed.region}` : `${listed.name}, ${formatDistance(areaKm)} away`
+    place = areaKm <= NEAR_KM ? `${listed.name}${inHeader ? ', ' : ' · '}${listed.region}` : `${listed.name}, ${formatDistance(areaKm)} away`
 
   // GPS is on and following the phone: Home's header shows a green dot instead of the crosshair.
   const live = inHeader && status === 'ready' && fromGps
