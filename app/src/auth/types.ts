@@ -1,8 +1,8 @@
 import type { AreaId } from '../types.ts'
 
-// The three roles in docs/WORKFLOW.md. What each one may do is decided in one place:
+// The roles in docs/WORKFLOW.md and API.md §1. What each one may do is decided in one place:
 // can() in src/rules/permissions.ts.
-export const ROLES = ['user', 'moderator', 'admin'] as const
+export const ROLES = ['user', 'contributor', 'moderator', 'admin'] as const
 export type Role = (typeof ROLES)[number]
 
 export interface Account {
@@ -26,6 +26,7 @@ export type ProfileDetails = Pick<Account, 'name' | 'phone' | 'homeArea' | 'phot
 
 export const ROLE_LABELS: Record<Role, string> = {
   user: 'User',
+  contributor: 'Contributor',
   moderator: 'Moderator',
   admin: 'Admin',
 }

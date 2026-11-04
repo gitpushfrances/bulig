@@ -9,6 +9,13 @@ import { EMAIL_INPUT } from '../components/fieldRules.ts'
 import page from './Page.module.css'
 import styles from './Auth.module.css'
 
+const LOGIN_ERRORS = {
+  wrong: "That email and password don't match. Check them and try again.",
+  suspended: 'Your account is suspended. If you think this is a mistake, contact us.',
+  offline: "Couldn't reach Bulig. Check your connection and try again.",
+  busy: 'Too many tries. Wait a minute, then try again.',
+} as const
+
 // The front door. An account unlocks everything; "Continue without an account" opens Emergency
 // only (911 and local authorities), so nobody is ever stuck behind a login when they need help.
 export default function LoginPage() {
@@ -31,10 +38,10 @@ export default function LoginPage() {
       return
     }
     setBusy(true)
-    const ok = await signIn(email, password)
+    const result = await signIn(email, password)
     setBusy(false)
-    if (!ok) {
-      setFormError("That email and password don't match. Check them and try again.")
+    if (!result.ok) {
+      setFormError(LOGIN_ERRORS[result.reason])
       return
     }
     navigate(next, { replace: true })
@@ -86,7 +93,7 @@ export default function LoginPage() {
         )}
         <button type="submit" className={`${page.primaryButton} ${styles.submit}`} disabled={busy}>
           <LogIn size={18} strokeWidth={2} aria-hidden="true" />
-          Sign in
+          {busy ? 'Signing in…' : 'Sign in'}
         </button>
         <Link className={`${styles.link} ${styles.forgot}`} to="/forgot-password">
           Forgot password?

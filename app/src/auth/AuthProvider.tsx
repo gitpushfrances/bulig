@@ -1,81 +1,85 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { readSaved, writeSaved } from '../data/storage.ts'
+import { appAccounts } from './appAccounts.ts'
 import { AuthContext } from './context.ts'
-import {
-  changeLocalPassword,
-  checkLocalLogin,
-  deleteLocalAccount,
-  isLocalAccount,
-  localAccountFor,
-  register as registerLocal,
-  renameLocalAccount,
-  type NewAccount,
-} from './localAccounts.ts'
-import { accountFor, checkLogin } from './testAccount.ts'
+import type { AccountStore, NewAccount } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
-const SESSION_KEY = 'bulig.session'
 const GUEST_KEY = 'bulig.guest'
-const savedKey = (email: string) => `bulig.saved.${email}`
 const profileKey = (email: string) => `bulig.profile.${email}`
 
-function readJson<T>(key: string, fallback: T): T {
+function readDetails(email: string): Partial<ProfileDetails> {
   try {
-    return (JSON.parse(readSaved(key) ?? 'null') as T | null) ?? fallback
+    return (JSON.parse(readSaved(profileKey(email)) ?? 'null') as Partial<ProfileDetails> | null) ?? {}
   } catch {
-    return fallback
+    return {}
   }
 }
 
-function readList(key: string): string[] {
-  const value = readJson<unknown>(key, [])
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
-}
-
-// The account plus whatever the person added in Edit profile (phone, home area, a new name).
-function withDetails(account: Account | null): Account | null {
+// The account plus what Edit profile keeps on this phone. With server accounts that is only the
+// photo (uploads come later); with phone-only accounts it is every detail.
+function withDetails(account: Account | null, store: AccountStore): Account | null {
   if (!account) return null
-  const details = readJson<Partial<ProfileDetails>>(profileKey(account.email), {})
+  const details = readDetails(account.email)
+  if (store.online) return { ...account, photo: details.photo }
   return { ...account, ...details, name: details.name?.trim() || account.name }
 }
 
-function sessionAccount(): Account | null {
-  const email = readSaved(SESSION_KEY)
-  return withDetails(accountFor(email) ?? localAccountFor(email))
-}
-
-// Keeps the signed-in account and its saved places on this phone only (localStorage).
-// Phase 4 swaps the test and local accounts for the API; pages keep using useAuth() unchanged.
-export default function AuthProvider({ children }: { children: ReactNode }) {
-  const [account, setAccount] = useState(sessionAccount)
-  const [saved, setSaved] = useState(() => (account ? readList(savedKey(account.email)) : []))
+export default function AuthProvider({ children, store = appAccounts }: { children: ReactNode; store?: AccountStore }) {
+  const [account, setAccount] = useState(() => withDetails(store.restore(), store))
+  // The hearts, tagged with whose they are, so a stale list never shows for another account.
+  const [loaded, setLoaded] = useState<{ email: string; ids: string[] } | null>(null)
   const [guest, setGuest] = useState(() => !account && readSaved(GUEST_KEY) === '1')
+  const email = account?.email ?? null
+
+  // On start: ask the server who this is (a revoked token signs the phone out), then the hearts.
+  useEffect(() => {
+    let live = true
+    void store.refresh().then((fresh) => {
+      if (!live || fresh === undefined) return
+      setAccount((current) => (fresh === null ? null : current ? withDetails(fresh, store) : current))
+    })
+    return () => {
+      live = false
+    }
+  }, [store])
+
+  useEffect(() => {
+    let live = true
+    const current = email ? store.restore() : null
+    if (current)
+      void store.loadSaved(current).then((ids) => {
+        if (live) setLoaded({ email: current.email, ids })
+      })
+    return () => {
+      live = false
+    }
+  }, [email, store])
+  const saved = loaded && loaded.email === email ? loaded.ids : []
+  const setSaved = (update: (ids: string[]) => string[]) =>
+    setLoaded((now) => (email ? { email, ids: update(now?.email === email ? now.ids : []) } : now))
 
   const start = (next: Account) => {
-    writeSaved(SESSION_KEY, next.email)
     writeSaved(GUEST_KEY, null)
     setGuest(false)
-    setAccount(withDetails(next))
-    setSaved(readList(savedKey(next.email)))
+    setAccount(withDetails(next, store))
   }
 
-  const signIn = async (email: string, password: string) => {
-    const next = checkLogin(email, password) ?? (await checkLocalLogin(email, password))
-    if (!next) return false
-    start(next)
-    return true
+  const signIn = async (address: string, password: string) => {
+    const result = await store.signIn(address, password)
+    if (result.ok) start(result.account)
+    return result
   }
 
   const register = async (details: NewAccount) => {
-    const result = await registerLocal(details)
+    const result = await store.register(details)
     if (result.ok) start(result.account)
     return result
   }
 
   const signOut = () => {
-    writeSaved(SESSION_KEY, null)
+    void store.signOut()
     setAccount(null)
-    setSaved([])
   }
 
   const continueAsGuest = () => {
@@ -83,35 +87,44 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     setGuest(true)
   }
 
-  const updateProfile = (details: ProfileDetails) => {
-    if (!account) return
+  const updateProfile = async (details: ProfileDetails) => {
+    if (!account) return 'offline' as const
     const clean: ProfileDetails = {
       name: details.name.trim() || account.name,
       phone: details.phone?.trim() || undefined,
       homeArea: details.homeArea || null,
       photo: details.photo || undefined,
     }
-    writeSaved(profileKey(account.email), JSON.stringify(clean))
-    if (isLocalAccount(account.email)) renameLocalAccount(account.email, clean.name)
-    setAccount({ ...account, ...clean })
+    const result = await store.updateProfile(account, {
+      name: clean.name,
+      phone: clean.phone,
+      homeArea: clean.homeArea ?? null,
+    })
+    if (result === 'offline' || result === 'invalid') return result
+    writeSaved(profileKey(account.email), JSON.stringify(store.online ? { photo: clean.photo } : clean))
+    setAccount(withDetails(store.online ? result : { ...result, ...clean }, store))
+    return 'ok' as const
   }
 
   const changePassword = (current: string, next: string) =>
-    account ? changeLocalPassword(account.email, current, next) : Promise.resolve(false)
+    account ? store.changePassword(account, current, next) : Promise.resolve('wrong' as const)
 
-  const deleteAccount = () => {
-    if (!account || !isLocalAccount(account.email)) return
-    deleteLocalAccount(account.email)
-    writeSaved(savedKey(account.email), null)
+  const deleteAccount = async () => {
+    if (!account || !(await store.deleteAccount(account))) return false
     writeSaved(profileKey(account.email), null)
-    signOut()
+    setAccount(null)
+    return true
   }
 
+  // The heart flips at once; if the server says no, it flips back.
   const toggleSaved = (id: string) => {
     if (!account) return
-    const next = saved.includes(id) ? saved.filter((s) => s !== id) : [...saved, id]
-    setSaved(next)
-    writeSaved(savedKey(account.email), JSON.stringify(next))
+    const on = !saved.includes(id)
+    const next = on ? [...saved, id] : saved.filter((s) => s !== id)
+    setSaved(() => next)
+    void store.setSaved(account, id, on, next).then((ok) => {
+      if (!ok) setSaved((now) => (on ? now.filter((s) => s !== id) : now.includes(id) ? now : [...now, id]))
+    })
   }
 
   return (
@@ -126,7 +139,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         updateProfile,
         changePassword,
         deleteAccount,
-        isLocal: !!account && isLocalAccount(account.email),
+        canManage: !!account && store.canManage(account),
+        accountsOnline: store.online,
+        forgotPassword: (address) => store.forgotPassword(address),
+        resetPassword: (address, token, password) => store.resetPassword(address, token, password),
         saved,
         toggleSaved,
       }}

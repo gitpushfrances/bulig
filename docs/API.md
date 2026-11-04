@@ -48,26 +48,28 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 
 ## 2. All requests at a glance
 
+The production build (`app/.env.production`) calls the API; `npm run dev` and the tests use the bundled files and phone-only test logins. Postman collection and test steps: [docs/postman/](postman/README.md).
+
 | # | Request | Method and path | Auth | Phase | Frontend today |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Areas of a country | `GET /areas?country=PH` | — | 4 | `fetch /data/ph/areas.json` in `data/JsonSource.ts` |
-| 2 | Emergency contacts | `GET /emergency-contacts?country=PH[&area=]` | — | 4 | `fetch /data/ph/emergency-contacts.json` |
-| 3 | Services (places) | `GET /services?country=PH[&area=][&category=]` | — | 4 | `fetch /data/ph/services.json` |
-| 4 | Local category words | `GET /labels?country=PH` | — | 4 | `fetch /data/ph/labels.json` |
-| 5 | Create account | `POST /auth/register` | — | 4 | `register()` in `auth/localAccounts.ts` (`bulig.accounts`) |
-| 6 | Sign in | `POST /auth/login` | — | 4 | `checkLogin()` / `checkLocalLogin()` (`bulig.session`) |
-| 7 | Sign out | `POST /auth/logout` | 🔒 | 4 | `signOut()` in `auth/AuthProvider.tsx` |
-| 8 | Forgot password | `POST /auth/forgot-password` | — | 4 | Preview only: `pages/ForgotPasswordPage.tsx` sends nothing |
-| 9 | Reset password | `POST /auth/reset-password` | — | 4 | Not built (the emailed link opens `/reset-password?token=&email=`) |
-| 10 | Who am I | `GET /me` | 🔒 | 4 | `sessionAccount()` reads `bulig.session` + `bulig.profile.<email>` |
-| 11 | Edit profile | `PATCH /me` | 🔒 | 4 | `updateProfile()` → `bulig.profile.<email>` |
-| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | `toAvatar()` in `auth/photo.ts` → data URL in `bulig.profile.<email>` |
-| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | `updateProfile({ photo: undefined })` |
-| 14 | Change password | `PUT /me/password` | 🔒 | 4 | `changeLocalPassword()` |
-| 15 | Delete account | `DELETE /me` | 🔒 | 4 | `deleteAccount()` → removes the local account, saved list and profile |
-| 16 | List saved | `GET /me/saved` | 🔒 | 4 | `bulig.saved.<email>` (array of record IDs) |
-| 17 | Save a place or number | `PUT /me/saved/{recordId}` | 🔒 | 4 | `toggleSaved(id)` (heart) |
-| 18 | Unsave | `DELETE /me/saved/{recordId}` | 🔒 | 4 | `toggleSaved(id)` (heart) |
+| 1 | Areas of a country | `GET /areas?country=PH` | — | 4 | `data/ApiSource.ts` (production build), `data/JsonSource.ts` fallback |
+| 2 | Emergency contacts | `GET /emergency-contacts?country=PH[&area=]` | — | 4 | `data/ApiSource.ts`, `data/JsonSource.ts` fallback |
+| 3 | Services (places) | `GET /services?country=PH[&area=][&category=]` | — | 4 | `data/ApiSource.ts`, `data/JsonSource.ts` fallback |
+| 4 | Local category words | `GET /labels?country=PH` | — | 4 | `data/ApiSource.ts`, `data/JsonSource.ts` fallback |
+| 5 | Create account | `POST /auth/register` | — | 4 | `register()` in `auth/apiStore.ts` (production build); `auth/localAccounts.ts` in dev and tests |
+| 6 | Sign in | `POST /auth/login` | — | 4 | `signIn()` in `auth/apiStore.ts`; token in `bulig.token`, account copy in `bulig.account` |
+| 7 | Sign out | `POST /auth/logout` | 🔒 | 4 | `signOut()` in `auth/apiStore.ts` (clears the phone first, works offline) |
+| 8 | Forgot password | `POST /auth/forgot-password` | — | 4 | `forgotPassword()` in `auth/apiStore.ts` (`pages/ForgotPasswordPage.tsx`) |
+| 9 | Reset password | `POST /auth/reset-password` | — | 4 | `pages/ResetPasswordPage.tsx` at `/reset-password?token=&email=` |
+| 10 | Who am I | `GET /me` | 🔒 | 4 | `refresh()` in `auth/apiStore.ts` on every start; `401` signs the phone out |
+| 11 | Edit profile | `PATCH /me` | 🔒 | 4 | `updateProfile()` in `auth/apiStore.ts`; phone sent as E.164 |
+| 12 | Upload photo | `POST /me/photo` | 🔒 | 4 | Not wired (backend not built): the photo stays on the phone in `bulig.profile.<email>` |
+| 13 | Remove photo | `DELETE /me/photo` | 🔒 | 4 | Not wired (backend not built) |
+| 14 | Change password | `PUT /me/password` | 🔒 | 4 | `changePassword()` in `auth/apiStore.ts` |
+| 15 | Delete account | `DELETE /me` | 🔒 | 4 | `deleteAccount()` in `auth/apiStore.ts` (sends `{confirm: "delete"}`) |
+| 16 | List saved | `GET /me/saved` | 🔒 | 4 | `loadSaved()` in `auth/apiStore.ts` after sign-in and on start |
+| 17 | Save a place or number | `PUT /me/saved/{recordId}` | 🔒 | 4 | `setSaved()` in `auth/apiStore.ts` (heart flips at once, flips back if the server says no) |
+| 18 | Unsave | `DELETE /me/saved/{recordId}` | 🔒 | 4 | `setSaved()` in `auth/apiStore.ts` |
 | 19 | Update details (includes "report wrong info") | `POST /submissions` | 🔒 | 4 | Not built yet (SCRUM-30); no Google Form |
 | 20 | Upload a photo for an update | `POST /uploads` | 🔒 | 4 | Not built |
 | 21 | My submissions and their status | `GET /me/submissions` | 🔒 | 4 | Not built |

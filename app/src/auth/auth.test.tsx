@@ -91,13 +91,13 @@ describe('Login', () => {
     expect(localStorage.getItem('bulig.session')).toBeNull()
   })
 
-  it('shows the reset confirmation without saying whether the email has an account', () => {
+  it('shows the reset confirmation without saying whether the email has an account', async () => {
     signedOut()
     renderAt('/forgot-password')
 
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'nobody@example.com' } })
     fireEvent.click(screen.getByRole('button', { name: 'Send reset link' }))
-    expect(screen.getByText(/If nobody@example.com has an account/)).toBeInTheDocument()
+    expect(await screen.findByText(/If nobody@example.com has an account/)).toBeInTheDocument()
   })
 })
 
@@ -188,13 +188,13 @@ describe('Profile', () => {
     expect(screen.getByRole('link', { name: /Privacy Policy/ })).toHaveAttribute('href', '/privacy')
   })
 
-  it('saves edited details on this phone', () => {
+  it('saves edited details on this phone', async () => {
     renderAt('/profile/edit')
 
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Juan Dela Cruz' } })
     fireEvent.change(screen.getByLabelText('Mobile number (optional)'), { target: { value: '0917 123 4567' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
-    expect(screen.getByRole('heading', { name: 'Juan Dela Cruz' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Juan Dela Cruz' })).toBeInTheDocument()
   })
 
   it('switches the theme and remembers it', () => {
@@ -220,7 +220,7 @@ describe('Profile', () => {
     expect(confirm).toBeDisabled()
     fireEvent.change(screen.getByLabelText('Type "delete" to confirm'), { target: { value: 'delete' } })
     fireEvent.click(confirm)
-    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     expect(localStorage.getItem('bulig.accounts')).toBe('[]')
   })
 })

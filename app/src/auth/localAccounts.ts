@@ -1,5 +1,6 @@
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { accountFor as testAccountFor, normalizeEmail } from './testAccount.ts'
+import type { NewAccount, RegisterResult } from './store.ts'
 import type { Account } from './types.ts'
 
 // Accounts made with "Create account", kept on this phone only until the backend arrives
@@ -16,13 +17,6 @@ interface StoredAccount {
   createdAt?: string
 }
 
-export interface NewAccount {
-  name: string
-  email: string
-  password: string
-}
-
-export type RegisterResult = { ok: true; account: Account } | { ok: false; reason: 'taken' | 'unavailable' }
 
 function readAll(): StoredAccount[] {
   try {
@@ -61,10 +55,9 @@ async function withPassword(password: string): Promise<Pick<StoredAccount, 'salt
   return { salt, hash: await hashPassword(password, salt) }
 }
 
-// crypto.subtle only exists on HTTPS (or localhost). Without it, sign-up is switched off.
-export function canRegister(): boolean {
-  return typeof crypto !== 'undefined' && !!crypto.subtle
-}
+import { canRegister } from './canRegister.ts'
+
+export { canRegister }
 
 export function isLocalAccount(email: string): boolean {
   return readAll().some((a) => a.email === email)

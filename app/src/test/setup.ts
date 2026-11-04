@@ -2,12 +2,13 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, vi } from 'vitest'
 
-// Serve public/data/** to fetch() so pages load the real sample files in tests.
-const dataFiles = import.meta.glob<unknown>('../../public/data/**/*.json', { eager: true, import: 'default' })
+// Serve the test copy of the data (with its SAMPLE places and numbers) to fetch(), so pages have
+// something to show. The app itself ships no sample records (public/data/ holds only real ones).
+const dataFiles = import.meta.glob<unknown>('./fixtures/data/**/*.json', { eager: true, import: 'default' })
 
 function fakeFetch(input: RequestInfo | URL): Promise<Response> {
   const path = typeof input === 'string' ? input : input instanceof URL ? input.pathname : input.url
-  const data = dataFiles[`../../public${path}`]
+  const data = dataFiles[`./fixtures${path}`]
   return Promise.resolve(
     data === undefined
       ? new Response('Not found', { status: 404 })

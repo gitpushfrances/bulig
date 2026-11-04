@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { NewAccount, RegisterResult } from './localAccounts.ts'
+import type { ChangePasswordResult, NewAccount, RegisterResult, SignInResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
 export interface Auth {
@@ -7,16 +7,22 @@ export interface Auth {
   // Browsing without an account: Emergency only (911 and local authorities).
   guest: boolean
   continueAsGuest: () => void
-  signIn: (email: string, password: string) => Promise<boolean>
+  signIn: (email: string, password: string) => Promise<SignInResult>
   register: (details: NewAccount) => Promise<RegisterResult>
   signOut: () => void
-  updateProfile: (details: ProfileDetails) => void
-  // Local accounts only; test logins keep their password.
-  changePassword: (current: string, next: string) => Promise<boolean>
-  // Local accounts only: removes the account, its saved places and details from this phone.
-  deleteAccount: () => void
-  // True for accounts made on this phone; false for the built-in test logins.
-  isLocal: boolean
+  // 'ok', or why it didn't save: no connection, or the server refused a field.
+  updateProfile: (details: ProfileDetails) => Promise<'ok' | 'offline' | 'invalid'>
+  // Test logins keep their password.
+  changePassword: (current: string, next: string) => Promise<ChangePasswordResult>
+  // Removes the account and its saved places (on the server, or from this phone). False if it couldn't.
+  deleteAccount: () => Promise<boolean>
+  // False for the built-in test logins, which can't change their password or be deleted.
+  canManage: boolean
+  // True when accounts live on the server (the build talks to the API), false for phone-only accounts.
+  accountsOnline: boolean
+  // Sends a reset link. 'preview' = this build sends no email.
+  forgotPassword: (email: string) => Promise<'sent' | 'offline' | 'preview'>
+  resetPassword: (email: string, token: string, password: string) => Promise<'ok' | 'invalid' | 'offline' | 'preview'>
   // Saved record IDs (services and emergency contacts) for the signed-in account.
   saved: string[]
   toggleSaved: (id: string) => void

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "categories": {
+    "tire_repair": { "en": "Vulcanizing" },
+    "fuel": { "en": "Gas station" },
+    "food": { "en": "Resto and carinderia" },
+    "lodging": { "en": "Hotel and inn" },
+    "other": { "en": "Others" }
+  },
+  "currency": "PHP",
+  "priceItems": {
+    "ron91": { "category": "fuel", "unit": "L", "names": { "en": "Unleaded 91" } },
+    "ron95": { "category": "fuel", "unit": "L", "names": { "en": "Premium 95" } },
+    "ron97": { "category": "fuel", "unit": "L", "names": { "en": "Super Premium 97" } },
+    "diesel": { "category": "fuel", "unit": "L", "names": { "en": "Diesel" } },
+    "kerosene": { "category": "fuel", "unit": "L", "names": { "en": "Kerosene" } }
+  }
+}

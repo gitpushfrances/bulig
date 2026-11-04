@@ -19,6 +19,17 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pilot areas are only where verified data starts.
 
+### Big changes
+
+- **The app now uses the backend for data and accounts** (2026-11-04; asked by John). `app/.env.production` turns on `VITE_DATA_SOURCE=api` with `VITE_API_URL=https://bulig-backend.onrender.com/api/v1`, so every `npm run build` (the live app and previews) reads places and numbers from the API. Variables in the Cloudflare dashboard still win. `npm run dev` and the tests keep the bundled files and phone-only test logins.
+  - **Accounts**: sign up, sign in, sign out, Edit profile (name, phone as E.164, home area), Change password, Delete account, Forgot password and a new `/reset-password` page call API.md §4 and §5 through `auth/apiStore.ts`. The token is kept in `bulig.token` and a copy of the account in `bulig.account`, so the app opens signed in with no signal. `GET /me` on start signs out a revoked or suspended account. Login now tells a wrong password, a suspended account, too many tries and no connection apart.
+  - **Saved places** use `/me/saved`. The heart flips at once and flips back if the server says no. Hearts saved on the phone before this are sent once on the first sign-in, then cleared (API.md §6).
+  - **No test logins in the live app**: the production bundle no longer contains `test@bulig.com` and the others, or `localStore`. CI greps `dist/` to keep it that way. Test logins still work in `npm run dev`.
+  - **Contributor role** added to the app's `Role` (it only saves and reports for now). An unknown role from the server counts as `user`.
+  - **Not wired yet**: profile photos (the backend has no `/me/photo` yet, so the photo stays on the phone), Update details/flags (`/submissions`), app problem reports (`/issues`) and `/settings`.
+- **No sample data in the app** (2026-11-04; asked by John): `app/public/data/ph/services.json` is empty and `emergency-contacts.json` keeps only the national 911, so the offline fallback never shows made-up places. The 77 sample places and 15 sample numbers moved to `app/src/test/fixtures/data/` for the tests only. A test fails if a sample record comes back into `public/data/`. **Careful:** `bulig:import` in the backend reads these files from the live site by default, so running it with `--force` now empties the places table. Don't run it; the admin panel owns the data (`BULIG_IMPORT_ON_BOOT` is already `false`).
+- **Postman collection and test steps** in [docs/postman/](postman/README.md): every endpoint, whether the app calls it, and a step-by-step check.
+
 ### Changed
 
 - **Suspended accounts** (2026-11-03; decided by John): `POST /auth/login` answers `403 {reason: "suspended"}` for an account an admin suspended, but only after a correct password, so it never reveals who has an account. Suspending revokes every token, so other requests get `401`. API.md §1 and §4.2 updated; the app's login message is still to do.

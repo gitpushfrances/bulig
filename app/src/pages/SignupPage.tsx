@@ -18,7 +18,7 @@ import {
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
-import { canRegister } from '../auth/localAccounts.ts'
+import { canRegister } from '../auth/canRegister.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout from '../components/AuthLayout.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
@@ -106,14 +106,14 @@ function Dots({ at }: { at: number }) {
 }
 
 function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
-  const { register } = useAuth()
+  const { register, accountsOnline } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; agreed?: string }>({})
-  const [formError, setFormError] = useState<'taken' | 'unavailable' | null>(null)
+  const [formError, setFormError] = useState<'taken' | 'unavailable' | 'offline' | 'invalid' | null>(null)
   const [busy, setBusy] = useState(false)
 
   const check = {
@@ -149,7 +149,7 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
     navigate(next, { replace: true })
   }
 
-  if (!canRegister()) {
+  if (!accountsOnline && !canRegister()) {
     return <p className={styles.preview}>Creating an account needs a secure (https) connection. Open Bulig from its usual address.</p>
   }
 
@@ -221,6 +221,16 @@ function SignupForm({ onBack, next }: { onBack: () => void; next: string }) {
           <Link className={styles.link} to="/login">
             Sign in instead
           </Link>
+        </p>
+      )}
+      {formError === 'offline' && (
+        <p className={page.error} role="alert">
+          Couldn&apos;t reach Bulig. Check your connection and try again.
+        </p>
+      )}
+      {formError === 'invalid' && (
+        <p className={page.error} role="alert">
+          Bulig couldn&apos;t accept those details. Check your name, email and password.
         </p>
       )}
       {formError === 'unavailable' && (
