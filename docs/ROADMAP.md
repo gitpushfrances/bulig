@@ -115,6 +115,7 @@ Sizes assume evenings and weekends, solo. They're guesses until you've finished 
 - *(new)* Load verified real data and remove all sample records
 - *(new)* The Worker is named `app` on the `bulig` account subdomain, so the free link is `app.bulig.workers.dev` (changed 2026-10-30). (Upgrade later, when funded: buy bulig.app, about USD 15/year.)
 - *(new)* Add Cloudflare Web Analytics (free, no cookies) to count visits and installs
+- *(planned, John 2026-11-05)* **"What's new" in the app**: after an update, a short card says what changed in plain words ("Saved places now load faster", "The map follows you more smoothly"), once per version, dismissible, never on Emergency and never over a call. Written for riders, not copied from CHANGELOG.md (that stays the developers' log): each release gets 1 to 3 lines in a small `whats-new.json` shipped with the app, so it works offline and costs nothing. Later, with the backend, a notice can also go to users who haven't opened the app (Phase 4+: web push needs permission, so ask only after a real use).
 - ~~Add a "Report wrong info" link that opens a short Google Form~~ Dropped (John, 2026-10-30): Report wrong info moves to Phase 4, in the app (SCRUM-30).
 - ✅ **New navigation:** five tabs (Home, Services, Map, Saved, Profile), Emergency behind a floating red button on every screen. `/services` and `/about` keep working.
 - ✅ Home: "What's wrong?" tiles, the location line from GPS with a picker fallback, hotline card (911 one tap) and local numbers. (No mini map.)

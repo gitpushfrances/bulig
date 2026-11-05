@@ -1,14 +1,37 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { appAccounts } from './appAccounts.ts'
 import { AuthContext } from './context.ts'
-import type { UpdateProfileResult } from './context.ts'
+import type { SavedStatus, UpdateProfileResult } from './context.ts'
 import type { AccountStore, NewAccount, SetPhotoResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
 // Guest mode is gone (2026-11-04): Emergency is open to everyone without it. Old phones drop the flag.
 const OLD_GUEST_KEY = 'bulig.guest'
 const profileKey = (email: string) => `bulig.profile.${email}`
+// The last saved list from the server, for a fast start and offline (server accounts only; phone-only
+// accounts keep theirs in bulig.saved.<email>).
+const savedCacheKey = (email: string) => `bulig.savedCache.${email}`
+// Waits before trying the saved list again after the server didn't answer.
+const RETRY_MS = [5_000, 15_000, 45_000, 120_000]
+
+interface Loaded {
+  email: string
+  ids: string[]
+  status: SavedStatus
+}
+
+function cachedSaved(account: Account | null, store: AccountStore): Loaded | null {
+  if (!account || !store.online) return null
+  try {
+    const ids: unknown = JSON.parse(readSaved(savedCacheKey(account.email)) ?? 'null')
+    if (!Array.isArray(ids)) return null
+    // Shown at once; the server's answer replaces it (or marks it stale if there is none).
+    return { email: account.email, ids: ids.filter((v): v is string => typeof v === 'string'), status: 'ready' }
+  } catch {
+    return null
+  }
+}
 
 function readDetails(email: string): Partial<ProfileDetails> {
   try {
@@ -31,7 +54,7 @@ function withDetails(account: Account | null, store: AccountStore): Account | nu
 export default function AuthProvider({ children, store = appAccounts }: { children: ReactNode; store?: AccountStore }) {
   const [account, setAccount] = useState(() => withDetails(store.restore(), store))
   // The hearts, tagged with whose they are, so a stale list never shows for another account.
-  const [loaded, setLoaded] = useState<{ email: string; ids: string[] } | null>(null)
+  const [loaded, setLoaded] = useState<Loaded | null>(() => cachedSaved(account, store))
   const email = account?.email ?? null
 
   // On start: ask the server who this is (a revoked token signs the phone out), then the hearts.
@@ -46,20 +69,62 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     }
   }, [store])
 
+  // Then load the hearts. With server accounts the last list is kept on the phone, so Saved shows at
+  // once (and offline); the server's answer replaces it. If the server doesn't answer (asleep, weak
+  // signal), the phone's copy stays and it tries again after RETRY_MS, when the phone is back online
+  // or the app comes back to the front, or when the person taps Try again.
+  const [attempt, setAttempt] = useState(0)
+  // Hearts tapped since a load started: its answer may predate them, so they are applied on top.
+  const taps = useRef<{ n: number; id: string; on: boolean }[]>([])
+  // Loads in a row that got no answer, for the wait before the next try.
+  const failures = useRef(0)
   useEffect(() => {
     let live = true
     const current = email ? store.restore() : null
-    if (current)
-      void store.loadSaved(current).then((ids) => {
-        if (live) setLoaded({ email: current.email, ids })
-      })
+    if (!current) return
+    let retry = 0
+    const again = () => live && setAttempt((n) => n + 1)
+    const since = taps.current.at(-1)?.n ?? 0
+    void store.loadSaved(current).then((ids) => {
+      if (!live) return
+      if (ids === null) {
+        setLoaded((now) =>
+          now?.email === current.email ? { ...now, status: 'stale' } : { email: current.email, ids: [], status: 'error' },
+        )
+        retry = window.setTimeout(again, RETRY_MS[Math.min(failures.current++, RETRY_MS.length - 1)])
+        return
+      }
+      failures.current = 0
+      let next = ids
+      for (const { n, id, on } of taps.current)
+        if (n > since) next = on ? (next.includes(id) ? next : [...next, id]) : next.filter((s) => s !== id)
+      setLoaded({ email: current.email, ids: next, status: 'ready' })
+    })
+    const onBack = () => {
+      if (document.visibilityState === 'visible' && failures.current > 0) again()
+    }
+    window.addEventListener('online', again)
+    document.addEventListener('visibilitychange', onBack)
     return () => {
       live = false
+      window.clearTimeout(retry)
+      window.removeEventListener('online', again)
+      document.removeEventListener('visibilitychange', onBack)
     }
-  }, [email, store])
-  const saved = loaded && loaded.email === email ? loaded.ids : []
+  }, [email, store, attempt])
+  const mine = loaded && loaded.email === email ? loaded : null
+  const saved = mine?.ids ?? []
+  const savedStatus: SavedStatus = mine?.status ?? 'loading'
   const setSaved = (update: (ids: string[]) => string[]) =>
-    setLoaded((now) => (email ? { email, ids: update(now?.email === email ? now.ids : []) } : now))
+    setLoaded((now) =>
+      email ? { email, ids: update(now?.email === email ? now.ids : []), status: now?.email === email ? now.status : 'loading' } : now,
+    )
+
+  // Keep the server's list on the phone for the next start.
+  useEffect(() => {
+    if (!store.online || !mine || mine.status === 'loading' || mine.status === 'error') return
+    writeSaved(savedCacheKey(mine.email), JSON.stringify(mine.ids))
+  }, [store.online, mine])
 
   useEffect(() => writeSaved(OLD_GUEST_KEY, null), [])
 
@@ -80,6 +145,7 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   }
 
   const signOut = () => {
+    if (account) writeSaved(savedCacheKey(account.email), null)
     void store.signOut()
     setAccount(null)
   }
@@ -146,6 +212,7 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   const deleteAccount = async () => {
     if (!account || !(await store.deleteAccount(account))) return false
     writeSaved(profileKey(account.email), null)
+    writeSaved(savedCacheKey(account.email), null)
     setAccount(null)
     return true
   }
@@ -156,7 +223,10 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     const on = !saved.includes(id)
     const next = on ? [...saved, id] : saved.filter((s) => s !== id)
     setSaved(() => next)
+    const tap = { n: (taps.current.at(-1)?.n ?? 0) + 1, id, on }
+    taps.current = [...taps.current.slice(-49), tap]
     void store.setSaved(account, id, on, next).then((ok) => {
+      if (!ok) taps.current = taps.current.filter((t) => t !== tap)
       if (!ok) setSaved((now) => (on ? now.filter((s) => s !== id) : now.includes(id) ? now : [...now, id]))
     })
   }
@@ -179,6 +249,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
         forgotPassword: (address) => store.forgotPassword(address),
         resetPassword: (address, token, password) => store.resetPassword(address, token, password),
         saved,
+        savedStatus,
+        retrySaved: () => {
+          failures.current = 0
+          setAttempt((n) => n + 1)
+        },
         toggleSaved,
       }}
     >

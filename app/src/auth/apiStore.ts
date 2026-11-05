@@ -281,7 +281,7 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
         const { items } = await call<{ items: { recordId: string }[] }>('/me/saved')
         return items.map((i) => i.recordId)
       } catch {
-        return []
+        return null
       }
     },
 

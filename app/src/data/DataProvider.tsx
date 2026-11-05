@@ -114,6 +114,7 @@ export default function DataProvider({
         areaKm: nearest?.km ?? null,
         setArea,
         online,
+        fromBackup: loaded?.fromBackup ?? false,
         retry: () => setAttempt((n) => n + 1),
       }}
     >

@@ -23,6 +23,9 @@ export interface AppData {
   // Manual choice, used only while there is no GPS fix.
   setArea: (area: AreaId | null) => void
   online: boolean
+  // The server didn't answer and these are the bundled files (it is being tried again). Records that
+  // live only on the server, such as saved places, may be missing for now.
+  fromBackup?: boolean
   retry: () => void
 }
 

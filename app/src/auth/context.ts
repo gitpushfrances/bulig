@@ -31,8 +31,14 @@ export interface Auth {
   resetPassword: (email: string, token: string, password: string) => Promise<'ok' | 'invalid' | 'offline' | 'preview'>
   // Saved record IDs (services and emergency contacts) for the signed-in account.
   saved: string[]
+  // loading: nothing to show yet. ready: the list is current. stale: showing the copy on this phone
+  // because the server didn't answer (it keeps trying). error: nothing to show and the server didn't answer.
+  savedStatus: SavedStatus
+  retrySaved: () => void
   toggleSaved: (id: string) => void
 }
+
+export type SavedStatus = 'loading' | 'ready' | 'stale' | 'error'
 
 export const AuthContext = createContext<Auth | null>(null)
 

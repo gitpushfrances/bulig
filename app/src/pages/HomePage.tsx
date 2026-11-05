@@ -21,7 +21,7 @@ import { useWelcome } from './welcome.ts'
 // all of it (Layout), so 911 stays one tap away while the hotlines sit lower on the page.
 export default function HomePage() {
   const { country, data, area } = useAppData()
-  const { account, saved } = useAuth()
+  const { account, saved, savedStatus } = useAuth()
   const { ready, loading, ranked, labels, position, areaName } = useNearby()
   const welcome = useWelcome()
 
@@ -117,7 +117,7 @@ export default function HomePage() {
 
           <div className={styles.section}>
             <SectionHead title="Saved" to={account ? '/saved' : undefined} />
-            {account && loading ? (
+            {account && (loading || savedStatus === 'loading') ? (
               <RowsSkeleton count={Math.min(Math.max(saved.length, 1), 3)} />
             ) : (
               <div className={styles.panel}>

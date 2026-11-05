@@ -11,6 +11,17 @@
   isolation: isolate;
 }
 
+/* Until the map has drawn: the card pulses like the page skeletons (still under reduced motion). */
+.waiting {
+  animation: miniPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes miniPulse {
+  50% {
+    opacity: 0.6;
+  }
+}
+
 /* A soft teal wash on the top edge, under the section title. */
 .card::after {
   content: '';
@@ -23,11 +34,18 @@
   z-index: 1;
 }
 
-.map {
+.box {
   position: absolute;
   inset: 0;
   opacity: 0;
   transition: opacity 240ms ease;
+}
+
+/* MapLibre's container, kept between visits and moved into .box. Its stylesheet loads later and sets
+   position: relative on it, so it is sized, never inset (the 0 px tall map of #54). */
+.map {
+  width: 100%;
+  height: 100%;
 }
 
 .shown {
@@ -35,7 +53,7 @@
 }
 
 /* The map is a picture here: the whole card is the link to the Map tab. */
-.map :global(.maplibregl-canvas) {
+.box :global(.maplibregl-canvas) {
   cursor: pointer;
 }
 
@@ -110,4 +128,31 @@
   border-radius: 50%;
   background: #2563eb;
   box-shadow: 0 0 0 8px rgb(37 99 235 / 0.2);
+}
+
+/* How sure the phone is about you: a soft circle as wide as the accuracy (miniMapMotion.ts), only
+   when it is wider than the halo. A rough Wi-Fi guess shows as a big circle, not a sharp dot. */
+.you {
+  position: relative;
+  /* You stay on top of the pins. */
+  z-index: 2;
+  display: block;
+}
+
+.you .me {
+  position: relative;
+}
+
+.ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: none;
+  width: calc(var(--ring, 0px) * 2);
+  height: calc(var(--ring, 0px) * 2);
+  border: 1px solid rgb(37 99 235 / 0.45);
+  border-radius: 50%;
+  background: rgb(37 99 235 / 0.12);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
