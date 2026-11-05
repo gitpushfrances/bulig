@@ -2,7 +2,7 @@
 
 Every request the app makes, or will make once the backend exists, with its exact payload and response. Build the Laravel API (Phase 4) to match this file, and the frontend switches over without page changes.
 
-Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.0).
+Last updated: 2026-11-05 · Owner: John · Matches the frontend on `main` (v0.3.0).
 
 **Why this file exists.** Until Phase 4 the app has no server: data comes from JSON files, and accounts, saved places and profiles live on the phone (`localStorage`). Each section below says **where that lives in the frontend today** and **what the API replaces it with**, so nothing is guessed when the backend is built.
 
@@ -18,7 +18,7 @@ Last updated: 2026-10-30 · Owner: John · Matches the frontend on `main` (v0.3.
 4. [Accounts](#4-accounts): register, login, logout, forgot and reset password, confirm a new email
 5. [Me](#5-me): profile, photo, password, delete account, change email
 6. [Saved places](#6-saved-places)
-7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health)
+7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health, staff requests)
 8. [Shared objects](#8-shared-objects)
 9. [Services the app calls directly](#9-services-the-app-calls-directly-not-the-backend) (not the backend)
 10. [What moves from the phone to the server](#10-what-moves-from-the-phone-to-the-server)
@@ -80,8 +80,19 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 26 | Change email (sends a confirmation link) | `POST /me/email` | 🔒 | 4 | `requestEmailChange()` in `auth/apiStore.ts` (`pages/AccountPages.tsx`, `/profile/email`) |
 | 27 | Cancel an email change | `DELETE /me/email` | 🔒 | 4 | `cancelEmailChange()` in `auth/apiStore.ts` |
 | 28 | Confirm the new email (the link) | `POST /auth/confirm-email` | — | 4 | `pages/ConfirmEmailPage.tsx` at `/confirm-email?token=` |
+| 29 | Staff counts (dashboard, "12 to review") | `GET /staff/summary` | 🔒 staff | 4 | Not built (§7.8) |
+| 30 | Review queue | `GET /staff/submissions` | 🔒 staff | 4 | Not built (§7.8) |
+| 31 | One submission to review | `GET /staff/submissions/{id}` | 🔒 staff | 4 | Not built (§7.8) |
+| 32 | Approve ticked fields | `POST /staff/submissions/{id}/approve` | 🔒 staff | 4 | Not built (§7.8) |
+| 33 | Confirm a flag | `POST /staff/submissions/{id}/confirm` | 🔒 staff | 4 | Not built (§7.8) |
+| 34 | Reject one | `POST /staff/submissions/{id}/reject` | 🔒 staff | 4 | Not built (§7.8) |
+| 35 | Reject many | `POST /staff/submissions/reject` | 🔒 staff | 4 | Not built (§7.8) |
+| 36 | Add a place directly | `POST /staff/services` | 🔒 staff | 4 | Not built (§7.8) |
+| 37 | Mark a place checked | `POST /staff/services/{id}/verify` | 🔒 staff | 4 | Not built (§7.8) |
+| 38 | Emergency numbers due for a check | `GET /staff/emergency-contacts?due=30` | 🔒 staff | 4 | Not built (§7.8) |
+| 39 | Mark an emergency number checked | `POST /staff/emergency-contacts/{id}/verify` | 🔒 staff | 4 | Not built (§7.8) |
 
-Admin and moderator screens (Filament at `/panel`, Phase 4) are server-side and not part of this contract: review queue, places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
+Admin and moderator screens in Filament (`/panel`, Phase 4) are server-side and not part of this contract: places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. The two jobs a moderator does on the road, the review queue and marking records checked, are also in the app, through the staff requests in [§7.8](#78-staff-requests-moderators-and-admins) (John, 2026-11-05). See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
 
 ---
 
@@ -451,7 +462,7 @@ Nothing submitted is public until a moderator (or an admin) approves it, field b
 
 ### 7.1 `POST /uploads` 🔒
 
-Upload one photo before sending the update, so a weak signal only retries the photo, not the whole form. `multipart/form-data`, one field `photo`. The app shrinks it first to WebP (JPEG on old Safari), max 1280 px on the long side, about 300 KB. The server rejects anything over 2 MB, re-encodes it, strips location and camera data, and stores it privately.
+Upload one photo before sending the update, so a weak signal only retries the photo, not the whole form. `multipart/form-data`, one field `photo`. Optional second field `source`: `camera` (taken in the app just now) or `gallery` (picked from the phone's photos); the reviewer sees it, so they know which photos to trust less. Missing = `gallery`. The app shrinks it first to WebP (JPEG on old Safari), max 1280 px on the long side, about 300 KB. The server rejects anything over 2 MB, re-encodes it, strips location and camera data, and stores it privately.
 
 **201:** `{ "id": "upl_01JC…", "expiresAt": "2026-11-29T00:00:00Z" }`. An upload not attached to a submission within 24 hours is deleted. **Errors:** `413` too large, `415` not an image (checked from the bytes, not the name), `422` no `photo` field, `429` (30 photos a day, shared with `POST /me/photo`), `503` photo storage isn't set up. Each `photoIds` entry in `POST /submissions` must be the sender's own upload, unused and under 24 hours old (else `422` on `photoIds.N`: send that photo again).
 
@@ -520,6 +531,140 @@ Public settings an admin sets in the panel. `Cache-Control: public, max-age=300`
 For UptimeRobot only. **200** `{ "ok": true }` when the database and R2 answer; **503** `{ "ok": false, "failing": ["db"] }` otherwise. No auth and no details beyond that. `Cache-Control: no-store`, but on Neon the server reuses its database check for 30 minutes so 5-minute pings don't keep the database awake.
 
 Not part of the app's contract: `POST /internal/schedule` (alpha and beta on Render, which has no cron). A GitHub Actions schedule calls it hourly with a secret header; it runs `schedule:run`. It answers `404` without the secret.
+
+
+### 7.8 Staff requests (moderators and admins)
+
+Added 2026-11-05 (John). The app's moderator screens use these; the panel keeps doing everything else. All under `/staff`, all 🔒 with a Bearer token, all `Cache-Control: no-store`.
+
+**Who may call them.** Role `moderator` or `admin`; anyone else gets `403`. A suspended account gets `403` with `"reason": "suspended"`. A moderator with an empty `areas` list covers the whole country (WORKFLOW.md, "for now, everywhere"); a moderator with areas only sees and acts on records inside them (`403` otherwise). The server reuses the same policies and `Submission::approve()`, `confirm()` and `reject()` as the panel, so both give the same answer.
+
+**Rules that hold everywhere** (same as the panel):
+
+- Nobody reviews their own submission, or one already reviewed. Both are `422` with the messages below.
+- Moderators never delete places or emergency contacts, here or in the panel. Admins can, in the panel only.
+- A change reaches phones on the next public read, which may be cached for up to 1 hour.
+
+**`422` messages** (the app shows these words as they are):
+
+| `message` | When |
+| --- | --- |
+| `Someone already reviewed this.` | The submission isn't `pending` any more |
+| `Tick at least one field, or reject it.` | `approve` with an empty `fields` list |
+| `A new place needs its name, category, area and landmark.` | `approve` of a `new_place` without all four ticked |
+| `This place no longer exists. Reject it.` | The record was removed after it was sent |
+| `You can't review your own update.` | The sender is the signed-in staff member |
+
+#### `GET /staff/summary`
+
+**200:** `{ "pendingSubmissions": 12, "places": 77, "hiddenEmergencyContacts": 3, "dueEmergencyContacts": 5, "users": 41 }`. `dueEmergencyContacts` = local numbers that hide within 30 days. Counts are inside the caller's areas.
+
+#### `GET /staff/submissions?status=pending[&reason=][&page=]`
+
+`status`: `pending` (default, **oldest first**), `approved`, `partly_approved`, `rejected`, `confirmed` (these newest first). `reason`: any reason from §7.2. 20 per page.
+
+**200:**
+
+```json
+{
+  "items": [
+    {
+      "id": "sub_01JBY…",
+      "recordType": "service",
+      "recordId": null,
+      "recordName": "Aling Nena Vulcanizing",
+      "reason": "new_place",
+      "status": "pending",
+      "area": "ph-eastern-samar-guiuan",
+      "sender": { "id": "usr_01JBX…", "name": "Juan D." },
+      "photoCount": 2,
+      "createdAt": "2026-11-05T01:12:00Z",
+      "canReview": true
+    }
+  ],
+  "nextPage": 2
+}
+```
+
+`recordName` is the proposed name for a `new_place`. `canReview` is `false` for the caller's own submissions and for any not `pending`; the app greys those out.
+
+#### `GET /staff/submissions/{id}`
+
+What the review screen needs: each field as current → proposed, and the sender's private photos.
+
+**200:**
+
+```json
+{
+  "id": "sub_01JBY…",
+  "recordType": "service",
+  "recordId": "ph-eastern-samar-guiuan-sample-fuel",
+  "recordName": "Guiuan Sample Fuel",
+  "reason": "changed",
+  "status": "pending",
+  "area": "ph-eastern-samar-guiuan",
+  "sender": { "id": "usr_01JBX…", "name": "Juan D.", "role": "contributor" },
+  "seenAt": "2026-11-04",
+  "note": "Price board this morning.",
+  "createdAt": "2026-11-05T01:12:00Z",
+  "canReview": true,
+  "fields": [
+    { "key": "prices", "current": [{ "item": "diesel", "amount": 70.0 }], "proposed": [{ "item": "diesel", "amount": 71.5 }] },
+    { "key": "location", "current": { "lat": 11.0351, "lng": 125.7222 }, "proposed": { "lat": 11.0353, "lng": 125.7219 } },
+    { "key": "weeklyHours", "current": null, "proposed": { "mon": [["06:00", "20:00"]] } }
+  ],
+  "photos": [
+    { "id": "upl_01JC…", "url": "https://…signed…", "expiresAt": "2026-11-05T02:12:00Z", "source": "camera" }
+  ],
+  "reviewNote": null
+}
+```
+
+- `fields[].key` is a key from §7.2 `changes`, except that `lat` and `lng` arrive together as one `location` field. For a `new_place`, `current` is `null` on every field.
+- Flags (`number_not_working`, `closed_for_good`, `wrong_location`, `duplicate`, `other`) have `"fields": []`; the app shows the record as it is now from the public data.
+- `photos[].url` is a signed link that works for about an hour; the photos stay private.
+
+#### `POST /staff/submissions/{id}/approve`
+
+For `changed` and `new_place`. **Request:** `{ "fields": ["prices", "location"], "photos": ["upl_01JC…"] }`. `fields` = the ticked `fields[].key`s; `photos` = the sender photos to copy to the place (may be empty).
+
+What the server does: applies only those fields (hours are stored as `weeklyHours` per day, never flattened to one text); `verifiedAt` becomes `seenAt` unless the record's date is newer; `source` becomes "Bulig user, checked by a moderator"; approved prices go into the dated price history; ticked photos are copied to the place. A photo copy that fails doesn't undo the approval.
+
+**200:** `{ "status": "partly_approved", "approvedFields": ["prices", "location"], "recordId": "ph-eastern-samar-guiuan-sample-fuel", "photosCopied": 1, "photosFailed": 0 }`. A `new_place` returns its new `recordId`.
+
+#### `POST /staff/submissions/{id}/confirm`
+
+For the flags. Changes no data: the moderator then fixes the record in the panel. No body. **200:** `{ "status": "confirmed" }`.
+
+#### `POST /staff/submissions/{id}/reject`
+
+**Request:** `{ "reason": "<key>" }`, one of the six fixed reject reasons below. The sender sees its label as `reviewNote` in `GET /me/submissions`. **200:** `{ "status": "rejected" }`.
+
+| `reason` key | Label the sender sees |
+| --- | --- |
+| _(backend: the six keys and labels you already use go here in this PR)_ | |
+
+#### `POST /staff/submissions/reject`
+
+Bulk reject. **Request:** `{ "ids": ["sub_…", "sub_…"], "reason": "<key>" }`, 1 to 50 IDs. **200:** `{ "rejected": ["sub_…"], "skipped": [{ "id": "sub_…", "why": "already_reviewed" }] }`. `why`: `already_reviewed`, `own`, `out_of_area`, `not_found`. Skips never fail the whole request.
+
+#### `POST /staff/services`
+
+A moderator or admin adds a place directly. It is published at once, because a moderator can't approve their own submission. **Request:** the Service fields from §3.3 except `id` (the server makes the slug), plus `photoIds` (0 to 3 uploads from §7.1). Required: `name`, `category`, `area`, `landmark`; `lat` and `lng` together. The server sets `verifiedAt` to today, `source` to "Added by a moderator" and `addedAt` to today.
+
+**201:** the Service as in §3.3. **Errors:** `422` field rules, `403` area outside the moderator's areas.
+
+#### `POST /staff/services/{id}/verify` and `POST /staff/emergency-contacts/{id}/verify`
+
+Mark checked today. **Request:** `{ "source": "called" }`, one of `called`, `visited`, `owner`. The server sets `verifiedAt` to today and keeps the source in the record history. A hidden local emergency number (180 days unchecked) shows again. **200:** the updated record.
+
+#### `GET /staff/emergency-contacts?due=30`
+
+Local emergency numbers already hidden or hiding within `due` days (0 to 90), oldest check first, inside the caller's areas. **200:** `{ "items": [ { …EmergencyContact (§3.2)…, "hidden": true, "hidesOn": "2026-11-20" } ] }`.
+
+#### Waking up
+
+Render's free plan can take about a minute to wake. Staff requests have no shorter timeout: the app shows "Waking the server. This can take a minute." and waits up to 90 s before offering Try again.
 
 ---
 
