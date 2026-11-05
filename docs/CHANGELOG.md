@@ -19,6 +19,18 @@ All notable changes to Bulig are recorded here, newest first. The format follows
 
 Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pilot areas are only where verified data starts.
 
+### Added
+
+- **Map: Nearby 5 km and All** (2026-11-05, John). The Map's chips start with **Nearby 5 km** (places within 5 km of you, with a dashed ring) and **All** (every listed place in the country, no radius and no area limit; before, "All" meant every category in the picked area only). Categories narrow either. Empty Nearby says why and offers Show all. For every role. UI-UX.md, Map.
+
+### Security
+
+- **Sign-out leaves nothing personal on a shared phone** (2026-11-05, John). Signing out (or deleting the account) now also clears the last looked-up address, the last map view, the route in progress, the Map scope, the person's half-written place, which updates they had seen, the in-memory My updates list and the kept map; server accounts also drop the leftover profile copy. Before, the next person on the phone could see where the last one was and where they were heading. Theme, country and picked town stay (device settings). `app/src/auth/forgetOnSignOut.ts`, with a test.
+
+### Fixed
+
+- **Theme switch repainted the route line as a road** (2026-11-05). `applyMapTheme` recoloured every layer, including the app's own route line; it now skips `route-*` and `nearby-ring-*`.
+
 ### Big changes
 
 - **Contributors can add places from the app** (2026-11-05, John). For contributors and up, the tab bar gets a raised teal **Add** button in the middle; it opens `/add`: what it is, a pin on the map (fixed centre pin, your blue dot, a duplicate warning within 50 m, "Use where I'm standing" when the map can't load), usual hours and what it offers, then 1 to 3 photos (the phone's own camera with Retake / Use photo; the gallery as a small link, flagged to the moderator), Check and send. Sent with `POST /uploads` and `POST /submissions` (`reason: new_place`); the form is kept on the phone until sent. A bell on Home and **My updates** (`/updates`, also in Profile) show what moderators said, read from `GET /me/submissions` with no push. `can()` now lets a moderator with no areas act everywhere, matching API.md, and gains `contribute`; the test moderator has no areas and there is a `contributor@bulig.com` test login. UI-UX.md, "Add a place" and "My updates".

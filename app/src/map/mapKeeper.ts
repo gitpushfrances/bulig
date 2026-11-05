@@ -69,7 +69,7 @@ export interface MapView {
   zoom: number
 }
 
-const VIEW_KEY = 'bulig.mapView'
+export const VIEW_KEY = 'bulig.mapView'
 
 // Only views inside the Philippines (with a margin) and at a useful zoom are worth reopening.
 export function validView(v: unknown): v is MapView {

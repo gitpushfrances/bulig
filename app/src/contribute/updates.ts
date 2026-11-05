@@ -29,6 +29,11 @@ export function markAllSeen(email: string, items: MySubmission[]): void {
   writeSaved(seenKey(email), JSON.stringify(seen))
 }
 
+// Sign-out: the next person on this phone has no reason to know what this one sent.
+export function forgetSeen(email: string): void {
+  writeSaved(seenKey(email), null)
+}
+
 export const STATUS_TEXT: Record<SubmissionStatus, string> = {
   pending: 'Waiting',
   approved: 'Approved',

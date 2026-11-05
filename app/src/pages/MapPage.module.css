@@ -562,3 +562,12 @@
     bottom: 24px;
   }
 }
+
+/* A thin line between Nearby/All and the category chips: two different questions. */
+.chipGap {
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: 24px;
+  background: var(--color-border);
+}

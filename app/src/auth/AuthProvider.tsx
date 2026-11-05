@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { appAccounts } from './appAccounts.ts'
+import { forgetOnSignOut } from './forgetOnSignOut.ts'
 import { AuthContext } from './context.ts'
 import type { SavedStatus, UpdateProfileResult } from './context.ts'
 import type { AccountStore, NewAccount, SaveResult, SetPhotoResult } from './store.ts'
@@ -224,7 +225,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     if (account) {
       writeSaved(savedCacheKey(account.email), null)
       writeSaved(outboxKey(account.email), null)
+      // A server account's profile copy is only a photo that didn't upload; a phone-only account's
+      // is the account itself, so it stays.
+      if (store.online) writeSaved(profileKey(account.email), null)
       outbox.current = { email: null, ops: {} }
+      forgetOnSignOut(account.email)
     }
     void store.signOut()
     setAccount(null)
@@ -294,6 +299,8 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     writeSaved(profileKey(account.email), null)
     writeSaved(savedCacheKey(account.email), null)
     writeSaved(outboxKey(account.email), null)
+    outbox.current = { email: null, ops: {} }
+    forgetOnSignOut(account.email)
     setAccount(null)
     return true
   }

@@ -98,6 +98,30 @@ describe('Login', () => {
     expect(localStorage.getItem('bulig.session')).toBeNull()
   })
 
+  it("leaves nothing of where they were or what they sent for the next person on the phone", async () => {
+    const me = 'test@bulig.com'
+    const traces = {
+      'bulig.address': JSON.stringify({ lat: 11.03, lng: 125.72, address: { locality: 'Ngolos' }, at: 1 }),
+      'bulig.mapView': JSON.stringify({ lat: 11.03, lng: 125.72, zoom: 15 }),
+      [`bulig.updatesSeen.${me}`]: '{"sub_1":"approved"}',
+      [`bulig.drafts.new-place.${me}`]: '{"name":"My half-written place"}',
+      [`bulig.savedCache.${me}`]: '["svc_1"]',
+      [`bulig.savedOutbox.${me}`]: '{"svc_2":true}',
+    }
+    for (const [k, v] of Object.entries(traces)) localStorage.setItem(k, v)
+    sessionStorage.setItem('bulig.route', '{"to":"svc_1","mode":"car"}')
+    sessionStorage.setItem('bulig.mapScope', 'all')
+    localStorage.setItem('bulig.theme', 'dark')
+    renderAt('/profile')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
+    for (const k of Object.keys(traces)) expect(localStorage.getItem(k), k).toBeNull()
+    expect(sessionStorage.getItem('bulig.route')).toBeNull()
+    expect(sessionStorage.getItem('bulig.mapScope')).toBeNull()
+    // A device setting, not the person's.
+    expect(localStorage.getItem('bulig.theme')).toBe('dark')
+  })
+
   it('shows the reset confirmation without saying whether the email has an account', async () => {
     signedOut()
     renderAt('/forgot-password')
