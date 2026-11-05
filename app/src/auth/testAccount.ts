@@ -5,15 +5,17 @@ import type { Account, Role } from './types.ts'
 // let testers try each role. Never put a real password here.
 export const TEST_PASSWORD = 'password'
 
-export const TEST_ACCOUNTS: Record<Exclude<Role, 'contributor'>, Account> = {
+export const TEST_ACCOUNTS: Record<Role, Account> = {
   user: { email: 'test@bulig.com', name: 'Test traveller', role: 'user', areas: [], createdAt: '2026-10-01' },
-  moderator: {
-    email: 'moderator@bulig.com',
-    name: 'Test moderator',
-    role: 'moderator',
-    areas: ['ph-cebu-cebu-city'],
+  contributor: {
+    email: 'contributor@bulig.com',
+    name: 'Test contributor',
+    role: 'contributor',
+    areas: [],
     createdAt: '2026-10-01',
   },
+  // No areas = the whole country, like the real moderators for now (WORKFLOW.md).
+  moderator: { email: 'moderator@bulig.com', name: 'Test moderator', role: 'moderator', areas: [], createdAt: '2026-10-01' },
   admin: { email: 'admin@bulig.com', name: 'Test admin', role: 'admin', areas: [], createdAt: '2026-10-01' },
 }
 

@@ -17,6 +17,8 @@ const areas = [area('city'), area('brgy-1', 'city'), area('town')]
 
 const user: Account = { email: 'u@x', name: 'U', role: 'user', areas: [] }
 const moderator: Account = { email: 'm@x', name: 'M', role: 'moderator', areas: ['city'] }
+const contributor: Account = { email: 'c@x', name: 'C', role: 'contributor', areas: [] }
+const everywhere: Account = { email: 'e@x', name: 'E', role: 'moderator', areas: [] }
 const admin: Account = { email: 'a@x', name: 'A', role: 'admin', areas: [] }
 
 describe('isWithin', () => {
@@ -49,6 +51,20 @@ describe('can', () => {
     expect(can(moderator, 'verify', 'town', areas)).toBe(false)
     expect(can(moderator, 'verify', null, areas)).toBe(false)
     expect(can(moderator, 'manage_accounts')).toBe(false)
+  })
+
+  it('lets contributors and above add places, but not users', () => {
+    expect(can(user, 'contribute')).toBe(false)
+    expect(can(contributor, 'contribute')).toBe(true)
+    expect(can(contributor, 'review', 'city', areas)).toBe(false)
+    expect(can(moderator, 'contribute')).toBe(true)
+    expect(can(admin, 'contribute')).toBe(true)
+  })
+
+  it('treats a moderator with no areas as covering the whole country', () => {
+    expect(can(everywhere, 'review', 'town', areas)).toBe(true)
+    expect(can(everywhere, 'review')).toBe(true)
+    expect(can(everywhere, 'manage_accounts')).toBe(false)
   })
 
   it('lets an admin do everything everywhere', () => {

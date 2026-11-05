@@ -242,6 +242,22 @@ The original spec:
 - Prices (Phase 4, fuel and later services): "RON 91 ₱82.00 · seen 30 Oct by a Bulig user". Greyed after 7 days, hidden after 30. Never "today's price" or "current price".
 - A sticky bottom bar with Call and Directions.
 
+### Add a place (`/add`, contributors and above; John, 2026-11-05)
+
+- **Raised Add button:** for contributors, moderators and admins only, the tab bar has five slots: Home · Services · **Add** · Map · Saved. Add is a 64px teal circle (`--color-primary`, white Plus), lifted 28px above the bar with a 6px ring in the bar's colour that reads as a notch, and an "Add" label. Never red, never the hazard button's shape; the red Emergency button stays bottom right. Users keep the four tabs. On tablets and desktops it is a normal rail or sidebar item with a teal circle.
+- **Four steps, then Check and send.** A header with Close (step 1) or Back, "Add a place", "n of 4" and a teal progress bar. Every change is saved on the phone (`bulig.drafts.new-place.<email>`); photos older than 23 hours are dropped from the draft because the server deletes unused uploads after 24.
+  1. **What is it?** Category tiles (Vulcanizing, Mechanic, Gas, Hospital, Food, Store, Others wide), name (80 characters); Others also asks for a word ("Halo-halo").
+  2. **Where is it?** A MapLibre map with a teal pin **fixed in the centre**; the map moves under it. The blue dot is the phone, faded grey pins are places already listed in that category, "Back to me" recentres. Under it: "Pin is 35 m from you · Guiuan", the town (set from the pin, changeable), and **Landmark** (120 characters, "What a stranger would look for. No house numbers."). A listed place of the same category within 50 m shows "Is this <name>?" with **Open that one** / **No, it's new**. No map (offline, no WebGL, too slow): **Use where I'm standing**, with a warning when the fix is rougher than 50 m.
+  3. **Hours and services.** Usual hours: Every day (opens, closes) · 24 hours · By day (a tick and two times per day). "Not sure? Leave it empty. Bulig only ever says "usually open"." Then the ticks that fit the category (tire repair: Tubeless, Tube type, Air pump, Comes to you, Motorcycle, Car or truck; mechanic: Motorcycle, Car or truck, Comes to you; gas: Bottled fuel, Air pump; hospital: Emergency room). Phone, optional.
+  4. **Photos.** **Take photo** opens the phone's own camera (`capture="environment"`: the phone picks the main back lens and has its own shutter), then Bulig's black preview with **Retake** and **Use photo**. **Choose from gallery** is a small text link; gallery photos carry a "Gallery" tag and the moderator is told. 1 to 3 photos, shrunk to 1280px WebP and uploaded one by one (`POST /uploads`). The first is the cover. A private note for the moderator (500 characters).
+- **Check and send:** one card with each answer and an Edit link, then **Send**. Errors in plain words (no signal, 10 a day, paused, a photo expired). **Sent:** a green check, "A moderator checks it before anyone sees it.", **Add another** / **See my updates**. Never says it is listed or public.
+- No description field (John's call pending, 2026-11-05): Landmark is the public text, the note is private.
+
+### My updates (`/updates`) and the bell
+
+- **Bell** on Home's header, left of the avatar, for contributors and above only. A teal count badge shows answers the person hasn't seen. No push: the phone reads `GET /me/submissions` when Home opens (at most once a minute) and when the app comes back to the screen.
+- **My updates** (from the bell and Profile → Account): filter chips All · Waiting · Approved · Not added, then one card per update, newest first: name, what was sent and when, a plain line ("A moderator will check it before anyone sees it.", "Phones see it within an hour.", "Reason: <reviewNote>") and a status pill (amber Waiting, green Approved, green outline Partly approved, grey Not added). New answers are highlighted until the person leaves the page.
+
 ### Saved (`/saved`)
 
 - Hearted places and numbers, kept with the signed-in account on this phone, sorted by distance.
@@ -264,7 +280,7 @@ The original spec:
 - A divider "New to Bulig?", then **Create an account** (outlined, full width), which opens the onboarding.
 - No guest mode and no emergency link here (John, 2026-11-04).
 - Look (all sign-in screens): one card (24px corners, layered shadow, a light top edge in dark mode) on a soft teal glow. Ropi's head in a teal ring with a shield badge, a bold title, quiet labels, filled fields with placeholders, a solid teal main button with a teal lift, teal links, and form errors in a tinted box with an X. Footer under the card: "Bulig · Road help for the Philippines". Blocks stack in a beat apart; a field shakes once when it turns invalid, and the fields shake on a wrong password. All motion is off under reduced motion.
-- The test logins still work when typed: `test@bulig.com`, `moderator@bulig.com`, `admin@bulig.com`, password `password` (see [WORKFLOW.md](WORKFLOW.md#sign-in)).
+- The test logins still work when typed: `test@bulig.com`, `contributor@bulig.com`, `moderator@bulig.com`, `admin@bulig.com`, password `password` (see [WORKFLOW.md](WORKFLOW.md#sign-in)).
 
 ### Sign up = onboarding (`/signup`)
 

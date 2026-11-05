@@ -91,6 +91,29 @@
   color: var(--color-primary-text);
 }
 
+/* The raised Add button (contributors and above): a 64px teal circle lifted above the bar. The ring
+   in the bar's own colour reads as a notch cut into the bar behind it. */
+.tab.add {
+  justify-content: flex-end;
+  color: var(--color-primary-text);
+}
+
+.tab.add .tabIcon {
+  width: 64px;
+  height: 64px;
+  margin-top: -28px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow:
+    0 0 0 6px var(--color-surface),
+    0 6px 16px rgb(14 116 144 / 0.35);
+}
+
+.tab.add.active .tabIcon {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
 /* ---------- Offline ---------- */
 
 .offline {
@@ -221,6 +244,13 @@
     min-height: 60px;
   }
 
+  .tab.add .tabIcon {
+    width: 48px;
+    height: 48px;
+    margin-top: 0;
+    box-shadow: none;
+  }
+
   .main {
     padding: calc(32px + env(safe-area-inset-top, 0px)) 32px 104px;
   }
@@ -304,5 +334,23 @@
 
   .tab:hover .tabIcon {
     background: none;
+  }
+}
+
+/* The Add button keeps its teal circle in every layout, on hover too. */
+@media (min-width: 72rem) {
+  .tab.add {
+    justify-content: flex-start;
+  }
+
+  .tab.add .tabIcon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tab.add:hover .tabIcon {
+    background: var(--color-primary);
   }
 }

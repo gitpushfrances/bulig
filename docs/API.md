@@ -70,9 +70,9 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 16 | List saved | `GET /me/saved` | 🔒 | 4 | `loadSaved()` in `auth/apiStore.ts` after sign-in and on start |
 | 17 | Save a place or number | `PUT /me/saved/{recordId}` | 🔒 | 4 | `setSaved()` in `auth/apiStore.ts` (heart flips at once, flips back if the server says no) |
 | 18 | Unsave | `DELETE /me/saved/{recordId}` | 🔒 | 4 | `setSaved()` in `auth/apiStore.ts` |
-| 19 | Update details (includes "report wrong info") | `POST /submissions` | 🔒 | 4 | Not built yet (SCRUM-30); no Google Form |
-| 20 | Upload a photo for an update | `POST /uploads` | 🔒 | 4 | Not built in the app (backend live since bulig-backend#23) |
-| 21 | My submissions and their status | `GET /me/submissions` | 🔒 | 4 | Not built |
+| 19 | Update details (includes "report wrong info") | `POST /submissions` | 🔒 | 4 | New places: `submitNewPlace()` in `contribute/store.ts` (`pages/AddPlacePage.tsx`, `/add`). Changes to a listed place and flags: not built yet (SCRUM-30) |
+| 20 | Upload a photo for an update | `POST /uploads` | 🔒 | 4 | `uploadPhoto()` in `contribute/store.ts`, with `source` |
+| 21 | My submissions and their status | `GET /me/submissions` | 🔒 | 4 | `mySubmissions()` in `contribute/store.ts` (`pages/UpdatesPage.tsx` and Home's bell, `contribute/useMyUpdates.ts`) |
 | 22 | Report an app problem | `POST /issues` | 🔒 | 4 | Not built (Profile → Help today has no form) |
 | 23 | My app problems and their status | `GET /me/issues` | 🔒 | 4 | Not built |
 | 24 | Public settings (banner, submissions on/off) | `GET /settings` | — | 4 | Not built |
@@ -732,6 +732,9 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.route` (sessionStorage) | The route in progress | Stays on the phone |
 | Test logins (`auth/testAccount.ts`) | `test@`, `moderator@`, `admin@bulig.com` | **Removed.** Seed real accounts in Filament |
 | `bulig.drafts.<recordId>` (new in Phase 4) | An unsent Update details form | Stays on the phone until sent |
+| `bulig.drafts.new-place.<email>` | An unsent Add a place form (upload IDs and small previews, not the photos) | Stays on the phone until sent |
+| `bulig.updatesSeen.<email>` | Which answers in My updates the person has seen, for the bell | Stays on the phone |
+| `bulig.localSubmissions` | Dev and tests only: new places sent with no backend | Not in the API build |
 
 Only `AuthProvider` (`app/src/auth/`) and the data source (`app/src/data/`) change; pages keep calling `useAuth()` and `useAppData()`.
 

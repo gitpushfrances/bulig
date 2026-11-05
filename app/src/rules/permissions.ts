@@ -3,13 +3,15 @@ import type { Area, AreaId } from '../types.ts'
 
 // What each role may do. See docs/WORKFLOW.md, "Roles". Emergency Help is never here:
 // it needs no account in any phase.
-export const ACTIONS = ['save', 'report', 'review', 'verify', 'manage_areas', 'manage_accounts'] as const
+// contribute = send Update details and add a new place (API.md §7.2); review and verify = the staff
+// requests in API.md §7.8.
+export const ACTIONS = ['save', 'report', 'contribute', 'review', 'verify', 'manage_areas', 'manage_accounts'] as const
 export type Action = (typeof ACTIONS)[number]
 
 const ROLE_ACTIONS: Record<Account['role'], readonly Action[]> = {
   user: ['save', 'report'],
-  contributor: ['save', 'report'],
-  moderator: ['save', 'report', 'review', 'verify'],
+  contributor: ['save', 'report', 'contribute'],
+  moderator: ['save', 'report', 'contribute', 'review', 'verify'],
   admin: ACTIONS,
 }
 
@@ -32,6 +34,9 @@ export function isWithin(area: AreaId, scope: AreaId, areas: Area[]): boolean {
 export function can(account: Account | null, action: Action, area?: AreaId | null, areas: Area[] = []): boolean {
   if (!account || !ROLE_ACTIONS[account.role].includes(action)) return false
   if (account.role !== 'moderator' || !AREA_ACTIONS.includes(action)) return true
-  // A moderator acts on one area at a time, and only inside the areas they look after.
+  // A moderator with no areas covers the whole country (API.md §7.8, WORKFLOW.md "for now,
+  // everywhere"). The server decides for real; this only picks what the screens show.
+  if (account.areas.length === 0) return true
+  // Otherwise they act on one area at a time, and only inside the areas they look after.
   return !!area && account.areas.some((scope) => isWithin(area, scope, areas))
 }

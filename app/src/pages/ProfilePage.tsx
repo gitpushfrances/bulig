@@ -1,9 +1,10 @@
 import BackButton from '../components/BackButton.tsx'
-import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, MapPin, Palette, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
+import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { ROLE_LABELS } from '../auth/types.ts'
+import { can } from '../rules/permissions.ts'
 import { TextField } from '../components/Fields.tsx'
 import Avatar from '../components/Avatar.tsx'
 import { SettingsButton, SettingsGroup, SettingsInfo, SettingsLink } from '../components/Settings.tsx'
@@ -150,6 +151,12 @@ export default function ProfilePage() {
           value={account.pendingEmail ? 'Waiting for link' : undefined}
         />
         <SettingsLink to="/saved" icon={Heart} label="Saved places" value={saved.length} />
+        {can(account, 'contribute') && (
+          <>
+            <SettingsLink to="/add" icon={PlusCircle} label="Add a place" />
+            <SettingsLink to="/updates" icon={ListChecks} label="My updates" />
+          </>
+        )}
         {homeArea && <SettingsInfo icon={MapPin} label="Home area" value={homeArea} />}
       </SettingsGroup>
 

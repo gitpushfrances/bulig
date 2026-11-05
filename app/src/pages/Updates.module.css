@@ -1,0 +1,133 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter[aria-pressed='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-selected);
+  color: var(--color-primary-text);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 4px 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.fresh {
+  border-color: var(--color-primary);
+  background: var(--color-selected);
+}
+
+.body {
+  min-width: 0;
+}
+
+.body p {
+  margin: 0;
+}
+
+.name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.meta,
+.detail {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.detail {
+  margin-top: 4px !important;
+  color: var(--color-text);
+}
+
+.pill {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.pending {
+  color: #b45309;
+}
+
+.approved,
+.partly_approved {
+  color: var(--color-checked);
+}
+
+.rejected {
+  color: var(--color-text-muted);
+}
+
+.pill_pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pill_approved {
+  background: var(--color-checked);
+  color: #ffffff;
+}
+
+.pill_partly_approved {
+  border: 1px solid var(--color-checked);
+  color: var(--color-checked);
+}
+
+.pill_rejected {
+  background: var(--color-status-bg);
+  color: var(--color-status-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme='light'])) .pending {
+    color: #fbbf24;
+  }
+
+  :global(:root:not([data-theme='light'])) .pill_approved {
+    color: #052e16;
+  }
+}
+
+:global(:root[data-theme='dark']) .pending {
+  color: #fbbf24;
+}
+
+:global(:root[data-theme='dark']) .pill_approved {
+  color: #052e16;
+}
