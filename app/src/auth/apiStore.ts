@@ -288,9 +288,13 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
     async setSaved(_account, id, on) {
       try {
         await call(`/me/saved/${encodeURIComponent(id)}`, { method: on ? 'PUT' : 'DELETE' })
-        return true
-      } catch {
-        return false
+        return 'ok'
+      } catch (err) {
+        // No answer, or the free server waking up or busy (5xx, 429): try again later.
+        if (!(err instanceof ApiError) || err.status >= 500 || err.status === 429) return 'retry'
+        // 404 (the place is no longer listed), 401 (signed out), 422: sending it again won't help.
+        console.warn(`Bulig: saving ${id} was refused (${err.status}).`)
+        return 'rejected'
       }
     },
 

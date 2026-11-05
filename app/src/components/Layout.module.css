@@ -135,6 +135,21 @@
 
 /* ---------- Emergency button: red, round, above the tab bar, on every screen ---------- */
 
+.notice {
+  position: fixed;
+  left: var(--gutter);
+  right: calc(var(--gutter) + 72px);
+  bottom: calc(var(--bottombar-h) + 20px);
+  z-index: 26;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-control);
+  background: var(--color-deep);
+  color: var(--color-on-deep);
+  font-size: 0.9375rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+}
+
 .fab {
   position: fixed;
   right: max(16px, env(safe-area-inset-right, 0px));

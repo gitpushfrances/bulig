@@ -3,7 +3,7 @@ import { readSaved, writeSaved } from '../data/storage.ts'
 import { appAccounts } from './appAccounts.ts'
 import { AuthContext } from './context.ts'
 import type { SavedStatus, UpdateProfileResult } from './context.ts'
-import type { AccountStore, NewAccount, SetPhotoResult } from './store.ts'
+import type { AccountStore, NewAccount, SaveResult, SetPhotoResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
 // Guest mode is gone (2026-11-04): Emergency is open to everyone without it. Old phones drop the flag.
@@ -12,6 +12,26 @@ const profileKey = (email: string) => `bulig.profile.${email}`
 // The last saved list from the server, for a fast start and offline (server accounts only; phone-only
 // accounts keep theirs in bulig.saved.<email>).
 const savedCacheKey = (email: string) => `bulig.savedCache.${email}`
+// Hearts the server hasn't confirmed yet ({recordId: saved?}), kept on the phone so a heart tapped
+// offline or while the free server wakes up is sent later, even after the app is closed.
+const outboxKey = (email: string) => `bulig.savedOutbox.${email}`
+
+function readOutbox(email: string): Record<string, boolean> {
+  try {
+    const value: unknown = JSON.parse(readSaved(outboxKey(email)) ?? 'null')
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return {}
+    return Object.fromEntries(Object.entries(value).filter(([, on]) => typeof on === 'boolean')) as Record<string, boolean>
+  } catch {
+    return {}
+  }
+}
+
+function applyOps(ids: string[], ops: Iterable<[string, boolean]>): string[] {
+  let next = ids
+  for (const [id, on] of ops) next = on ? (next.includes(id) ? next : [...next, id]) : next.filter((s) => s !== id)
+  return next
+}
+
 // Waits before trying the saved list again after the server didn't answer.
 const RETRY_MS = [5_000, 15_000, 45_000, 120_000]
 
@@ -69,6 +89,65 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     }
   }, [store])
 
+  const setSaved = (update: (ids: string[]) => string[]) =>
+    setLoaded((now) =>
+      email ? { email, ids: update(now?.email === email ? now.ids : []), status: now?.email === email ? now.status : 'loading' } : now,
+    )
+
+  const outbox = useRef<{ email: string | null; ops: Record<string, boolean> }>({ email: null, ops: {} })
+  const ops = (who: string) => {
+    if (outbox.current.email !== who) outbox.current = { email: who, ops: store.online ? readOutbox(who) : {} }
+    return outbox.current.ops
+  }
+  const writeOps = (who: string) => {
+    if (!store.online) return
+    const pending = ops(who)
+    writeSaved(outboxKey(who), Object.keys(pending).length ? JSON.stringify(pending) : null)
+  }
+  const [savedNotice, setSavedNotice] = useState<string | null>(null)
+  const flushing = useRef(false)
+  const flushTimer = useRef(0)
+  const flushFails = useRef(0)
+  const scheduleFlush = (who: Account) => {
+    window.clearTimeout(flushTimer.current)
+    flushTimer.current = window.setTimeout(
+      () => void flush(who),
+      RETRY_MS[Math.min(flushFails.current++, RETRY_MS.length - 1)],
+    )
+  }
+  // What the server said about one heart. A newer tap on the same place wins over an older answer.
+  const settle = (who: Account, id: string, on: boolean, result: SaveResult) => {
+    const pending = ops(who.email)
+    if (pending[id] !== on) return
+    if (result === 'retry') return scheduleFlush(who)
+    delete pending[id]
+    writeOps(who.email)
+    if (result === 'ok') return
+    setSaved((now) => applyOps(now, [[id, !on]]))
+    setSavedNotice(on ? "Couldn't save that place: it may no longer be listed." : "Couldn't remove that place. Try again.")
+  }
+  // Sends the hearts still waiting, one by one; stops at the first that can't get through.
+  const flush = async (who: Account) => {
+    if (flushing.current || !store.online) return
+    flushing.current = true
+    try {
+      for (const [id, on] of Object.entries(ops(who.email))) {
+        const result = await store.setSaved(who, id, on, [])
+        settle(who, id, on, result)
+        if (result === 'retry') return
+      }
+      flushFails.current = 0
+    } finally {
+      flushing.current = false
+    }
+  }
+  useEffect(() => () => window.clearTimeout(flushTimer.current), [])
+  useEffect(() => {
+    if (!savedNotice) return
+    const timer = window.setTimeout(() => setSavedNotice(null), 5_000)
+    return () => window.clearTimeout(timer)
+  }, [savedNotice])
+
   // Then load the hearts. With server accounts the last list is kept on the phone, so Saved shows at
   // once (and offline); the server's answer replaces it. If the server doesn't answer (asleep, weak
   // signal), the phone's copy stays and it tries again after RETRY_MS, when the phone is back online
@@ -95,10 +174,10 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
         return
       }
       failures.current = 0
-      let next = ids
-      for (const { n, id, on } of taps.current)
-        if (n > since) next = on ? (next.includes(id) ? next : [...next, id]) : next.filter((s) => s !== id)
+      const tapped = taps.current.filter((t) => t.n > since).map((t) => [t.id, t.on] as [string, boolean])
+      const next = applyOps(applyOps(ids, tapped), Object.entries(ops(current.email)))
       setLoaded({ email: current.email, ids: next, status: 'ready' })
+      void flush(current)
     })
     const onBack = () => {
       if (document.visibilityState === 'visible' && failures.current > 0) again()
@@ -111,15 +190,12 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
       window.removeEventListener('online', again)
       document.removeEventListener('visibilitychange', onBack)
     }
+    // flush and ops read refs only; the load reruns for a new account, store or attempt.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, store, attempt])
   const mine = loaded && loaded.email === email ? loaded : null
   const saved = mine?.ids ?? []
   const savedStatus: SavedStatus = mine?.status ?? 'loading'
-  const setSaved = (update: (ids: string[]) => string[]) =>
-    setLoaded((now) =>
-      email ? { email, ids: update(now?.email === email ? now.ids : []), status: now?.email === email ? now.status : 'loading' } : now,
-    )
-
   // Keep the server's list on the phone for the next start.
   useEffect(() => {
     if (!store.online || !mine || mine.status === 'loading' || mine.status === 'error') return
@@ -145,7 +221,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   }
 
   const signOut = () => {
-    if (account) writeSaved(savedCacheKey(account.email), null)
+    if (account) {
+      writeSaved(savedCacheKey(account.email), null)
+      writeSaved(outboxKey(account.email), null)
+      outbox.current = { email: null, ops: {} }
+    }
     void store.signOut()
     setAccount(null)
   }
@@ -213,11 +293,13 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     if (!account || !(await store.deleteAccount(account))) return false
     writeSaved(profileKey(account.email), null)
     writeSaved(savedCacheKey(account.email), null)
+    writeSaved(outboxKey(account.email), null)
     setAccount(null)
     return true
   }
 
-  // The heart flips at once; if the server says no, it flips back.
+  // The heart flips at once and stays. If the server didn't get it (offline, asleep), it waits in the
+  // outbox and is sent again; only a clear "no" from the server (the place is gone) flips it back.
   const toggleSaved = (id: string) => {
     if (!account) return
     const on = !saved.includes(id)
@@ -225,9 +307,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     setSaved(() => next)
     const tap = { n: (taps.current.at(-1)?.n ?? 0) + 1, id, on }
     taps.current = [...taps.current.slice(-49), tap]
-    void store.setSaved(account, id, on, next).then((ok) => {
-      if (!ok) taps.current = taps.current.filter((t) => t !== tap)
-      if (!ok) setSaved((now) => (on ? now.filter((s) => s !== id) : now.includes(id) ? now : [...now, id]))
+    ops(account.email)[id] = on
+    writeOps(account.email)
+    void store.setSaved(account, id, on, next).then((result) => {
+      if (result === 'rejected') taps.current = taps.current.filter((t) => t !== tap)
+      settle(account, id, on, result)
     })
   }
 
@@ -250,6 +334,7 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
         resetPassword: (address, token, password) => store.resetPassword(address, token, password),
         saved,
         savedStatus,
+        savedNotice,
         retrySaved: () => {
           failures.current = 0
           setAttempt((n) => n + 1)

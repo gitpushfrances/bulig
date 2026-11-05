@@ -1,0 +1,44 @@
+/* "Getting your places ready": the logo breathing above one line, centred in the page area. */
+.gate {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 10px;
+  min-height: 60vh;
+  padding: 24px var(--gutter);
+  text-align: center;
+  animation: gate-in 0s 150ms both;
+}
+
+.pin {
+  color: var(--color-primary);
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.title {
+  margin: 8px 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* Hidden for the first 150 ms, so a fast load never flashes it. */
+@keyframes gate-in {
+  from {
+    visibility: hidden;
+  }
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(0.94);
+    opacity: 0.75;
+  }
+}
