@@ -39,8 +39,8 @@ Bulig is a free, offline-first web app (PWA) for people on the road. Installed t
 
 ## Stack
 
-- **Frontend:** Vite 8, React 19, TypeScript 6.0.x, React Router 8, ESLint, plain CSS Modules, lucide-react icons, Lexend and Source Sans 3 (self-hosted with Fontsource)
-- **Offline and install:** vite-plugin-pwa 2 (Workbox): the app, data and fonts are precached; `display: standalone` for a full-screen installed app
+- **Frontend:** Vite 8, React 19, TypeScript 6.0.x, React Router 8, ESLint, plain CSS Modules, Phosphor icons, IBM Plex Sans (self-hosted with Fontsource)
+- **Offline and install:** vite-plugin-pwa 2 (Workbox): the app, data and fonts are precached, and map tiles you have seen (plus the ones just around them) are kept on the phone; `display: standalone` for a full-screen installed app
 - **Tests:** Vitest 5 + Testing Library (jsdom)
 - **Map and location, all free with no key:** MapLibre GL JS 5 with OpenFreeMap tiles (OpenStreetMap data), Nominatim for the address, OSRM on `routing.openstreetmap.de` for routes, a Google Maps URL for voice navigation
 - **Data (Phases 1 to 3):** JSON files in `app/public/data/`

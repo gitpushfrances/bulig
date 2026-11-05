@@ -599,7 +599,7 @@ Before merging a visual change:
 
 ## 11. Navigation target and migration notes
 
-This is the **target navigation**, not a claim that all routes have already been implemented. The current build has five tabs; the UI target is four tabs. Move Emergency into Home/Hotlines and add Map as a top-level tab. Keep existing routes working while the tabs change.
+This is the **target navigation**, not a claim that all routes have already been implemented. The build has had four tabs since 2026-11-04 (Home, Services, Map, Saved; Profile opens from Home's header), which differs from the table below: Services is still a tab and Profile is not. Move Emergency into Home/Hotlines and add Map as a top-level tab. Keep existing routes working while the tabs change.
 
 | Tab | Route | What it holds |
 | --- | --- | --- |
