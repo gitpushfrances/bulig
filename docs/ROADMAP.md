@@ -183,7 +183,7 @@ If none of these happen after 6 weeks, don't build a backend. Find out why peopl
 - **Update details** (SCRUM-30): one form on Place details for new prices, hours, services, phone, location, closed, or a new place, with up to 3 photos (required for prices); `POST /uploads` and `POST /submissions` ([API.md §7](API.md#7-community-updates-update-details))
 - Review queue: current vs proposed values field by field, photos, approve ticked fields or reject with a reason; dated price history (`service_prices`); users see their submission status in Profile
 - Admin: users and moderators (add, edit, suspend, role, areas), "online now", activity log, system settings, Laravel Pulse dashboard
-- App issues: "Something's not working" in Profile → `issues` table that moderators and admins work in the panel
+- App issues: "Something's not working" in Profile → `issues` table that admins work in the panel
 - Status: `GET /health` + UptimeRobot alerts and public status page
 - Switch the frontend from JSON files to the API, while keeping the service worker cache as the offline fallback
 - Deploy the API and set up nightly backups
