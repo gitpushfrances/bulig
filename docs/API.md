@@ -2,7 +2,7 @@
 
 Every request the app makes, or will make once the backend exists, with its exact payload and response. Build the Laravel API (Phase 4) to match this file, and the frontend switches over without page changes.
 
-Last updated: 2026-11-05 · Owner: John · Matches the frontend on `main` (v0.3.0).
+Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.0).
 
 **Why this file exists.** Until Phase 4 the app has no server: data comes from JSON files, and accounts, saved places and profiles live on the phone (`localStorage`). Each section below says **where that lives in the frontend today** and **what the API replaces it with**, so nothing is guessed when the backend is built.
 
@@ -506,7 +506,7 @@ Upload one photo before sending the update, so a weak signal only retries the ph
 
 The signed-in user's submissions, newest first, 20 per page (`?page=`).
 
-**200:** `{ "items": [{ "id": "sub_01JBY…", "recordId": "…", "recordName": "Guiuan Sample Fuel", "reason": "changed", "status": "approved", "approvedFields": ["prices"], "reviewNote": null, "createdAt": "2026-10-30T01:12:00Z", "reviewedAt": "2026-10-30T05:40:00Z" }], "nextPage": null }`. `status`: `pending`, `approved` (all fields), `partly_approved`, `rejected` (with `reviewNote`, the reason the reviewer picked).
+**200:** `{ "items": [{ "id": "sub_01JBY…", "recordId": "…", "recordName": "Guiuan Sample Fuel", "reason": "changed", "status": "approved", "approvedFields": ["prices"], "reviewNote": null, "createdAt": "2026-10-30T01:12:00Z", "reviewedAt": "2026-10-30T05:40:00Z" }], "nextPage": null }`. `status`: `pending`, `approved` (all fields), `partly_approved`, `rejected` (with `reviewNote`, the reason the reviewer picked), `confirmed` (a flag the reviewer agreed with; `approvedFields` is empty).
 
 ### 7.4 `POST /issues` 🔒
 
@@ -537,12 +537,12 @@ Not part of the app's contract: `POST /internal/schedule` (alpha and beta on Ren
 
 Added 2026-11-05 (John). The app's moderator screens use these; the panel keeps doing everything else. All under `/staff`, all 🔒 with a Bearer token, all `Cache-Control: no-store`.
 
-**Who may call them.** Role `moderator` or `admin`; anyone else gets `403`. A suspended account gets `403` with `"reason": "suspended"`. A moderator with an empty `areas` list covers the whole country (WORKFLOW.md, "for now, everywhere"); a moderator with areas only sees and acts on records inside them (`403` otherwise). The server reuses the same policies and `Submission::approve()`, `confirm()` and `reject()` as the panel, so both give the same answer.
+**Who may call them.** Role `moderator` or `admin`; anyone else gets `403`. A suspended account has no tokens left, so it gets `401` (§4.2). **Area scope isn't active yet** (John, 2026-11-06): the server can't store a moderator's areas, `areas` is always `[]`, and every moderator covers the whole country. The area rules in this section start when area assignment ships. The server reuses the same policies and `Submission::approve()`, `confirm()` and `reject()` as the panel, so both give the same answer.
 
 **Rules that hold everywhere** (same as the panel):
 
 - Nobody reviews their own submission, or one already reviewed. Both are `422` with the messages below.
-- Moderators never delete places or emergency contacts, here or in the panel. Admins can, in the panel only.
+- Moderators never delete places or emergency contacts, here or in the panel. Admins can, in the panel only. Instead a moderator uses **Mark closed** or **Mark duplicate** on a place in the panel: it leaves `GET /services`, its row and history stay, and an admin can reopen or delete it. A place can have up to 6 public photos.
 - A change reaches phones on the next public read, which may be cached for up to 1 hour.
 
 **`422` messages** (the app shows these words as they are):
@@ -634,7 +634,7 @@ What the server does: applies only those fields (hours are stored as `weeklyHour
 
 #### `POST /staff/submissions/{id}/confirm`
 
-For the flags. Changes no data: the moderator then fixes the record in the panel. No body. **200:** `{ "status": "confirmed" }`.
+For the flags. Changes no data: the moderator then fixes the record in the panel (Mark closed, Mark duplicate or an edit). No body. **200:** `{ "status": "confirmed" }`.
 
 #### `POST /staff/submissions/{id}/reject`
 
@@ -642,7 +642,12 @@ For the flags. Changes no data: the moderator then fixes the record in the panel
 
 | `reason` key | Label the sender sees |
 | --- | --- |
-| _(backend: the six keys and labels you already use go here in this PR)_ | |
+| `could_not_confirm` | Could not confirm it |
+| `photo_mismatch` | The photo does not show it |
+| `wrong_place` | Wrong place |
+| `up_to_date` | Already up to date |
+| `duplicate` | Duplicate |
+| `not_road_help` | Not a place for road help |
 
 #### `POST /staff/submissions/reject`
 
@@ -656,7 +661,7 @@ A moderator or admin adds a place directly. It is published at once, because a m
 
 #### `POST /staff/services/{id}/verify` and `POST /staff/emergency-contacts/{id}/verify`
 
-Mark checked today. **Request:** `{ "source": "called" }`, one of `called`, `visited`, `owner`. The server sets `verifiedAt` to today and keeps the source in the record history. A hidden local emergency number (180 days unchecked) shows again. **200:** the updated record.
+Mark checked today. **Request:** `{ "source": "called" }`, one of `called`, `visited`, `owner`. The server sets `verifiedAt` to today and `source` to "Called by a moderator", "Visited by a moderator" or "Confirmed by the owner", and the record history keeps both. A hidden local emergency number (180 days unchecked) shows again. **200:** the updated record.
 
 #### `GET /staff/emergency-contacts?due=30`
 
