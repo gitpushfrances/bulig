@@ -2,7 +2,7 @@
 
 Who does what in Bulig, how a record moves from a report to the app, and how a change moves from a branch to the live link. [ARCHITECTURE.md](ARCHITECTURE.md) says how each part is built; this file says how the parts are used.
 
-Last updated: 2026-11-05
+Last updated: 2026-11-06
 
 ## Areas
 
@@ -27,7 +27,7 @@ Four roles. What each may do is decided in one function, `can()` in [`app/src/ru
 | --- | --- | --- | --- |
 | **User** | Anyone who signs in | Save places and numbers; flag a place or number as wrong (number not working, closed, wrong location, duplicate) with photos; report an app problem; see the status of what they sent | Everywhere |
 | **Contributor** | A user a moderator or admin trusts, made a contributor in the panel | Everything a user can, plus send Update details: add a new place, change its info (prices, hours, services offered, phone, location) or ask to remove it. Every request waits for a moderator | Everywhere |
-| **Moderator** | A trusted local person, one or more per area (a barangay, city or municipality). Until there are some, John (admin) does this for the whole country | Everything a user can, plus approve or reject updates field by field, add and edit places (pin, name, hours, services offered, photos) and emergency contacts, mark records checked. **Never delete** a place or emergency contact: mark it closed or a duplicate instead (John, 2026-11-05). Review and Mark checked also work in the app (API.md §7.8) | **For now, everywhere** (no area assigned). Later: only their areas, and the areas inside them |
+| **Moderator** | A trusted local person, one or more per area (a barangay, city or municipality). Until there are some, John (admin) does this for the whole country | Everything a user can, plus approve or reject updates field by field, add and edit places (pin, name, hours, services offered, photos), emergency contacts and areas, mark records checked. **Never delete** a place, emergency contact or area: mark a place closed or a duplicate instead, which hides it from the app until an admin reopens or deletes it (John, 2026-11-05). Review and Mark checked also work in the app (API.md §7.8) | **For now, everywhere** (no area assigned). Later: only their areas, and the areas inside them |
 | **Admin** (superadmin) | The Bulig team | Everything, including add and remove (the only role that deletes records), app problems sent from Profile → Help: users and moderators (add, edit, suspend, role, areas), every record and photo, emergency contacts, areas, system settings, live dashboard, activity log | Everywhere |
 
 **For now (John, 2026-11-03):** one admin and one moderator, and moderators have no area. Until area assignment ships, a moderator covers the whole country; the area rules below apply from then. The app's `can()` already has the area rule, but no screen calls it yet, and the panel enforces roles on the server.
