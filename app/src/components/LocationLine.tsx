@@ -1,6 +1,7 @@
 import { ArrowClockwise, CaretDown, Crosshair, GpsSlash } from '@phosphor-icons/react'
 import { useAppData } from '../data/context.ts'
 import { usePhoneLocation } from '../location/context.ts'
+import { ROUGH_M } from '../location/fixes.ts'
 import { NEAR_KM, formatDistance } from '../rules/nearby.ts'
 import type { Area } from '../types.ts'
 import styles from './LocationLine.module.css'
@@ -32,7 +33,7 @@ const timeFormat = new Intl.DateTimeFormat('en-PH', { hour: 'numeric', minute: '
 // GPS and follows the driver; only without GPS (denied, missing, failed) can the person pick an area.
 // `inHeader`: under the greeting on Home, without the hairlines.
 export default function LocationLine({ inHeader = false }: { inHeader?: boolean }) {
-  const { status, address, updatedAt, refresh } = usePhoneLocation()
+  const { status, address, accuracy, updatedAt, refresh } = usePhoneLocation()
   const { data, area, areaKm, setArea } = useAppData()
   if (data.status !== 'ready') return null
 
@@ -64,14 +65,22 @@ export default function LocationLine({ inHeader = false }: { inHeader?: boolean 
 
   const when = address?.at ?? updatedAt
   // The header updates live, so it skips "Updated <time>".
-  const note = locating ? 'Finding your location…' : when && !inHeader ? `Updated ${timeFormat.format(when)}` : null
+  // A guess from Wi-Fi or the cell tower (fixes.ts): say so, so nobody trusts it to the street.
+  const rough = status === 'ready' && fromGps && accuracy !== null && accuracy > ROUGH_M
+  const note = locating
+    ? 'Finding your location…'
+    : rough
+      ? `Approximate, within ${formatDistance(accuracy / 1000)}`
+      : when && !inHeader
+        ? `Updated ${timeFormat.format(when)}`
+        : null
 
   return (
     <div className={inHeader ? `${styles.line} ${styles.inHeader}` : styles.line}>
       {place ? (
         <div className={styles.text} aria-live="polite">
           {live ? (
-            <span className={styles.live} aria-hidden="true" />
+            <span className={rough ? `${styles.live} ${styles.rough}` : styles.live} aria-hidden="true" />
           ) : (
             <Crosshair className={styles.icon} size={18} aria-hidden="true" />
           )}

@@ -65,7 +65,9 @@ export interface AccountStore {
   deleteAccount(account: Account): Promise<boolean>
   // Whether this account can change its password and be deleted.
   canManage(account: Account): boolean
-  loadSaved(account: Account): Promise<string[]>
+  // The saved record IDs, or null when they couldn't be loaded (offline, server asleep or down), so
+  // the app keeps what it has instead of showing an empty list.
+  loadSaved(account: Account): Promise<string[] | null>
   // Saves or unsaves one record. False when the server didn't take it, so the heart flips back.
   setSaved(account: Account, id: string, on: boolean, all: string[]): Promise<boolean>
   // 'preview': this build sends no email (phone-only accounts).

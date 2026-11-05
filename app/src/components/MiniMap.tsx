@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { Link } from 'react-router'
 import { useAppData } from '../data/context.ts'
+import { usePhoneLocation } from '../location/context.ts'
 import { hasWebGL, LOAD_TIMEOUT_MS } from '../map/loadMap.ts'
 import { applyMapTheme, MAP_CREDIT, mapRenderOptions, themedStyle } from '../map/mapTheme.ts'
+import { accuracyPx, GLIDE_MS, glideAt, shouldCut } from '../map/miniMapMotion.ts'
 import type { Position, Ranked } from '../rules/nearby.ts'
 import { useTheme } from '../theme.ts'
 import type { Service } from '../types.ts'
@@ -17,23 +19,64 @@ export const MINI_PINS = 5
 // Home's "Nearest to you" map: the real map with you and the nearest few places, as a picture that
 // opens the Map tab. It never slows down 911: MapLibre loads only once Home has drawn, the card is on
 // screen and the phone is idle; until then (and whenever it can't load: offline, no WebGL, too slow)
-// the card shows a flat placeholder and the list under it does the job.
+// the card shows a pulsing placeholder and the list under it does the job.
+//
+// Made once per app session (2026-11-05, like the Map tab's map.ts keeper): leaving Home lifts the
+// map out of the page and coming back puts it back, already drawn, so Home never redraws it from
+// nothing. The dot glides to each new GPS fix and shows how sure the phone is (the accuracy ring).
+
+interface KeptMini {
+  map: MapLibreMap
+  element: HTMLDivElement
+  lib: typeof import('maplibre-gl')
+  loaded: boolean
+  theme: 'light' | 'dark'
+  pins: Map<string, { marker: Marker; icon: Root }>
+  me: Marker
+  ring: HTMLSpanElement
+  at: Position
+}
+
+let kept: KeptMini | null = null
+
+// A map that didn't load in time: forget it, so the next visit makes a fresh one.
+function dropMiniMap(): void {
+  if (!kept) return
+  const old = kept
+  kept = null
+  try {
+    old.map.remove()
+  } catch {
+    // Its WebGL context is already gone.
+  }
+  old.element.remove()
+  queueMicrotask(() => old.pins.forEach((p) => p.icon.unmount()))
+}
+
+const reducedMotion = () =>
+  typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export default function MiniMap({ centre, places }: { centre: Position; places: Ranked<Service>[] }) {
   const { online } = useAppData()
+  const { accuracy } = usePhoneLocation()
   const { resolved } = useTheme()
   const box = useRef<HTMLDivElement>(null)
-  const map = useRef<MapLibreMap | null>(null)
-  const meMarker = useRef<Marker | null>(null)
-  // You stay in the middle: the latest position, read when framing (after a resize or a GPS move).
   const centreRef = useRef(centre)
   const placesRef = useRef(places)
-  const [visible, setVisible] = useState(false)
-  const [state, setState] = useState<'idle' | 'ready' | 'failed'>('idle')
+  const accuracyRef = useRef(accuracy)
+  const [visible, setVisible] = useState(() => !!kept)
+  const [state, setState] = useState<'idle' | 'ready' | 'failed'>(() => (kept?.loaded ? 'ready' : 'idle'))
 
-  // Start only when the card scrolls into view.
+  useEffect(() => {
+    centreRef.current = centre
+    placesRef.current = places
+    accuracyRef.current = accuracy
+  })
+
+  // Start only when the card scrolls into view (a kept map is shown at once).
   useEffect(() => {
     const el = box.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
+    if (visible || !el || typeof IntersectionObserver === 'undefined') return
     const seen = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
@@ -45,18 +88,18 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
     )
     seen.observe(el)
     return () => seen.disconnect()
-  }, [])
+  }, [visible])
 
   // You in the middle, zoomed so the pinned places fit around you: the bounds are mirrored through
   // your position, so centring on you never pushes a pin off the card.
-  const frame = (m: MapLibreMap) => {
+  const frame = (k: KeptMini) => {
     const c = centreRef.current
     const pts = placesRef.current.map((p) => ({ lat: p.item.lat!, lng: p.item.lng! }))
     let zoom = 15
     if (pts.length) {
       const dLat = Math.max(...pts.map((p) => Math.abs(p.lat - c.lat)), 0.002)
       const dLng = Math.max(...pts.map((p) => Math.abs(p.lng - c.lng)), 0.002)
-      const camera = m.cameraForBounds(
+      const camera = k.map.cameraForBounds(
         [
           [c.lng - dLng, c.lat - dLat],
           [c.lng + dLng, c.lat + dLat],
@@ -65,79 +108,129 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
       )
       zoom = Math.max(12, camera?.zoom ?? 15)
     }
-    m.jumpTo({ center: [c.lng, c.lat], zoom })
+    k.at = c
+    k.me.setLngLat([c.lng, c.lat])
+    k.map.jumpTo({ center: [c.lng, c.lat], zoom })
+    sizeRing(k)
   }
 
-  // Follow the phone: move the dot and keep it centred as GPS updates.
-  useEffect(() => {
-    centreRef.current = centre
-    placesRef.current = places
-  })
-  const { lat, lng } = centre
-  useEffect(() => {
-    if (state !== 'ready' || !map.current) return
-    meMarker.current?.setLngLat([lng, lat])
-    map.current.easeTo({ center: [lng, lat], duration: 800 })
-  }, [lat, lng, state])
+  const sizeRing = (k: KeptMini) => {
+    const px = accuracyPx(accuracyRef.current, k.at.lat, k.map.getZoom())
+    k.ring.style.display = px ? 'block' : 'none'
+    if (px) k.ring.style.setProperty('--ring', `${px}px`)
+  }
 
-  const canDraw = visible && online
+  // The pins: the nearest places now. Only the ones that changed are added or removed.
+  const syncPins = (k: KeptMini) => {
+    const want = new Set(placesRef.current.map((p) => p.item.id))
+    for (const [id, pin] of k.pins) {
+      if (want.has(id)) continue
+      pin.marker.remove()
+      queueMicrotask(() => pin.icon.unmount())
+      k.pins.delete(id)
+    }
+    for (const p of placesRef.current) {
+      if (k.pins.has(p.item.id)) continue
+      const el = document.createElement('span')
+      el.className = styles.pin
+      el.dataset.category = p.item.category
+      const Icon = CATEGORY_ICONS[p.item.category]
+      const icon = createRoot(el)
+      icon.render(<Icon size={14} weight="bold" aria-hidden="true" />)
+      const marker = new k.lib.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.item.lng!, p.item.lat!]).addTo(k.map)
+      k.pins.set(p.item.id, { marker, icon })
+    }
+  }
+
+  // Put the map on the card: the kept one, or a new one once the card is on screen and online.
+  const canDraw = visible && (online || !!kept)
   useEffect(() => {
-    if (!canDraw) return
+    if (!canDraw || !box.current) return
     let cancelled = false
     let timer = 0
-    const icons: Root[] = []
     let resize: ResizeObserver | null = null
+    const watchSize = (k: KeptMini) => {
+      // The card can change width (fonts, the data notice, rotating the phone): redraw at the new
+      // size and put you back in the middle.
+      if (typeof ResizeObserver === 'undefined' || !box.current) return
+      resize = new ResizeObserver(() => {
+        k.map.resize()
+        frame(k)
+      })
+      resize.observe(box.current)
+    }
+
+    if (kept) {
+      const k = kept
+      if (k.element.parentElement !== box.current) box.current.appendChild(k.element)
+      k.map.resize()
+      syncPins(k)
+      if (k.loaded) frame(k)
+      watchSize(k)
+      return () => {
+        resize?.disconnect()
+        k.element.remove()
+      }
+    }
+
     const idle = window.requestIdleCallback ?? ((fn: () => void) => window.setTimeout(fn, 300))
     const cancelIdle = window.cancelIdleCallback ?? window.clearTimeout
     const handle = idle(async () => {
       if (cancelled || !box.current) return
       if (!hasWebGL()) return setState('failed')
       try {
-        timer = window.setTimeout(() => !cancelled && setState('failed'), LOAD_TIMEOUT_MS)
+        timer = window.setTimeout(() => {
+          if (cancelled) return
+          dropMiniMap()
+          setState('failed')
+        }, LOAD_TIMEOUT_MS)
         const [[ml], style] = await Promise.all([
           Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')]),
           themedStyle(resolved),
         ])
         if (cancelled || !box.current) return
         const c = centreRef.current
+        const element = document.createElement('div')
+        element.className = styles.map
+        box.current.appendChild(element)
         const m = new ml.Map({
           ...mapRenderOptions(),
-          container: box.current,
+          container: element,
           style,
           center: [c.lng, c.lat],
           zoom: 14,
           // A picture, not a widget: no drag, no zoom, so it never moves and never traps the scroll.
           interactive: false,
         })
+        // You: the accuracy ring under the blue dot, in one marker.
+        const meEl = document.createElement('span')
+        meEl.className = styles.you
+        const ring = document.createElement('span')
+        ring.className = styles.ring
+        const dot = document.createElement('span')
+        dot.className = styles.me
+        meEl.append(ring, dot)
+        const k: KeptMini = {
+          map: m,
+          element,
+          lib: ml,
+          loaded: false,
+          theme: resolved,
+          pins: new Map(),
+          me: new ml.Marker({ element: meEl }).setLngLat([c.lng, c.lat]).addTo(m),
+          ring,
+          at: c,
+        }
+        kept = k
+        syncPins(k)
         m.once('load', () => {
           window.clearTimeout(timer)
+          k.loaded = true
           if (cancelled) return
           setState('ready')
-          frame(m)
+          frame(k)
         })
-        for (const p of places) {
-          const el = document.createElement('span')
-          el.className = styles.pin
-          el.dataset.category = p.item.category
-          const Icon = CATEGORY_ICONS[p.item.category]
-          const icon = createRoot(el)
-          icon.render(<Icon size={14} weight="bold" aria-hidden="true" />)
-          icons.push(icon)
-          new ml.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.item.lng!, p.item.lat!]).addTo(m)
-        }
-        const me = document.createElement('span')
-        me.className = styles.me
-        meMarker.current = new ml.Marker({ element: me }).setLngLat([c.lng, c.lat]).addTo(m)
-        map.current = m
-        // The card can change width after the map is made (fonts, the data notice, rotating the
-        // phone): redraw at the new size and put you back in the middle.
-        if (typeof ResizeObserver !== 'undefined' && box.current) {
-          resize = new ResizeObserver(() => {
-            m.resize()
-            frame(m)
-          })
-          resize.observe(box.current)
-        }
+        watchSize(k)
       } catch {
         if (!cancelled) setState('failed')
       }
@@ -147,24 +240,61 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
       cancelIdle(handle as number)
       window.clearTimeout(timer)
       resize?.disconnect()
-      map.current?.remove()
-      map.current = null
-      meMarker.current = null
-      // Unmount after this render pass: React warns about unmounting a root while rendering.
-      queueMicrotask(() => icons.forEach((r) => r.unmount()))
+      kept?.element.remove()
     }
-    // Made once per visit to Home; the pins are the nearest places when it was made.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canDraw])
 
+  // New nearest places (moved to another part of town, data refreshed): new pins and a new frame.
+  const pinKey = places.map((p) => p.item.id).join(',')
   useEffect(() => {
-    if (state === 'ready' && map.current) applyMapTheme(map.current, resolved)
+    if (state !== 'ready' || !kept) return
+    syncPins(kept)
+    frame(kept)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinKey, state])
+
+  // Follow the phone: the dot and the view glide together to each new fix; a long jump is a cut.
+  const { lat, lng } = centre
+  useEffect(() => {
+    const k = kept
+    if (state !== 'ready' || !k) return
+    const from = k.at
+    const to = { lat, lng }
+    if (from.lat === to.lat && from.lng === to.lng) return sizeRing(k)
+    if (reducedMotion() || shouldCut(from, to)) {
+      frame(k)
+      return
+    }
+    let raf = 0
+    const start = performance.now()
+    const step = (now: number) => {
+      const p = glideAt(from, to, (now - start) / GLIDE_MS)
+      k.at = p
+      k.me.setLngLat([p.lng, p.lat])
+      k.map.jumpTo({ center: [p.lng, p.lat] })
+      if (now - start < GLIDE_MS) raf = requestAnimationFrame(step)
+      else sizeRing(k)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lat, lng, state])
+
+  useEffect(() => {
+    if (state === 'ready' && kept) sizeRing(kept)
+  }, [accuracy, state])
+
+  useEffect(() => {
+    if (state !== 'ready' || !kept || kept.theme === resolved) return
+    applyMapTheme(kept.map, resolved)
+    kept.theme = resolved
   }, [resolved, state])
 
   if (state === 'failed') return null
   return (
-    <Link to="/map" className={styles.card} aria-label="Open the map">
-      <div ref={box} className={`${styles.map} ${state === 'ready' ? styles.shown : ''}`} aria-hidden="true" />
+    <Link to="/map" className={`${styles.card} ${state === 'ready' ? '' : styles.waiting}`} aria-label="Open the map">
+      <div ref={box} className={`${styles.box} ${state === 'ready' ? styles.shown : ''}`} aria-hidden="true" />
       {/* The licence credit as quiet text; the full credit and links are on the Map tab and About. */}
       <span className={styles.credit}>{MAP_CREDIT.text}</span>
     </Link>

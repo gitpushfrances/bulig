@@ -29,7 +29,15 @@
 .loading {
   position: absolute;
   inset: 0;
-  background: var(--color-selected);
+  background: var(--skeleton-bg);
+  /* The same slow pulse as the page skeletons (off under reduced motion, see index.css). */
+  animation: mapPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes mapPulse {
+  50% {
+    opacity: 0.55;
+  }
 }
 
 /* ---------- Location off: one line under the chips, clear of the control stack ---------- */

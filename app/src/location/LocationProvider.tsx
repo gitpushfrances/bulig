@@ -4,9 +4,10 @@ import { readSaved, writeSaved } from '../data/storage.ts'
 import { whenSplashGone } from '../splash.ts'
 import { distanceKm, type Position } from '../rules/nearby.ts'
 import { lookUpAddress, needsLookup, type PlacedAddress } from './address.ts'
+import { fromGeolocation, keepFix, type GpsFix } from './fixes.ts'
 import { LocationContext, type LocationStatus } from './context.ts'
 
-type Fix = { status: LocationStatus; position: Position | null; updatedAt: number | null }
+type Fix = { status: LocationStatus; position: Position | null; accuracy: number | null; updatedAt: number | null }
 
 // Live while the app is open (John, 2026-11-04): GPS-accurate so the blue dot moves with the driver,
 // a fix at most LIVE_MS old, and the app takes a new one at most every LIVE_MS. Reading GPS sends
@@ -32,13 +33,18 @@ function readAddress(): PlacedAddress | null {
 
 // Success and failure handlers for both the watch and a manual refresh.
 function handlers(setFix: Dispatch<SetStateAction<Fix>>) {
-  const onFix = (p: GeolocationPosition) =>
-    setFix({ status: 'ready', position: { lat: p.coords.latitude, lng: p.coords.longitude }, updatedAt: Date.now() })
+  const onFix = (p: GpsFix) =>
+    setFix({
+      status: 'ready',
+      position: { lat: p.lat, lng: p.lng },
+      accuracy: Number.isFinite(p.accuracy) ? Math.round(p.accuracy) : null,
+      updatedAt: p.at,
+    })
   // A failed refresh keeps the last good position; only "denied" drops it.
   const onFail = (e: GeolocationPositionError) =>
     setFix((f) =>
       e.code === 1 // PERMISSION_DENIED
-        ? { status: 'denied', position: null, updatedAt: null }
+        ? { status: 'denied', position: null, accuracy: null, updatedAt: null }
         : { ...f, status: f.position ? 'ready' : 'error' },
     )
   return [onFix, onFail] as const
@@ -57,6 +63,7 @@ export default function LocationProvider({
   const [fix, setFix] = useState<Fix>(() => ({
     status: geo ? 'locating' : 'unavailable',
     position: null,
+    accuracy: null,
     updatedAt: null,
   }))
   const [address, setAddress] = useState<PlacedAddress | null>(readAddress)
@@ -82,15 +89,33 @@ export default function LocationProvider({
     if (!geo || !watching) return
     const [onFix, onFail] = handlers(setFix)
     // GPS can report several times a second while moving: pass on at most one fix per LIVE_MS, so
-    // the map, the distances and the lists redraw calmly.
+    // the map, the distances and the lists redraw calmly. The newest fix in a burst is the one passed
+    // on (once the wait is over), never dropped, and rough guesses after a good fix are ignored.
     let last = 0
+    let timer = 0
+    let kept: GpsFix | null = null
+    let latest: GpsFix | null = null
+    const send = () => {
+      timer = 0
+      if (!latest) return
+      last = Date.now()
+      onFix(latest)
+    }
     const id = geo.watchPosition((p) => {
-      const now = Date.now()
-      if (now - last < LIVE_MS) return
-      last = now
-      onFix(p)
+      const next = fromGeolocation(p)
+      if (!keepFix(kept, next)) return
+      kept = next
+      latest = next
+      const wait = LIVE_MS - (Date.now() - last)
+      if (wait <= 0) {
+        window.clearTimeout(timer)
+        send()
+      } else if (!timer) timer = window.setTimeout(send, wait)
     }, onFail, WATCH)
-    return () => geo.clearWatch(id)
+    return () => {
+      geo.clearWatch(id)
+      window.clearTimeout(timer)
+    }
   }, [geo, watching])
 
   // The first fix is on its way (the permission prompt may be open). Pages hold their placeholders
@@ -126,7 +151,8 @@ export default function LocationProvider({
     if (!geo) return
     forceLookup.current = true
     setFix((f) => ({ ...f, status: 'locating' }))
-    geo.getCurrentPosition(...handlers(setFix), FRESH)
+    const [onFix, onFail] = handlers(setFix)
+    geo.getCurrentPosition((p) => onFix(fromGeolocation(p)), onFail, FRESH)
   }
 
   // The last address stays up while the phone is within 2 km of it (no flicker between lookups),

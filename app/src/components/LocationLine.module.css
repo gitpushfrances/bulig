@@ -163,6 +163,17 @@
   animation: live-ring 2s var(--ease-out) infinite;
 }
 
+/* An approximate fix: a hollow grey dot that doesn't pulse, so it never reads as precise. */
+.rough {
+  background: transparent;
+  border: 2px solid var(--color-text-muted);
+  box-shadow: none;
+}
+
+.rough::after {
+  display: none;
+}
+
 @keyframes live-ring {
   from {
     opacity: 0.6;

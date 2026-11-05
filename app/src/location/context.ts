@@ -9,6 +9,9 @@ export type LocationStatus = 'locating' | 'ready' | 'denied' | 'unavailable' | '
 export interface PhoneLocation {
   status: LocationStatus
   position: Position | null
+  // How far off the position may be, in metres (as the phone reports it). Over ROUGH_M (fixes.ts) it
+  // is a guess from Wi-Fi or the cell tower: shown as approximate. null when unknown.
+  accuracy: number | null
   updatedAt: number | null // ms since epoch of the last fix
   // The first fix is on its way (the permission prompt may be open), for a few seconds at most.
   settling: boolean
@@ -21,6 +24,7 @@ export interface PhoneLocation {
 export const LocationContext = createContext<PhoneLocation>({
   status: 'unavailable',
   position: null,
+  accuracy: null,
   updatedAt: null,
   settling: false,
   address: null,
