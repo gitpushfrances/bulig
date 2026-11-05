@@ -52,12 +52,14 @@ function DeleteAccount() {
 
   const [failed, setFailed] = useState(false)
 
-  if (!canManage) {
+  // Kept out of the way (John, 2026-11-05) but never removed: Google Play and RA 10173 need an
+  // in-app delete. A quiet link at the very bottom; the warning and confirm open only on tap.
+  if (!canManage) return null
+  if (!open) {
     return (
-      <div className={styles.danger}>
-        <h2 className={styles.dangerTitle}>Delete account</h2>
-        <p className={page.hint}>Test accounts can&apos;t be deleted. Accounts you create can.</p>
-      </div>
+      <button type="button" className={styles.deleteLink} onClick={() => setOpen(true)}>
+        Delete account
+      </button>
     )
   }
 
@@ -69,45 +71,36 @@ function DeleteAccount() {
           ? 'Deletes your account and saved places from Bulig. This can\u2019t be undone.'
           : 'Removes your account, saved places and details from this phone. This can\u2019t be undone.'}
       </p>
-      {open ? (
-        <>
-          <TextField
-            label='Type "delete" to confirm'
-            autoComplete="off"
-            autoCapitalize="none"
-            value={typed}
-            onChange={setTyped}
-          />
-          {failed && (
-            <p className={page.error} role="alert">
-              Couldn&apos;t delete your account. Check your connection and try again.
-            </p>
-          )}
-          <div className={page.actions}>
-            <button type="button" className={page.secondary} onClick={() => setOpen(false)}>
-              Keep my account
-            </button>
-            <button
-              type="button"
-              className={`${page.secondary} ${styles.dangerButton}`}
-              disabled={typed.trim().toLowerCase() !== 'delete'}
-              onClick={async () => {
-                setFailed(false)
-                if (await deleteAccount()) navigate('/login', { replace: true })
-                else setFailed(true)
-              }}
-            >
-              <Trash size={18} aria-hidden="true" />
-              Delete account
-            </button>
-          </div>
-        </>
-      ) : (
-        <button type="button" className={`${page.secondary} ${styles.dangerButton}`} onClick={() => setOpen(true)}>
+      <TextField
+        label='Type "delete" to confirm'
+        autoComplete="off"
+        autoCapitalize="none"
+        value={typed}
+        onChange={setTyped}
+      />
+      {failed && (
+        <p className={page.error} role="alert">
+          Couldn&apos;t delete your account. Check your connection and try again.
+        </p>
+      )}
+      <div className={page.actions}>
+        <button type="button" className={page.secondary} onClick={() => setOpen(false)}>
+          Keep my account
+        </button>
+        <button
+          type="button"
+          className={`${page.secondary} ${styles.dangerButton}`}
+          disabled={typed.trim().toLowerCase() !== 'delete'}
+          onClick={async () => {
+            setFailed(false)
+            if (await deleteAccount()) navigate('/login', { replace: true })
+            else setFailed(true)
+          }}
+        >
           <Trash size={18} aria-hidden="true" />
           Delete account
         </button>
-      )}
+      </div>
     </div>
   )
 }
@@ -231,14 +224,14 @@ export default function ProfilePage() {
         Sign out
       </button>
 
-      <DeleteAccount />
-
       <footer className={styles.footer}>
         <p>
           Bulig v{__APP_VERSION__} · build {__BUILD_ID__}
         </p>
         <p>Made for travellers in the Philippines.</p>
       </footer>
+
+      <DeleteAccount />
     </section>
   )
 }
