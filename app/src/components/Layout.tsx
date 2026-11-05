@@ -1,9 +1,10 @@
-import { CloudSlash, Heart, House, type Icon, MapTrifold as MapIcon, SquaresFour, Warning } from '@phosphor-icons/react'
+import { CloudSlash, Heart, House, type Icon, MapTrifold as MapIcon, Plus, SquaresFour, Warning } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import ReadyGate from './ReadyGate.tsx'
 import { useAppData } from '../data/context.ts'
+import { can } from '../rules/permissions.ts'
 import styles from './Layout.module.css'
 
 interface Tab {
@@ -22,6 +23,14 @@ const tabs: Tab[] = [
 ]
 // Profile is not a tab (John, 2026-11-04): the avatar in Home's header opens it, so the bar keeps
 // four roomier targets. Its pages (Profile, About, Help, Terms...) still slide in like any other.
+
+// Contributors and above get a raised Add button in the middle of the bar (John, 2026-11-05), like a
+// wallet app's scan button. Teal, never red: it must never be mistaken for the Emergency button.
+const ADD_TAB: Tab = { to: '/add', label: 'Add', icon: Plus }
+
+function tabsFor(canAdd: boolean): Tab[] {
+  return canAdd ? [...tabs.slice(0, 2), ADD_TAB, ...tabs.slice(2)] : tabs
+}
 
 const INSTANT_PATHS = ['/emergency', '/map']
 const TAB_ROOTS = tabs.map((t) => t.to)
@@ -79,7 +88,8 @@ function useScrollMemory() {
 // the left. Desktops: a labelled sidebar. One nav element, laid out by CSS.
 export default function Layout() {
   const { online } = useAppData()
-  const { savedNotice } = useAuth()
+  const { account, savedNotice } = useAuth()
+  const navTabs = tabsFor(can(account, 'contribute'))
   const { pathname } = useLocation()
   const navType = useNavigationType()
   useScrollMemory()
@@ -93,18 +103,20 @@ export default function Layout() {
       <nav className={styles.nav} aria-label="Main">
         <p className={styles.navName}>Bulig</p>
         <div className={styles.tabs}>
-          {tabs.map((tab) => {
+          {navTabs.map((tab) => {
             const active = isActive(tab, pathname)
             const Icon = tab.icon
+            const add = tab === ADD_TAB
             return (
               <Link
                 key={tab.to}
                 to={tab.to}
                 aria-current={active ? 'page' : undefined}
-                className={active ? `${styles.tab} ${styles.active}` : styles.tab}
+                aria-label={add ? 'Add a place' : undefined}
+                className={[styles.tab, active && styles.active, add && styles.add].filter(Boolean).join(' ')}
               >
                 <span className={styles.tabIcon}>
-                  <Icon size={22} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
+                  <Icon size={add ? 28 : 22} weight={add ? 'bold' : active ? 'fill' : 'regular'} aria-hidden="true" />
                 </span>
                 <span>{tab.label}</span>
               </Link>

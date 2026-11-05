@@ -1,4 +1,4 @@
-import { CaretRight } from '@phosphor-icons/react'
+import { Bell, CaretRight } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import Avatar from '../components/Avatar.tsx'
@@ -7,6 +7,7 @@ import DataNotice from '../components/DataNotice.tsx'
 import LocationLine from '../components/LocationLine.tsx'
 import MiniMap, { MINI_PINS } from '../components/MiniMap.tsx'
 import { BentoSkeleton, RowsSkeleton } from '../components/Skeleton.tsx'
+import { useMyUpdates } from '../contribute/useMyUpdates.ts'
 import { useAppData } from '../data/context.ts'
 import { fallbackHotline } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
@@ -24,6 +25,8 @@ export default function HomePage() {
   const { account, saved, savedStatus } = useAuth()
   const { ready, loading, ranked, labels, position, areaName } = useNearby()
   const welcome = useWelcome()
+  // Contributors and above: the bell lights up when a moderator has answered (no push; UI-UX.md).
+  const updates = useMyUpdates()
 
   const contacts = data.status === 'ready' ? visibleContacts(data.emergency, area, new Date()) : []
   const national = contacts.find((c) => c.kind === 'national' && c.area === null)
@@ -54,9 +57,25 @@ export default function HomePage() {
           <p className={home.message}>{welcome.message}</p>
           <LocationLine inHeader />
         </div>
-        <Link to="/profile" className={home.profile} aria-label="Profile">
-          <Avatar size={44} initials />
-        </Link>
+        <div className={home.headActions}>
+          {updates.allowed && (
+            <Link
+              to="/updates"
+              className={home.bell}
+              aria-label={updates.unread.length ? `Updates, ${updates.unread.length} new` : 'Updates'}
+            >
+              <Bell size={24} aria-hidden="true" />
+              {updates.unread.length > 0 && (
+                <span className={home.badge} aria-hidden="true">
+                  {updates.unread.length > 9 ? '9+' : updates.unread.length}
+                </span>
+              )}
+            </Link>
+          )}
+          <Link to="/profile" className={home.profile} aria-label="Profile">
+            <Avatar size={44} initials />
+          </Link>
+        </div>
       </header>
 
       <div className={styles.section}>
