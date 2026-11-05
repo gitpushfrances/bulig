@@ -1,6 +1,8 @@
 import { CloudSlash, Heart, House, type Icon, MapTrifold as MapIcon, SquaresFour, Warning } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Link, Outlet, useLocation, useNavigationType } from 'react-router'
+import { useAuth } from '../auth/context.ts'
+import ReadyGate from './ReadyGate.tsx'
 import { useAppData } from '../data/context.ts'
 import styles from './Layout.module.css'
 
@@ -77,6 +79,7 @@ function useScrollMemory() {
 // the left. Desktops: a labelled sidebar. One nav element, laid out by CSS.
 export default function Layout() {
   const { online } = useAppData()
+  const { savedNotice } = useAuth()
   const { pathname } = useLocation()
   const navType = useNavigationType()
   useScrollMemory()
@@ -122,11 +125,19 @@ export default function Layout() {
               outside, so it never blinks. Emergency and the Map appear at once: one is reached in a
               hurry, the other is a heavy canvas carrying its own Emergency button. */}
           <div key={pathname} className={enterClass(pathname, navType)}>
-            <Outlet />
+            <ReadyGate pathname={pathname}>
+              <Outlet />
+            </ReadyGate>
           </div>
         </main>
       </div>
       <EmergencyButton pathname={pathname} />
+      {/* A heart the server refused flips back; this says why, then goes. */}
+      {savedNotice && (
+        <p className={styles.notice} role="status">
+          {savedNotice}
+        </p>
+      )}
     </div>
   )
 }

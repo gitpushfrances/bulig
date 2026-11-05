@@ -214,6 +214,17 @@ describe('apiStore', () => {
     expect(localStorage.getItem('bulig.saved.ana@example.com')).toBeNull()
   })
 
+  it('tells a save that should be sent again from one the server refused', async () => {
+    const { fetchFn } = server({ status: 204 }, new TypeError('Failed to fetch'), { status: 503 }, { status: 429 }, { status: 404 }, { status: 401 })
+    const store = createApiStore(BASE, fetchFn)
+    const ana = { email: 'ana@example.com', name: 'Ana', role: 'user' as const, areas: [] }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const results = []
+    for (let i = 0; i < 6; i++) results.push(await store.setSaved(ana, 'ph-a', true, ['ph-a']))
+    expect(results).toEqual(['ok', 'retry', 'retry', 'retry', 'rejected', 'rejected'])
+    warn.mockRestore()
+  })
+
   it('signs out on the phone even with no signal', async () => {
     localStorage.setItem('bulig.token', '1|abc')
     const store = createApiStore(BASE, server(new TypeError('Failed to fetch')).fetchFn)

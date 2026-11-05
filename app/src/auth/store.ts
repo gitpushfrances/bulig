@@ -41,6 +41,10 @@ export interface ServerProfile {
   homeArea: string | null
 }
 
+// ok: the server has it. retry: it didn't get there (offline, server asleep or busy): the heart stays
+// and the app sends it again. rejected: the server said no (the place is gone, signed out): it flips back.
+export type SaveResult = 'ok' | 'retry' | 'rejected'
+
 export interface AccountStore {
   // True when accounts live on the server: copy and messages change, test logins are gone.
   readonly online: boolean
@@ -69,7 +73,7 @@ export interface AccountStore {
   // the app keeps what it has instead of showing an empty list.
   loadSaved(account: Account): Promise<string[] | null>
   // Saves or unsaves one record. False when the server didn't take it, so the heart flips back.
-  setSaved(account: Account, id: string, on: boolean, all: string[]): Promise<boolean>
+  setSaved(account: Account, id: string, on: boolean, all: string[]): Promise<SaveResult>
   // 'preview': this build sends no email (phone-only accounts).
   forgotPassword(email: string): Promise<'sent' | 'offline' | 'preview'>
   resetPassword(email: string, token: string, password: string): Promise<'ok' | 'invalid' | 'offline' | 'preview'>

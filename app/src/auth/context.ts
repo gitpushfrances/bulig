@@ -35,6 +35,8 @@ export interface Auth {
   // because the server didn't answer (it keeps trying). error: nothing to show and the server didn't answer.
   savedStatus: SavedStatus
   retrySaved: () => void
+  // A heart the server refused (the place is gone): shown for a few seconds, then null.
+  savedNotice?: string | null
   toggleSaved: (id: string) => void
 }
 

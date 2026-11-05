@@ -581,6 +581,7 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.address` | Last looked-up address | Stays on the phone |
 | `bulig.mapView` | Last Map view (centre rounded to ~100 m, zoom), to reopen the map there | Stays on the phone |
 | `bulig.savedCache.<email>` | The last saved list from the server, shown at once on the next start and offline (server accounts) | Stays on the phone as a cache; cleared on sign out |
+| `bulig.savedOutbox.<email>` | Hearts the server hasn't confirmed yet (`{recordId: true/false}`), sent again later | Stays on the phone until sent; cleared on sign out |
 | `bulig.welcome` | Index of the last welcome line on Home, so the next one differs | Stays on the phone |
 | `bulig.theme` | System / Light / Dark | Stays on the phone |
 | `bulig.route` (sessionStorage) | The route in progress | Stays on the phone |

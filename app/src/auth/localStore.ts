@@ -97,7 +97,7 @@ export const localStore: AccountStore = {
 
   async setSaved(account, _id, _on, all) {
     writeSaved(savedKey(account.email), JSON.stringify(all))
-    return true
+    return 'ok' as const
   },
 
   async forgotPassword() {

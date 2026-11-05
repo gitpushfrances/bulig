@@ -10,7 +10,7 @@ import type { Account } from './types.ts'
 
 const ana: Account = { email: 'ana@example.com', name: 'Ana', role: 'user', areas: [] }
 
-function fakeStore(loadSaved: AccountStore['loadSaved'], setSaved: AccountStore['setSaved'] = async () => true) {
+function fakeStore(loadSaved: AccountStore['loadSaved'], setSaved: AccountStore['setSaved'] = async () => 'ok') {
   return {
     online: true,
     restore: () => ana,
@@ -23,9 +23,10 @@ function fakeStore(loadSaved: AccountStore['loadSaved'], setSaved: AccountStore[
 }
 
 function Probe() {
-  const { saved, savedStatus, toggleSaved, retrySaved } = useAuth()
+  const { saved, savedStatus, savedNotice, toggleSaved, retrySaved } = useAuth()
   return (
     <div>
+      <p data-testid="notice">{savedNotice ?? ''}</p>
       <p data-testid="ids">{saved.join(',')}</p>
       <p data-testid="status">{savedStatus}</p>
       <button onClick={() => toggleSaved('ph-new')}>toggle</button>
@@ -120,5 +121,56 @@ describe('saved places with server accounts', () => {
     await flush()
     fireEvent.click(screen.getByText('out'))
     expect(localStorage.getItem('bulig.savedCache.ana@example.com')).toBeNull()
+  })
+
+  it('keeps a heart the server did not get, and sends it again later', async () => {
+    vi.useFakeTimers()
+    const answers: ('retry' | 'ok')[] = ['retry', 'ok']
+    const store = fakeStore(async () => [], async () => answers.shift() ?? 'ok')
+    render(
+      <AuthProvider store={store}>
+        <Probe />
+      </AuthProvider>,
+    )
+    await flush()
+    fireEvent.click(screen.getByText('toggle'))
+    await flush()
+    expect(ids()).toBe('ph-new')
+    expect(JSON.parse(localStorage.getItem('bulig.savedOutbox.ana@example.com') ?? '{}')).toEqual({ 'ph-new': true })
+    await act(async () => {
+      vi.advanceTimersByTime(5_000)
+    })
+    expect(store.setSaved).toHaveBeenCalledTimes(2)
+    expect(ids()).toBe('ph-new')
+    expect(localStorage.getItem('bulig.savedOutbox.ana@example.com')).toBeNull()
+  })
+
+  it('sends hearts left from last time once the list loads, and shows them meanwhile', async () => {
+    localStorage.setItem('bulig.savedOutbox.ana@example.com', JSON.stringify({ 'ph-new': true }))
+    const store = fakeStore(async () => ['ph-a'])
+    render(
+      <AuthProvider store={store}>
+        <Probe />
+      </AuthProvider>,
+    )
+    await flush()
+    expect(ids()).toBe('ph-a,ph-new')
+    await flush()
+    expect(store.setSaved).toHaveBeenCalledWith(expect.anything(), 'ph-new', true, [])
+    expect(localStorage.getItem('bulig.savedOutbox.ana@example.com')).toBeNull()
+  })
+
+  it('flips back and says why when the server refuses the place', async () => {
+    const store = fakeStore(async () => [], async () => 'rejected')
+    render(
+      <AuthProvider store={store}>
+        <Probe />
+      </AuthProvider>,
+    )
+    await flush()
+    fireEvent.click(screen.getByText('toggle'))
+    await flush()
+    expect(ids()).toBe('')
+    expect(screen.getByTestId('notice').textContent).toMatch(/Couldn't save that place/)
   })
 })
