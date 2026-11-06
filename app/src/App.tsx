@@ -5,7 +5,13 @@ import AuthProvider from './auth/AuthProvider.tsx'
 import LocationProvider from './location/LocationProvider.tsx'
 import Layout from './components/Layout.tsx'
 import RequireAccount from './components/RequireAccount.tsx'
-import HomePage from './pages/HomePage.tsx'
+import { HomeRoute, RequireStaff } from './components/StaffRoutes.tsx'
+import ReviewPage from './pages/staff/ReviewPage.tsx'
+import ReviewOnePage from './pages/staff/ReviewOnePage.tsx'
+import ManagePage from './pages/staff/ManagePage.tsx'
+import UserPage from './pages/staff/UserPage.tsx'
+import AreaPage from './pages/staff/AreaPage.tsx'
+import HotlinePage from './pages/staff/HotlinePage.tsx'
 import ServicesPage from './pages/ServicesPage.tsx'
 import NearbyPage from './pages/NearbyPage.tsx'
 import PlacePage from './pages/PlacePage.tsx'
@@ -52,7 +58,7 @@ export default function App() {
               {/* The licences page is gone (John, 2026-11-04); its credits are on About. */}
               <Route path="licenses" element={<Navigate to="/about" replace />} />
               <Route element={<RequireAccount />}>
-                <Route index element={<HomePage />} />
+                <Route index element={<HomeRoute />} />
                 <Route path="services" element={<ServicesPage />} />
                 <Route path="services/:category" element={<NearbyPage />} />
                 <Route path="nearby/:need" element={<NearbyPage />} />
@@ -66,6 +72,15 @@ export default function App() {
                 <Route path="about" element={<AboutPage />} />
                 <Route path="add" element={<AddPlacePage />} />
                 <Route path="updates" element={<UpdatesPage />} />
+                {/* Moderators and admins (API.md §7.8, UI-UX.md "Moderator app"). */}
+                <Route element={<RequireStaff />}>
+                  <Route path="review" element={<ReviewPage />} />
+                  <Route path="review/:id" element={<ReviewOnePage />} />
+                  <Route path="manage" element={<ManagePage />} />
+                  <Route path="manage/users/:id" element={<UserPage />} />
+                  <Route path="manage/areas/:id" element={<AreaPage />} />
+                  <Route path="manage/hotlines/:id" element={<HotlinePage />} />
+                </Route>
               </Route>
               <Route path="*" element={<NotFoundPage />} />
             </Route>

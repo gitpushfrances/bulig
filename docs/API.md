@@ -80,17 +80,25 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 26 | Change email (sends a confirmation link) | `POST /me/email` | 🔒 | 4 | `requestEmailChange()` in `auth/apiStore.ts` (`pages/AccountPages.tsx`, `/profile/email`) |
 | 27 | Cancel an email change | `DELETE /me/email` | 🔒 | 4 | `cancelEmailChange()` in `auth/apiStore.ts` |
 | 28 | Confirm the new email (the link) | `POST /auth/confirm-email` | — | 4 | `pages/ConfirmEmailPage.tsx` at `/confirm-email?token=` |
-| 29 | Staff counts (dashboard, "12 to review") | `GET /staff/summary` | 🔒 staff | 4 | Not built (§7.8) |
-| 30 | Review queue | `GET /staff/submissions` | 🔒 staff | 4 | Not built (§7.8) |
-| 31 | One submission to review | `GET /staff/submissions/{id}` | 🔒 staff | 4 | Not built (§7.8) |
-| 32 | Approve ticked fields | `POST /staff/submissions/{id}/approve` | 🔒 staff | 4 | Not built (§7.8) |
-| 33 | Confirm a flag | `POST /staff/submissions/{id}/confirm` | 🔒 staff | 4 | Not built (§7.8) |
-| 34 | Reject one | `POST /staff/submissions/{id}/reject` | 🔒 staff | 4 | Not built (§7.8) |
-| 35 | Reject many | `POST /staff/submissions/reject` | 🔒 staff | 4 | Not built (§7.8) |
-| 36 | Add a place directly | `POST /staff/services` | 🔒 staff | 4 | Not built (§7.8) |
-| 37 | Mark a place checked | `POST /staff/services/{id}/verify` | 🔒 staff | 4 | Not built (§7.8) |
-| 38 | Emergency numbers due for a check | `GET /staff/emergency-contacts?due=30` | 🔒 staff | 4 | Not built (§7.8) |
-| 39 | Mark an emergency number checked | `POST /staff/emergency-contacts/{id}/verify` | 🔒 staff | 4 | Not built (§7.8) |
+| 29 | Staff counts (dashboard, "12 to review") | `GET /staff/summary` | 🔒 staff | 4 | `summary()` in `staff/api.ts` |
+| 30 | Review queue | `GET /staff/submissions` | 🔒 staff | 4 | `queue()` in `staff/api.ts` |
+| 31 | One submission to review | `GET /staff/submissions/{id}` | 🔒 staff | 4 | `submission()` in `staff/api.ts` |
+| 32 | Approve ticked fields | `POST /staff/submissions/{id}/approve` | 🔒 staff | 4 | `approve()` in `staff/api.ts` |
+| 33 | Confirm a flag | `POST /staff/submissions/{id}/confirm` | 🔒 staff | 4 | `confirm()` in `staff/api.ts` |
+| 34 | Reject one | `POST /staff/submissions/{id}/reject` | 🔒 staff | 4 | `reject()` in `staff/api.ts` |
+| 35 | Reject many | `POST /staff/submissions/reject` | 🔒 staff | 4 | `rejectMany()` in `staff/api.ts` |
+| 36 | Add a place directly | `POST /staff/services` | 🔒 staff | 4 | `addPlace()` in `staff/api.ts` |
+| 37 | Mark a place checked | `POST /staff/services/{id}/verify` | 🔒 staff | 4 | `verifyPlace()` in `staff/api.ts` |
+| 38 | Emergency numbers due for a check | `GET /staff/emergency-contacts?due=30` | 🔒 staff | 4 | `hotlines({ due: 30 })` in `staff/api.ts` |
+| 39 | Mark an emergency number checked | `POST /staff/emergency-contacts/{id}/verify` | 🔒 staff | 4 | `verifyHotline()` in `staff/api.ts` |
+| 40 | People (masked) | `GET /staff/users?q=&role=&page=` | 🔒 staff | 4 | `users()` in `staff/api.ts` (`pages/staff/ManagePage.tsx`) |
+| 41 | One person | `GET /staff/users/{id}` | 🔒 staff | 4 | `user()` in `staff/api.ts` (`pages/staff/UserPage.tsx`) |
+| 42 | Switch user ↔ contributor | `PATCH /staff/users/{id}/role` | 🔒 staff | 4 | `setRole()` in `staff/api.ts` |
+| 43 | Take down a profile photo | `DELETE /staff/users/{id}/photo` | 🔒 staff | 4 | `removePhoto()` in `staff/api.ts` |
+| 44 | Areas with counts | `GET /staff/areas` | 🔒 staff | 4 | `areas()` in `staff/api.ts` |
+| 45 | Add / edit an area | `POST /staff/areas`, `PATCH /staff/areas/{id}` | 🔒 staff | 4 | `saveArea()` in `staff/api.ts` (`pages/staff/AreaPage.tsx`) |
+| 46 | All local hotlines | `GET /staff/emergency-contacts[?area=][&level=][&due=]` | 🔒 staff | 4 | `hotlines()` in `staff/api.ts` (row 38 is the same request with `due`) |
+| 47 | Add / edit a hotline | `POST /staff/emergency-contacts`, `PATCH /staff/emergency-contacts/{id}` | 🔒 staff | 4 | `saveHotline()` in `staff/api.ts` (`pages/staff/HotlinePage.tsx`) |
 
 Admin and moderator screens in Filament (`/panel`, Phase 4) are server-side and not part of this contract: places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. The two jobs a moderator does on the road, the review queue and marking records checked, are also in the app, through the staff requests in [§7.8](#78-staff-requests-moderators-and-admins) (John, 2026-11-05). See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
 
@@ -667,6 +675,46 @@ Mark checked today. **Request:** `{ "source": "called" }`, one of `called`, `vis
 
 Local emergency numbers already hidden or hiding within `due` days (0 to 90), oldest check first, inside the caller's areas. **200:** `{ "items": [ { …EmergencyContact (§3.2)…, "hidden": true, "hidesOn": "2026-11-20" } ] }`.
 
+#### People, areas and hotlines (added 2026-11-06, John)
+
+The app's **Manage** tab: Users, Areas and Hotlines. Same policies as the panel (`UserPolicy`, `AreaPolicy`, `EmergencyContactPolicy`), so both give the same answer. Every write goes into the activity log with who did it.
+
+**No leakage.** These answers carry only what the screens show. Never: full email, mobile, home area, saved places, photo of a deleted account, tokens or another staff member's activity. The app keeps them in memory only (never `localStorage` or the offline cache) and forgets them on sign-out.
+
+##### `GET /staff/users?q=&role=&page=`
+
+`q`: 3 or more characters, matched against the name and the email (`422` if shorter). `role`: `user`, `contributor`, `moderator`, `admin`. 20 per page, newest first.
+
+**200:** `{ "items": [ { "id": "usr_01JBX…", "name": "Juan Dela Cruz", "role": "contributor", "email": "ju…@gmail.com", "createdAt": "2026-10-30", "sent": 7 } ], "nextPage": 2 }`. `email` is masked: the first two characters and the domain. `sent` = submissions they sent.
+
+##### `GET /staff/users/{id}`
+
+**200:** the list item plus `"approved": 5, "photoUrl": "https://…" | null, "canChangeRole": true, "canRemovePhoto": true`. `canChangeRole` is `false` for the caller themselves and for any moderator or admin.
+
+##### `PATCH /staff/users/{id}/role`
+
+**Request:** `{ "role": "user" | "contributor" }`. Moderators may only move people between these two; admins do the rest in the panel. **200:** the `GET /staff/users/{id}` body. **403:** self, staff, or a role a moderator can't give.
+
+##### `DELETE /staff/users/{id}/photo`
+
+For an offensive profile photo. **204.** The person sees Ropi's head again; nothing tells others why.
+
+##### `GET /staff/areas`
+
+Every area in the caller's scope (all of them for now), as in §3.1, plus `"places": 41, "hotlines": 4, "inUse": true`. Sorted by `level` (province, city, municipality, barangay), then name.
+
+##### `POST /staff/areas` and `PATCH /staff/areas/{id}`
+
+**Request:** `{ "name": "Salcedo", "level": "province" | "city" | "municipality" | "barangay", "parent": "ph-eastern-samar" | null, "region": "Eastern Samar", "lat": 11.15, "lng": 125.66 }` (`lat`/`lng` optional, together). The server makes the ID from the parent and name and never changes it on `PATCH`. **201/200:** the area as in `GET /staff/areas`. **422:** a name already used under the same parent (`That area is already listed.`), or a parent that would make a loop. Only an admin deletes, in the panel, and only an unused area.
+
+##### `GET /staff/emergency-contacts[?area=][&level=][&due=]`
+
+Without `due`: every **local** hotline in the caller's scope, grouped by the app, sorted by area level then name. `area` = that area only; `level` = only areas of that level. With `due` it is row 38 (unchanged). Each item: the EmergencyContact (§3.2) plus `"areaName": "Guiuan", "areaLevel": "municipality", "hidden": false, "hidesOn": "2027-04-20"`. National lines (`kind: "national"`, `area: null`) are never in this list: they are admin-only, in the panel (one typo there breaks the most important button in Bulig).
+
+##### `POST /staff/emergency-contacts` and `PATCH /staff/emergency-contacts/{id}`
+
+**Request:** `{ "area": "ph-eastern-samar-guiuan", "kind": "police" | "fire" | "medical" | "rescue" | "coast_guard" | "disaster", "name": "PNP Guiuan", "phones": ["+639171234567"], "source": "Called the office", "checkedToday": true }`. 1 to 3 phones, E.164 or a short local hotline (3 to 6 digits). `checkedToday: true` sets `verifiedAt` to today; otherwise a new hotline gets today and an edit keeps its date. `area` is required (no national lines here). **201/200:** the item as in the list. **422:** field rules; `kind: national` (`National lines are changed in the panel.`). Only an admin deletes.
+
 #### Waking up
 
 Render's free plan can take about a minute to wake. Staff requests have no shorter timeout: the app shows "Waking the server. This can take a minute." and waits up to 90 s before offering Try again.
@@ -740,6 +788,8 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.drafts.new-place.<email>` | An unsent Add a place form (upload IDs and small previews, not the photos) | Stays on the phone until sent |
 | `bulig.updatesSeen.<email>` | Which answers in My updates the person has seen, for the bell | Stays on the phone |
 | `bulig.localSubmissions` | Dev and tests only: new places sent with no backend | Not in the API build |
+| `bulig.traveller.<email>` | Staff only: "Use the app as: Traveller" (everyday tabs back) | Stays on the phone; holds no data |
+| Staff snapshots (`staff/snapshot.ts`) | The last copy of the queue, people, areas and hotlines, so screens open at once | **Memory only**, never stored; dropped on sign-out or another sign-in |
 
 Only `AuthProvider` (`app/src/auth/`) and the data source (`app/src/data/`) change; pages keep calling `useAuth()` and `useAppData()`.
 
