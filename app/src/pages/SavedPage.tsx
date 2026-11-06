@@ -7,6 +7,7 @@ import { CardListSkeleton } from '../components/Skeleton.tsx'
 import { useAppData } from '../data/context.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { byDistance } from '../rules/nearby.ts'
+import { transitionName } from '../motion.ts'
 import styles from './Page.module.css'
 
 export default function SavedPage() {
@@ -92,6 +93,7 @@ export default function SavedPage() {
                     km={km}
                     labels={ready ? data.labels : null}
                     areaName={areaNames.get(s.area)}
+                    transition={transitionName('saved-place', s.id)}
                   />
                 ))}
               </ul>
@@ -102,7 +104,12 @@ export default function SavedPage() {
               <SectionHead title="Numbers" />
               <ul className={styles.list} aria-label="Saved numbers">
                 {numbers.map((c) => (
-                  <ContactCard key={c.id} contact={c} areaName={c.area ? areaNames.get(c.area) : undefined} />
+                  <ContactCard
+                    key={c.id}
+                    contact={c}
+                    areaName={c.area ? areaNames.get(c.area) : undefined}
+                    transition={transitionName('saved-number', c.id)}
+                  />
                 ))}
               </ul>
             </>

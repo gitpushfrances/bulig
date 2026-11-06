@@ -44,8 +44,10 @@ export default defineConfig({
         // Installed, Bulig opens without the browser's address bar, like any other app.
         display: 'standalone',
         display_override: ['standalone', 'minimal-ui'],
-        theme_color: '#fafafa',
-        background_color: '#fafafa',
+        // Android paints background_color (with the icon) before the page loads. One colour only, so
+        // it matches the splash in index.html in every theme: no white flash in dark mode.
+        theme_color: '#09090b',
+        background_color: '#09090b',
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },

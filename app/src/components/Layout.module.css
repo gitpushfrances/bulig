@@ -91,27 +91,38 @@
   color: var(--color-primary-text);
 }
 
-/* The raised Add button (contributors and above): a 64px teal circle lifted above the bar. The ring
-   in the bar's own colour reads as a notch cut into the bar behind it. */
+/* The raised Add button (contributors and above): a 56px teal circle lifted above the bar, lit from
+   the top (gradient) with a soft teal lift (shadow). The ring in the bar's own colour reads as a notch
+   cut into the bar behind it. 56px (not 64) and lifted 20px (not 28) so it doesn't crowd the map
+   or its neighbours on a 360px phone; the label sits 6px below with room to breathe. */
 .tab.add {
   justify-content: flex-end;
+  gap: 6px;
+  padding-bottom: 8px;
   color: var(--color-primary-text);
 }
 
 .tab.add .tabIcon {
-  width: 64px;
-  height: 64px;
-  margin-top: -28px;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  width: 56px;
+  height: 56px;
+  margin-top: -22px;
+  background: var(--add-bg);
+  color: var(--add-text);
   box-shadow:
-    0 0 0 6px var(--color-surface),
-    0 6px 16px rgb(14 116 144 / 0.35);
+    0 0 0 5px var(--color-surface),
+    var(--add-shadow);
+  transition:
+    transform var(--press-ms) var(--ease-out),
+    box-shadow 200ms var(--ease-out);
+}
+
+.tab.add:active .tabIcon {
+  transform: scale(0.93);
 }
 
 .tab.add.active .tabIcon {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--add-bg);
+  color: var(--add-text);
 }
 
 /* ---------- Offline ---------- */
@@ -248,7 +259,7 @@
     width: 48px;
     height: 48px;
     margin-top: 0;
-    box-shadow: none;
+    box-shadow: var(--add-shadow);
   }
 
   .main {
@@ -351,6 +362,6 @@
 
 @media (hover: hover) and (pointer: fine) {
   .tab.add:hover .tabIcon {
-    background: var(--color-primary);
+    background: var(--add-bg);
   }
 }

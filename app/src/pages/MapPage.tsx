@@ -1,4 +1,4 @@
-import { ArrowClockwise, Crosshair, GpsSlash, Path as RouteIcon, Phone, Warning, X } from '@phosphor-icons/react'
+import { ArrowClockwise, Crosshair, GpsSlash, MapTrifold, Path as RouteIcon, Phone, Target, Warning, X } from '@phosphor-icons/react'
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -16,6 +16,8 @@ import { usePhoneLocation } from '../location/context.ts'
 import { hasWebGL, LOAD_TIMEOUT_MS, PROBLEM_TEXT, type MapProblem } from '../map/loadMap.ts'
 import { attachMap, detachMap, dropMap, keepMap, keptMap, readView, saveView, type KeptMap } from '../map/mapKeeper.ts'
 import { applyMapTheme, MAP_CREDIT, mapRenderOptions, themedStyle } from '../map/mapTheme.ts'
+import { boundsOf, circle, NEARBY_KM, placesInScope, type MapScope } from '../map/mapScope.ts'
+import { readRoute, readScope, saveRoute, saveScope, type SavedRoute } from '../map/mapSession.ts'
 import { fetchRoute, REROUTE_DEG, type Route, type TravelMode } from '../map/route.ts'
 import RouteSheet, { type RouteState } from '../map/RouteSheet.tsx'
 import { formatDistance } from '../rules/nearby.ts'
@@ -39,29 +41,22 @@ type Status = 'loading' | 'ready' | 'failed'
 const ROUTE_COLOUR = '#2563eb'
 const ROUTE_CASING = { light: '#ffffff', dark: '#09090b' }
 
-// The route in progress, kept for this browser session so leaving the Map doesn't lose it.
-const ROUTE_KEY = 'bulig.route'
-interface SavedRoute {
-  to: string
-  mode: TravelMode
-}
+// The faint 5 km ring for Nearby, so the edge of "near" is visible. Raw colour: MapLibre paints it.
+const RING_COLOUR = '#2563eb'
 
-function readRoute(): SavedRoute | null {
-  try {
-    const value = JSON.parse(sessionStorage.getItem(ROUTE_KEY) ?? 'null') as SavedRoute | null
-    return value && typeof value.to === 'string' ? { to: value.to, mode: value.mode === 'foot' ? 'foot' : 'car' } : null
-  } catch {
-    return null
-  }
-}
-
-function saveRoute(value: SavedRoute | null) {
-  try {
-    if (value) sessionStorage.setItem(ROUTE_KEY, JSON.stringify(value))
-    else sessionStorage.removeItem(ROUTE_KEY)
-  } catch {
-    // Private mode or blocked storage: the route just won't survive leaving the Map.
-  }
+// Draws (or clears) the Nearby ring, adding its source and layers the first time.
+function drawRing(m: MapLibreMap, ring: [number, number][] | null) {
+  const data = { type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: ring ? [ring] : [] } }
+  const source = m.getSource('nearby-ring') as GeoJSONSource | undefined
+  if (source) return source.setData(data)
+  m.addSource('nearby-ring', { type: 'geojson', data })
+  // Under the route, so a route line is never covered.
+  const before = m.getLayer('route-casing') ? 'route-casing' : undefined
+  m.addLayer({ id: 'nearby-ring-fill', type: 'fill', source: 'nearby-ring', paint: { 'fill-color': RING_COLOUR, 'fill-opacity': 0.05 } }, before)
+  m.addLayer(
+    { id: 'nearby-ring-line', type: 'line', source: 'nearby-ring', paint: { 'line-color': RING_COLOUR, 'line-width': 1.5, 'line-opacity': 0.5, 'line-dasharray': [2, 2] } },
+    before,
+  )
 }
 
 // How long "Route ended · Undo" stays.
@@ -120,12 +115,18 @@ export default function MapPage() {
   const [fetched, setFetched] = useState<{ key: string; trip: string; result: Route | null } | null>(null)
   const fittedFor = useRef<string | null>(null)
 
-  const onMap = ranked.filter((r) => r.item.lat !== undefined && r.item.lng !== undefined)
-  const shown = filter ? onMap.filter((r) => r.item.category === filter) : onMap
-  const picked = onMap.find((r) => r.item.id === selected) ?? null
-  const target = onMap.find((r) => r.item.id === routeTo) ?? null
+  const [scope, setScope] = useState<MapScope>(readScope)
   const centre =
     data.status === 'ready' && area ? data.areas.find((a) => a.id === area) : undefined
+  // Nearby measures from the phone, else the picked town's centre (no GPS: still useful, and the
+  // sheet then shows no distance, so nothing claims to be measured from you).
+  const origin = position ?? (centre?.lat !== undefined && centre.lng !== undefined ? { lat: centre.lat, lng: centre.lng } : null)
+  // Every listed place in the country, not only the picked area's: All has no radius and no area.
+  const services = data.status === 'ready' ? data.services : []
+  const everywhere = placesInScope(services, { scope: 'all', category: null, position, origin })
+  const shown = placesInScope(services, { scope, category: filter, position, origin })
+  const picked = everywhere.find((r) => r.item.id === selected) ?? null
+  const target = everywhere.find((r) => r.item.id === routeTo) ?? null
 
   // Where to open a brand-new map, read when it is made (refs, so making it doesn't wait on GPS).
   const positionRef = useRef(position)
@@ -429,6 +430,40 @@ export default function MapPage() {
     drawRoute(m, path, resolved)
   }, [status, path, resolved])
 
+  // The 5 km ring around you while Nearby is on. Moves with the fix, in ~100 m steps.
+  const ringKey = scope === 'nearby' && origin ? `${origin.lat.toFixed(3)},${origin.lng.toFixed(3)}` : ''
+  useEffect(() => {
+    const m = map.current
+    if (status !== 'ready' || !m) return
+    const [lat, lng] = ringKey ? ringKey.split(',').map(Number) : []
+    drawRing(m, ringKey ? circle({ lat, lng }) : null)
+  }, [status, ringKey])
+
+  // Nearby or All: show the whole of what was picked. Nearby goes back to following you.
+  const pickScope = (next: MapScope) => {
+    setScope(next)
+    saveScope(next)
+    const m = map.current
+    if (!m || status !== 'ready') return
+    const wide = matchMedia('(min-width: 48rem)').matches
+    const padding = wide ? { top: 120, bottom: 60, left: 60, right: 100 } : { top: 110, bottom: 60, left: 30, right: 80 }
+    if (next === 'nearby') {
+      const box = origin ? boundsOf(circle(origin)) : null
+      if (!box) return setFollowing(true)
+      // Follow again only once the fit is done: following eases to the next fix, which would cut
+      // the zoom-in short and leave the country view (seen in the browser check, 2026-11-05).
+      setFollowing(false)
+      m.once('moveend', () => setFollowing(true))
+      m.fitBounds(box, { padding, duration: 600 })
+      return
+    }
+    // All: stop following, or the next GPS fix pulls the view back to you.
+    setFollowing(false)
+    const pins = placesInScope(services, { scope: 'all', category: filter, position, origin })
+    const box = boundsOf(pins.map((r) => [r.item.lng, r.item.lat]))
+    if (box) m.fitBounds(box, { padding, duration: 600, maxZoom: 15 })
+  }
+
   const recentre = () => {
     setFollowing(true)
     refresh()
@@ -501,9 +536,15 @@ export default function MapPage() {
       )}
 
       <div className={styles.chips} role="group" aria-label="Show on map">
-        <button type="button" aria-pressed={filter === null} onClick={() => setFilter(null)}>
+        <button type="button" aria-pressed={scope === 'nearby'} onClick={() => pickScope('nearby')} aria-label={`Nearby, within ${NEARBY_KM} km`}>
+          <Target size={16} aria-hidden="true" />
+          Nearby {NEARBY_KM} km
+        </button>
+        <button type="button" aria-pressed={scope === 'all'} onClick={() => pickScope('all')} aria-label="All places">
+          <MapTrifold size={16} aria-hidden="true" />
           All
         </button>
+        <span className={styles.chipGap} aria-hidden="true" />
         {CATEGORIES.map((c) => {
           const Icon = CATEGORY_ICONS[c]
           return (
@@ -593,12 +634,24 @@ export default function MapPage() {
           onExpand={() => setMinimized(false)}
           onEnd={endRoute}
         />
+      ) : ended ? (
+        <div className={styles.toast} role="status">
+          <span>Route ended</span>
+          <button type="button" onClick={undoEnd}>
+            Undo
+          </button>
+        </div>
       ) : (
-        ended && (
+        // Nearby came up empty: say why, and offer every place instead of a blank map.
+        status === 'ready' &&
+        data.status === 'ready' &&
+        scope === 'nearby' &&
+        shown.length === 0 &&
+        !settling && (
           <div className={styles.toast} role="status">
-            <span>Route ended</span>
-            <button type="button" onClick={undoEnd}>
-              Undo
+            <span>{origin ? `Nothing listed within ${NEARBY_KM} km${filter ? ' for that' : ''}.` : 'Nearby needs your location.'}</span>
+            <button type="button" onClick={() => pickScope('all')}>
+              Show all
             </button>
           </div>
         )

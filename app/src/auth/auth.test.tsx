@@ -36,10 +36,11 @@ function toSignupForm(skip = true) {
   }
 }
 
-function fillSignup(name: string, email: string, password: string, agree = true) {
+function fillSignup(name: string, email: string, password: string, agree = true, confirm = password) {
   fireEvent.change(screen.getByLabelText('Full name'), { target: { value: name } })
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
+  fireEvent.change(screen.getByLabelText('Re-enter password'), { target: { value: confirm } })
   if (agree) fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 }
@@ -96,6 +97,30 @@ describe('Login', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     expect(localStorage.getItem('bulig.session')).toBeNull()
+  })
+
+  it("leaves nothing of where they were or what they sent for the next person on the phone", async () => {
+    const me = 'test@bulig.com'
+    const traces = {
+      'bulig.address': JSON.stringify({ lat: 11.03, lng: 125.72, address: { locality: 'Ngolos' }, at: 1 }),
+      'bulig.mapView': JSON.stringify({ lat: 11.03, lng: 125.72, zoom: 15 }),
+      [`bulig.updatesSeen.${me}`]: '{"sub_1":"approved"}',
+      [`bulig.drafts.new-place.${me}`]: '{"name":"My half-written place"}',
+      [`bulig.savedCache.${me}`]: '["svc_1"]',
+      [`bulig.savedOutbox.${me}`]: '{"svc_2":true}',
+    }
+    for (const [k, v] of Object.entries(traces)) localStorage.setItem(k, v)
+    sessionStorage.setItem('bulig.route', '{"to":"svc_1","mode":"car"}')
+    sessionStorage.setItem('bulig.mapScope', 'all')
+    localStorage.setItem('bulig.theme', 'dark')
+    renderAt('/profile')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
+    for (const k of Object.keys(traces)) expect(localStorage.getItem(k), k).toBeNull()
+    expect(sessionStorage.getItem('bulig.route')).toBeNull()
+    expect(sessionStorage.getItem('bulig.mapScope')).toBeNull()
+    // A device setting, not the person's.
+    expect(localStorage.getItem('bulig.theme')).toBe('dark')
   })
 
   it('shows the reset confirmation without saying whether the email has an account', async () => {
@@ -171,6 +196,20 @@ describe('Sign up (onboarding)', () => {
     expect(localStorage.getItem('bulig.accounts')).toBeNull()
   })
 
+  it('needs the password typed twice, the same both times', () => {
+    signedOut()
+    renderAt('/signup')
+
+    toSignupForm()
+    fillSignup('Ana Reyes', 'ana@example.com', 'long enough', true, 'long enougj')
+    expect(screen.getByText('The passwords don’t match.')).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.accounts')).toBeNull()
+
+    fireEvent.change(screen.getByLabelText('Re-enter password'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    expect(screen.getByText('Type your password again.')).toBeInTheDocument()
+  })
+
   it('refuses an email that already has an account, and offers sign in', async () => {
     signedOut()
     renderAt('/signup')
@@ -217,8 +256,9 @@ describe('Profile', () => {
 
     const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' })
     fireEvent.change(screen.getByLabelText(/Add a photo|Change photo/), { target: { files: [file] } })
-    expect(await screen.findByRole('heading', { name: 'Use this photo?' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Your new profile photo' })).toBeInTheDocument()
+    // A floating dialog, not a card pushed into the page.
+    const dialog = await screen.findByRole('dialog', { name: 'Use this photo?' })
+    expect(within(dialog).getByRole('img', { name: 'Your new profile photo' })).toBeInTheDocument()
 
     // Cancel keeps the old one.
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -268,7 +308,8 @@ describe('Profile', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Profile' })) // the avatar in Home's header
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
-    const confirm = screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!
+    const dialog = screen.getByRole('dialog', { name: 'Delete your account?' })
+    const confirm = within(dialog).getByRole('button', { name: 'Delete account' })
     expect(confirm).toBeDisabled()
     fireEvent.change(screen.getByLabelText('Type "delete" to confirm'), { target: { value: 'delete' } })
     fireEvent.click(confirm)

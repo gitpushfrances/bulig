@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { smoothly } from '../motion.ts'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { appAccounts } from './appAccounts.ts'
+import { forgetOnSignOut } from './forgetOnSignOut.ts'
 import { AuthContext } from './context.ts'
 import type { SavedStatus, UpdateProfileResult } from './context.ts'
 import type { AccountStore, NewAccount, SaveResult, SetPhotoResult } from './store.ts'
@@ -224,7 +226,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     if (account) {
       writeSaved(savedCacheKey(account.email), null)
       writeSaved(outboxKey(account.email), null)
+      // A server account's profile copy is only a photo that didn't upload; a phone-only account's
+      // is the account itself, so it stays.
+      if (store.online) writeSaved(profileKey(account.email), null)
       outbox.current = { email: null, ops: {} }
+      forgetOnSignOut(account.email)
     }
     void store.signOut()
     setAccount(null)
@@ -294,6 +300,8 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     writeSaved(profileKey(account.email), null)
     writeSaved(savedCacheKey(account.email), null)
     writeSaved(outboxKey(account.email), null)
+    outbox.current = { email: null, ops: {} }
+    forgetOnSignOut(account.email)
     setAccount(null)
     return true
   }
@@ -304,7 +312,8 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     if (!account) return
     const on = !saved.includes(id)
     const next = on ? [...saved, id] : saved.filter((s) => s !== id)
-    setSaved(() => next)
+    // On Saved, the card fades out and the rest glide up (motion.ts).
+    smoothly(() => setSaved(() => next))
     const tap = { n: (taps.current.at(-1)?.n ?? 0) + 1, id, on }
     taps.current = [...taps.current.slice(-49), tap]
     ops(account.email)[id] = on

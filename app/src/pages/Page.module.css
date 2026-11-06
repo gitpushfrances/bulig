@@ -134,6 +134,49 @@
   }
 }
 
+/* Lists: cards rise in, one after another, when a page opens or a filter changes what's shown.
+   Only the first eight are staggered, so a long list is never slow to appear. */
+@media (prefers-reduced-motion: no-preference) {
+  .list > li {
+    animation: item-in 260ms var(--ease-out) both;
+  }
+
+  .list > li:nth-child(2) {
+    animation-delay: 30ms;
+  }
+
+  .list > li:nth-child(3) {
+    animation-delay: 60ms;
+  }
+
+  .list > li:nth-child(4) {
+    animation-delay: 90ms;
+  }
+
+  .list > li:nth-child(5) {
+    animation-delay: 120ms;
+  }
+
+  .list > li:nth-child(6) {
+    animation-delay: 150ms;
+  }
+
+  .list > li:nth-child(7) {
+    animation-delay: 180ms;
+  }
+
+  .list > li:nth-child(n + 8) {
+    animation-delay: 210ms;
+  }
+}
+
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 .list > .card {
   display: flex;
   flex-direction: column;

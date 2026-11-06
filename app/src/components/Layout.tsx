@@ -79,7 +79,8 @@ function useScrollMemory() {
 
   useLayoutEffect(() => {
     current.current = key
-    window.scrollTo(0, type === 'POP' ? (scrollPositions.get(key) ?? 0) : 0)
+    // 'instant': html has scroll-behavior: smooth (index.css), and a new page must not scroll into place.
+    window.scrollTo({ top: type === 'POP' ? (scrollPositions.get(key) ?? 0) : 0, left: 0, behavior: 'instant' })
   }, [key, type])
 }
 
