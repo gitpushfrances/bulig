@@ -36,10 +36,11 @@ function toSignupForm(skip = true) {
   }
 }
 
-function fillSignup(name: string, email: string, password: string, agree = true) {
+function fillSignup(name: string, email: string, password: string, agree = true, confirm = password) {
   fireEvent.change(screen.getByLabelText('Full name'), { target: { value: name } })
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
+  fireEvent.change(screen.getByLabelText('Re-enter password'), { target: { value: confirm } })
   if (agree) fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 }
@@ -195,6 +196,20 @@ describe('Sign up (onboarding)', () => {
     expect(localStorage.getItem('bulig.accounts')).toBeNull()
   })
 
+  it('needs the password typed twice, the same both times', () => {
+    signedOut()
+    renderAt('/signup')
+
+    toSignupForm()
+    fillSignup('Ana Reyes', 'ana@example.com', 'long enough', true, 'long enougj')
+    expect(screen.getByText('The passwords don’t match.')).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.accounts')).toBeNull()
+
+    fireEvent.change(screen.getByLabelText('Re-enter password'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    expect(screen.getByText('Type your password again.')).toBeInTheDocument()
+  })
+
   it('refuses an email that already has an account, and offers sign in', async () => {
     signedOut()
     renderAt('/signup')
@@ -241,8 +256,9 @@ describe('Profile', () => {
 
     const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' })
     fireEvent.change(screen.getByLabelText(/Add a photo|Change photo/), { target: { files: [file] } })
-    expect(await screen.findByRole('heading', { name: 'Use this photo?' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Your new profile photo' })).toBeInTheDocument()
+    // A floating dialog, not a card pushed into the page.
+    const dialog = await screen.findByRole('dialog', { name: 'Use this photo?' })
+    expect(within(dialog).getByRole('img', { name: 'Your new profile photo' })).toBeInTheDocument()
 
     // Cancel keeps the old one.
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -292,7 +308,8 @@ describe('Profile', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Profile' })) // the avatar in Home's header
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete account' }))
-    const confirm = screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!
+    const dialog = screen.getByRole('dialog', { name: 'Delete your account?' })
+    const confirm = within(dialog).getByRole('button', { name: 'Delete account' })
     expect(confirm).toBeDisabled()
     fireEvent.change(screen.getByLabelText('Type "delete" to confirm'), { target: { value: 'delete' } })
     fireEvent.click(confirm)

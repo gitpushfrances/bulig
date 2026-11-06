@@ -96,8 +96,9 @@ function SignupForm({ next }: { next: string }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [agreed, setAgreed] = useState(false)
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; agreed?: string }>({})
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirm?: string; agreed?: string }>({})
   const [formError, setFormError] = useState<'taken' | 'unavailable' | 'offline' | 'invalid' | null>(null)
   const [busy, setBusy] = useState(false)
   const form = useRef<HTMLFormElement>(null)
@@ -106,6 +107,7 @@ function SignupForm({ next }: { next: string }) {
     name: (v: string) => (v.trim() ? '' : 'Enter your name.'),
     email: (v: string) => (looksLikeEmail(v) ? '' : 'Enter an email like name@example.com.'),
     password: (v: string) => (v.length >= MIN_PASSWORD ? '' : `Use at least ${MIN_PASSWORD} characters.`),
+    confirm: (v: string) => (v === password ? '' : 'The passwords don\u2019t match.'),
   }
   // Errors show after leaving a field, and clear as soon as it is typed in.
   const blur = (field: keyof typeof check, value: string) =>
@@ -121,6 +123,7 @@ function SignupForm({ next }: { next: string }) {
       name: check.name(name),
       email: check.email(email),
       password: check.password(password),
+      confirm: confirm ? check.confirm(confirm) : 'Type your password again.',
       agreed: agreed ? '' : 'Agree to the Terms and Privacy Policy to continue.',
     }
     setErrors(found)
@@ -174,15 +177,30 @@ function SignupForm({ next }: { next: string }) {
       />
       <PasswordField
         autoComplete="new-password"
-        enterKeyHint="done"
+        enterKeyHint="next"
         value={password}
         hint={`At least ${MIN_PASSWORD} characters.`}
         error={errors.password}
         onChange={(v) => {
           setPassword(v)
           clear('password')
+          // Changing the first box re-checks a confirm that was already typed.
+          if (confirm) setErrors((e) => ({ ...e, confirm: confirm === v ? '' : e.confirm }))
         }}
         onBlur={() => blur('password', password)}
+      />
+      {/* Typed twice, so a typo on a small keyboard doesn't lock someone out of a new account. */}
+      <PasswordField
+        label="Re-enter password"
+        autoComplete="new-password"
+        enterKeyHint="done"
+        value={confirm}
+        error={errors.confirm}
+        onChange={(v) => {
+          setConfirm(v)
+          clear('confirm')
+        }}
+        onBlur={() => blur('confirm', confirm)}
       />
       <div className={page.field}>
         <label className={styles.check}>

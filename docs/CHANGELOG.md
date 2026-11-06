@@ -21,14 +21,22 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Added
 
+- **Re-enter password on Create account** (2026-11-06, John). A second password box; a mismatch says "The passwords don't match." and nothing is sent. With a test.
+- **Smooth transitions** (2026-11-06, John). List cards rise in one after another; on Saved, a removed card fades and the rest glide up (View Transitions where the phone has them, `app/src/motion.ts`); in-page scrolling is smooth, and new pages still open at the top at once. All off under reduced motion. UI-UX.md, Motion.
 - **Map: Nearby 5 km and All** (2026-11-05, John). The Map's chips start with **Nearby 5 km** (places within 5 km of you, with a dashed ring) and **All** (every listed place in the country, no radius and no area limit; before, "All" meant every category in the picked area only). Categories narrow either. Empty Nearby says why and offers Show all. For every role. UI-UX.md, Map.
 
 ### Security
 
 - **Sign-out leaves nothing personal on a shared phone** (2026-11-05, John). Signing out (or deleting the account) now also clears the last looked-up address, the last map view, the route in progress, the Map scope, the person's half-written place, which updates they had seen, the in-memory My updates list and the kept map; server accounts also drop the leftover profile copy. Before, the next person on the phone could see where the last one was and where they were heading. Theme, country and picked town stay (device settings). `app/src/auth/forgetOnSignOut.ts`, with a test.
 
+### Changed
+
+- **Confirms float** (2026-11-06, John). The new-photo preview, Remove photo and Delete account open in a floating dialog (`app/src/components/Dialog.tsx`, native `<dialog>`) instead of pushing a card into the page. Delete account stays the quiet link at the very bottom of Profile.
+- **Raised Add button** (2026-11-06, John): 56px with a top-lit teal gradient and a soft teal shadow, lifted 22px instead of 28px, with room under it for the label. Was a flat 64px circle.
+
 ### Fixed
 
+- **White flash when opening the installed app in dark mode** (2026-11-06, John). The manifest's `background_color` was #fafafa, so Android showed a white screen with the icon before the dark splash. The manifest and the splash now share #09090b in every theme, and the splash fades out over 320ms instead of 200ms. Phones that already installed Bulig pick up the new colour when Chrome refreshes the installed app (can take a day), or on reinstall.
 - **Theme switch repainted the route line as a road** (2026-11-05). `applyMapTheme` recoloured every layer, including the app's own route line; it now skips `route-*` and `nearby-ring-*`.
 
 ### Big changes

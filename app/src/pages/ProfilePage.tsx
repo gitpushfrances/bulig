@@ -7,6 +7,8 @@ import { ROLE_LABELS } from '../auth/types.ts'
 import { can } from '../rules/permissions.ts'
 import { TextField } from '../components/Fields.tsx'
 import Avatar from '../components/Avatar.tsx'
+import Dialog from '../components/Dialog.tsx'
+import { BusyContent } from '../components/Spinner.tsx'
 import { SettingsButton, SettingsGroup, SettingsInfo, SettingsLink } from '../components/Settings.tsx'
 import { useAppData } from '../data/context.ts'
 import { homeAreaText } from '../auth/homeArea.ts'
@@ -52,57 +54,69 @@ function DeleteAccount() {
   const [typed, setTyped] = useState('')
 
   const [failed, setFailed] = useState(false)
+  const [busy, setBusy] = useState(false)
 
   // Kept out of the way (John, 2026-11-05) but never removed: Google Play and RA 10173 need an
-  // in-app delete. A quiet link at the very bottom; the warning and confirm open only on tap.
+  // in-app delete. A quiet link at the very bottom; the warning and confirm float over the page on
+  // tap (2026-11-06), so the bottom of Profile stays clean and nothing jumps.
   if (!canManage) return null
-  if (!open) {
-    return (
-      <button type="button" className={styles.deleteLink} onClick={() => setOpen(true)}>
-        Delete account
-      </button>
-    )
+  const close = () => {
+    setOpen(false)
+    setTyped('')
+    setFailed(false)
   }
 
   return (
-    <div className={styles.danger}>
-      <h2 className={styles.dangerTitle}>Delete account</h2>
-      <p className={page.hint}>
-        {accountsOnline
-          ? 'Deletes your account and saved places from Bulig. This can\u2019t be undone.'
-          : 'Removes your account, saved places and details from this phone. This can\u2019t be undone.'}
-      </p>
-      <TextField
-        label='Type "delete" to confirm'
-        autoComplete="off"
-        autoCapitalize="none"
-        value={typed}
-        onChange={setTyped}
-      />
-      {failed && (
-        <p className={page.error} role="alert">
-          Couldn&apos;t delete your account. Check your connection and try again.
+    <>
+      <button type="button" className={styles.deleteLink} onClick={() => setOpen(true)}>
+        Delete account
+      </button>
+      <Dialog open={open} title="Delete your account?" busy={busy} onClose={close}>
+        <p className={page.hint}>
+          {accountsOnline
+            ? 'Deletes your account and saved places from Bulig. This can\u2019t be undone.'
+            : 'Removes your account, saved places and details from this phone. This can\u2019t be undone.'}
         </p>
-      )}
-      <div className={page.actions}>
-        <button type="button" className={page.secondary} onClick={() => setOpen(false)}>
-          Keep my account
-        </button>
-        <button
-          type="button"
-          className={`${page.secondary} ${styles.dangerButton}`}
-          disabled={typed.trim().toLowerCase() !== 'delete'}
-          onClick={async () => {
-            setFailed(false)
-            if (await deleteAccount()) navigate('/login', { replace: true })
-            else setFailed(true)
-          }}
-        >
-          <Trash size={18} aria-hidden="true" />
-          Delete account
-        </button>
-      </div>
-    </div>
+        <div className={styles.dialogField}>
+          <TextField
+            label='Type "delete" to confirm'
+            autoComplete="off"
+            autoCapitalize="none"
+            value={typed}
+            onChange={setTyped}
+          />
+        </div>
+        {failed && (
+          <p className={page.error} role="alert">
+            Couldn&apos;t delete your account. Check your connection and try again.
+          </p>
+        )}
+        <div className={styles.dialogActions}>
+          <button
+            type="button"
+            className={`${page.secondary} ${styles.dangerButton}`}
+            disabled={busy || typed.trim().toLowerCase() !== 'delete'}
+            aria-busy={busy}
+            onClick={async () => {
+              setFailed(false)
+              setBusy(true)
+              const ok = await deleteAccount()
+              setBusy(false)
+              if (ok) navigate('/login', { replace: true })
+              else setFailed(true)
+            }}
+          >
+            <BusyContent busy={busy} busyLabel="Deleting your account…">
+              <Trash size={18} aria-hidden="true" />
+              Delete account
+            </BusyContent>
+          </button>
+          <button type="button" className={page.primaryButton} disabled={busy} onClick={close}>
+            Keep my account
+          </button>
+        </div>
+      </Dialog>
+    </>
   )
 }
 

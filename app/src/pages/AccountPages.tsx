@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { toAvatar } from '../auth/photo.ts'
 import BackButton from '../components/BackButton.tsx'
+import Dialog from '../components/Dialog.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { useAppData } from '../data/context.ts'
@@ -113,10 +114,10 @@ export function EditProfilePage() {
       )
   }
 
-  const pickPhoto = (
+  const pickPhoto = (label: string) => (
     <label className={page.secondary}>
       <Camera size={18} aria-hidden="true" />
-      {photoStep.kind === 'preview' ? 'Choose another' : photo ? 'Change photo' : 'Add a photo'}
+      {label}
       <input
         type="file"
         accept="image/*"
@@ -142,87 +143,106 @@ export function EditProfilePage() {
       title="Edit profile"
       lead={accountsOnline ? 'Saved to your account, so it follows you to any phone.' : 'This stays on this phone until accounts move online.'}
     >
-      {photoStep.kind === 'preview' ? (
-        <section className={styles.photoConfirm} aria-labelledby="photo-confirm-title">
-          <h2 id="photo-confirm-title" className={styles.photoConfirmTitle}>
-            Use this photo?
-          </h2>
-          <span className={styles.photoBig}>
-            <img src={photoStep.photo} alt="Your new profile photo" className={styles.photoImg} />
-          </span>
-          <p className={page.hint}>It shows on Home and your Profile.</p>
-          <div className={styles.photoConfirmActions}>
-            <button
-              type="button"
-              className={page.primaryButton}
-              disabled={photoBusy}
-              aria-busy={photoBusy}
-              onClick={() => savePhoto(photoStep.photo)}
-            >
-              <BusyContent busy={photoBusy} busyLabel="Saving your photo…">
-                <Check size={18} aria-hidden="true" />
-                Use this photo
-              </BusyContent>
+      <div className={styles.photoRow}>
+        <span className={styles.photoPreview} aria-hidden="true">
+          <img src={photo ?? '/assets/mascot/ropi-head.webp'} alt="" className={photo ? styles.photoImg : styles.photoRopi} />
+        </span>
+        <div className={styles.photoActions}>
+          {pickPhoto(photo ? 'Change photo' : 'Add a photo')}
+          {photo && (
+            <button type="button" className={page.secondary} onClick={() => setPhotoStep({ kind: 'remove' })}>
+              <Trash size={18} aria-hidden="true" />
+              Remove
             </button>
-            {pickPhoto}
-            <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
-              Cancel
-            </button>
-          </div>
-          {photoNote && !photoNote.ok && (
-            <p className={page.error} role="alert">
+          )}
+          {photoNote ? (
+            <p className={photoNote.ok ? styles.done : page.error} role={photoNote.ok ? 'status' : 'alert'}>
               {photoNote.text}
             </p>
+          ) : (
+            <p className={page.hint}>
+              {photo ? 'Shown on Home and your Profile.' : 'Until you add one, Ropi stands in on Profile and your initials on Home.'}
+            </p>
           )}
-        </section>
-      ) : (
-        <div className={styles.photoRow}>
-          <span className={styles.photoPreview} aria-hidden="true">
-            <img src={photo ?? '/assets/mascot/ropi-head.webp'} alt="" className={photo ? styles.photoImg : styles.photoRopi} />
-          </span>
-          <div className={styles.photoActions}>
-            {photoStep.kind === 'remove' ? (
-              <>
-                <p className={page.hint}>Remove your photo? Your initials show instead.</p>
-                <button
-                  type="button"
-                  className={page.primaryButton}
-                  disabled={photoBusy}
-                  aria-busy={photoBusy}
-                  onClick={() => savePhoto(undefined)}
-                >
-                  <BusyContent busy={photoBusy} busyLabel="Removing your photo…">
-                    Remove photo
-                  </BusyContent>
-                </button>
-                <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
-                  Keep it
-                </button>
-              </>
-            ) : (
-              <>
-                {pickPhoto}
-                {photo && (
-                  <button type="button" className={page.secondary} onClick={() => setPhotoStep({ kind: 'remove' })}>
-                    <Trash size={18} aria-hidden="true" />
-                    Remove
-                  </button>
-                )}
-                {!photoNote && (
-                  <p className={page.hint}>
-                    {photo ? 'Shown on Home and your Profile.' : 'Until you add one, Ropi stands in on Profile and your initials on Home.'}
-                  </p>
-                )}
-              </>
-            )}
-            {photoNote && (
-              <p className={photoNote.ok ? styles.done : page.error} role={photoNote.ok ? 'status' : 'alert'}>
+        </div>
+      </div>
+
+      {/* Confirms float over the page (John, 2026-11-06), so the form below never jumps. */}
+      <Dialog
+        open={photoStep.kind === 'preview'}
+        title="Use this photo?"
+        busy={photoBusy}
+        onClose={() => {
+          setPhotoStep({ kind: 'idle' })
+          setPhotoNote(null)
+        }}
+      >
+        {photoStep.kind === 'preview' && (
+          <>
+            <span className={styles.photoBig}>
+              <img src={photoStep.photo} alt="Your new profile photo" className={styles.photoImg} />
+            </span>
+            <p className={page.hint}>It shows on Home and your Profile.</p>
+            {photoNote && !photoNote.ok && (
+              <p className={page.error} role="alert">
                 {photoNote.text}
               </p>
             )}
-          </div>
+            <div className={styles.photoConfirmActions}>
+              <button
+                type="button"
+                className={page.primaryButton}
+                disabled={photoBusy}
+                aria-busy={photoBusy}
+                onClick={() => savePhoto(photoStep.photo)}
+              >
+                <BusyContent busy={photoBusy} busyLabel="Saving your photo…">
+                  <Check size={18} aria-hidden="true" />
+                  Use this photo
+                </BusyContent>
+              </button>
+              {pickPhoto('Choose another')}
+              <button
+                type="button"
+                className={page.secondary}
+                disabled={photoBusy}
+                onClick={() => {
+                  setPhotoStep({ kind: 'idle' })
+                  setPhotoNote(null)
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </Dialog>
+
+      <Dialog open={photoStep.kind === 'remove'} title="Remove your photo?" busy={photoBusy} onClose={() => setPhotoStep({ kind: 'idle' })}>
+        <p className={page.hint}>Your initials show on Home instead, and Ropi on your Profile.</p>
+        {photoNote && !photoNote.ok && (
+          <p className={page.error} role="alert">
+            {photoNote.text}
+          </p>
+        )}
+        <div className={styles.photoConfirmActions}>
+          <button
+            type="button"
+            className={page.primaryButton}
+            disabled={photoBusy}
+            aria-busy={photoBusy}
+            onClick={() => savePhoto(undefined)}
+          >
+            <BusyContent busy={photoBusy} busyLabel="Removing your photo…">
+              <Trash size={18} aria-hidden="true" />
+              Remove photo
+            </BusyContent>
+          </button>
+          <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
+            Keep it
+          </button>
         </div>
-      )}
+      </Dialog>
 
       <form className={styles.form} onSubmit={submit} noValidate>
         <TextField
