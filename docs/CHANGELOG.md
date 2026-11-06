@@ -21,6 +21,9 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Added
 
+- **Moderator app on the phone** (2026-11-06, John). Staff get Home (counts, waiting, recently approved) · Review (badge) · + · Map · Manage (Users, Areas, Hotlines), and lose Services and Saved unless they pick "Use the app as: Traveller" in Profile. Review one ticks fields one by one, rejects with the six reasons; + publishes at once through `POST /staff/services`. Hotlines are managed per province, city and municipality; national lines stay admin-only. UI-UX.md, Moderator app.
+- **Snapshot cache for staff screens** (`app/src/staff/snapshot.ts`). Screens open with their last copy and refresh in the background; one fetch per key; rows preload on press. Memory only and dropped on sign-out, so a shared phone never shows the last person's queue or user list.
+
 - **Re-enter password on Create account** (2026-11-06, John). A second password box; a mismatch says "The passwords don't match." and nothing is sent. With a test.
 - **Smooth transitions** (2026-11-06, John). List cards rise in one after another; on Saved, a removed card fades and the rest glide up (View Transitions where the phone has them, `app/src/motion.ts`); in-page scrolling is smooth, and new pages still open at the top at once. All off under reduced motion. UI-UX.md, Motion.
 - **Map: Nearby 5 km and All** (2026-11-05, John). The Map's chips start with **Nearby 5 km** (places within 5 km of you, with a dashed ring) and **All** (every listed place in the country, no radius and no area limit; before, "All" meant every category in the picked area only). Categories narrow either. Empty Nearby says why and offers Show all. For every role. UI-UX.md, Map.
@@ -31,6 +34,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Staff: 911 moved from the floating button to a top bar** on every screen, next to the profile button (2026-11-06, John). Users and contributors keep the floating button.
 - **Confirms float** (2026-11-06, John). The new-photo preview, Remove photo and Delete account open in a floating dialog (`app/src/components/Dialog.tsx`, native `<dialog>`) instead of pushing a card into the page. Delete account stays the quiet link at the very bottom of Profile.
 - **Raised Add button** (2026-11-06, John): 56px with a top-lit teal gradient and a soft teal shadow, lifted 22px instead of 28px, with room under it for the label. Was a flat 64px circle.
 
@@ -41,6 +45,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Big changes
 
+- **API contract: staff people, areas and hotlines** (2026-11-06). API.md §7.8 adds `GET /staff/users`, `GET /staff/users/{id}`, `PATCH /staff/users/{id}/role`, `DELETE /staff/users/{id}/photo`, `GET/POST/PATCH /staff/areas`, the full `GET /staff/emergency-contacts` list and `POST/PATCH /staff/emergency-contacts`. Not in bulig-backend yet: until they ship, those Manage sections say "Couldn't load".
 - **Contributors can add places from the app** (2026-11-05, John). For contributors and up, the tab bar gets a raised teal **Add** button in the middle; it opens `/add`: what it is, a pin on the map (fixed centre pin, your blue dot, a duplicate warning within 50 m, "Use where I'm standing" when the map can't load), usual hours and what it offers, then 1 to 3 photos (the phone's own camera with Retake / Use photo; the gallery as a small link, flagged to the moderator), Check and send. Sent with `POST /uploads` and `POST /submissions` (`reason: new_place`); the form is kept on the phone until sent. A bell on Home and **My updates** (`/updates`, also in Profile) show what moderators said, read from `GET /me/submissions` with no push. `can()` now lets a moderator with no areas act everywhere, matching API.md, and gains `contribute`; the test moderator has no areas and there is a `contributor@bulig.com` test login. UI-UX.md, "Add a place" and "My updates".
 - **Tokens expire** (2026-11-06, John). API.md §1: a sign-in lasts 60 days and using it doesn't extend it, so a token copied off a phone or left on a sold one stops working. The app already treats `401` as signed out.
 - **Staff contract answers** (2026-11-06, John). API.md §7.8 gets the six reject-reason keys and the limit of 6 public photos per place. `confirmed` is now a real submission status, also in `GET /me/submissions`, so My updates must show it. Area scope is marked as not active yet, and a suspended account gets `401`. Moderators can add and edit areas, and Mark closed or Mark duplicate hides a place from the app without deleting it.

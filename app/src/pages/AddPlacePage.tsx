@@ -26,6 +26,8 @@ import {
 import { shrinkPhoto } from '../contribute/photo.ts'
 import { appContribute, type PhotoSource } from '../contribute/store.ts'
 import { forgetMyUpdates } from '../contribute/useMyUpdates.ts'
+import { appStaff } from '../staff/api.ts'
+import { invalidate } from '../staff/snapshot.ts'
 import { useAppData } from '../data/context.ts'
 import { categoryLabel } from '../data/labels.ts'
 import { usePhoneLocation } from '../location/context.ts'
@@ -111,6 +113,9 @@ export default function AddPlacePage() {
     return () => URL.revokeObjectURL(picked.url)
   }, [picked])
 
+  // Moderators and admins publish at once (API.md §7.8, POST /staff/services): nobody may approve
+  // their own submission, so the queue would never clear it.
+  const direct = can(account, 'review')
   if (!account) return null
   if (!can(account, 'contribute')) return <Navigate to="/" replace />
 
@@ -188,14 +193,22 @@ export default function AddPlacePage() {
     ]
       .filter(Boolean)
       .join(' ')
-    const outcome = await appContribute.submitNewPlace({
-      changes: result.changes,
-      photoIds: draft.photos.map((p) => p.id),
-      note: note || undefined,
-      seenAt: today(),
-    })
-    setSending(false)
-    if (!outcome.ok) return setSendError(SEND_ERRORS[outcome.reason])
+    const photoIds = draft.photos.map((p) => p.id)
+    if (direct) {
+      const added = await appStaff.addPlace({ ...result.changes, photoIds })
+      setSending(false)
+      if (!added.ok) return setSendError(added.message)
+      invalidate('summary')
+    } else {
+      const outcome = await appContribute.submitNewPlace({
+        changes: result.changes,
+        photoIds,
+        note: note || undefined,
+        seenAt: today(),
+      })
+      setSending(false)
+      if (!outcome.ok) return setSendError(SEND_ERRORS[outcome.reason])
+    }
     saveDraft(email, null)
     forgetMyUpdates()
     setSent(true)
@@ -214,16 +227,26 @@ export default function AddPlacePage() {
         <div className={styles.sent}>
           <CheckCircle size={72} weight="fill" className={styles.sentIcon} aria-hidden="true" />
           <h1 id="add-title" ref={top} tabIndex={-1} className={page.title}>
-            Sent
+            {direct ? 'Published' : 'Sent'}
           </h1>
-          <p className={page.lead}>A moderator checks it before anyone sees it. You'll see the answer in My updates.</p>
+          <p className={page.lead}>
+            {direct
+              ? "It's listed now. Phones see it within an hour."
+              : "A moderator checks it before anyone sees it. You'll see the answer in My updates."}
+          </p>
           <div className={styles.sentActions}>
             <button type="button" className={page.primaryButton} onClick={startOver}>
               Add another
             </button>
-            <Link to="/updates" className={page.secondary}>
-              See my updates
-            </Link>
+            {direct ? (
+              <Link to="/map" className={page.secondary}>
+                See the map
+              </Link>
+            ) : (
+              <Link to="/updates" className={page.secondary}>
+                See my updates
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -541,18 +564,20 @@ export default function AddPlacePage() {
               )
             })}
           </ul>
-          <label className={page.field}>
-            <span className={page.fieldLabel}>Note for the moderator (optional)</span>
-            <textarea
-              className={`${page.input} ${styles.note}`}
-              value={draft.note}
-              maxLength={NOTE_MAX}
-              rows={3}
-              placeholder="Owner is Aling Nena. Opens early on market day."
-              onChange={(e) => update({ note: e.target.value })}
-            />
-            <span className={page.hint}>Only the moderator sees this.</span>
-          </label>
+          {!direct && (
+            <label className={page.field}>
+              <span className={page.fieldLabel}>Note for the moderator (optional)</span>
+              <textarea
+                className={`${page.input} ${styles.note}`}
+                value={draft.note}
+                maxLength={NOTE_MAX}
+                rows={3}
+                placeholder="Owner is Aling Nena. Opens early on market day."
+                onChange={(e) => update({ note: e.target.value })}
+              />
+              <span className={page.hint}>Only the moderator sees this.</span>
+            </label>
+          )}
         </>
       )}
 
@@ -595,7 +620,11 @@ export default function AddPlacePage() {
               </span>
             </SummaryRow>
           </dl>
-          <p className={page.hint}>A moderator checks it before anyone sees it.</p>
+          <p className={page.hint}>
+            {direct
+              ? 'As a moderator, your place goes live at once. Check it twice.'
+              : 'A moderator checks it before anyone sees it.'}
+          </p>
           {sendError && <FormAlert onClose={() => setSendError('')}>{sendError}</FormAlert>}
         </>
       )}
@@ -611,8 +640,8 @@ export default function AddPlacePage() {
             disabled={sending}
             aria-busy={sending || undefined}
           >
-            <BusyContent busy={sending} busyLabel="Sending…">
-              Send
+            <BusyContent busy={sending} busyLabel={direct ? 'Publishing…' : 'Sending…'}>
+              {direct ? 'Publish' : 'Send'}
             </BusyContent>
           </button>
         ) : (

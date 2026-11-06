@@ -1,10 +1,11 @@
 import BackButton from '../components/BackButton.tsx'
-import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
+import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { ROLE_LABELS } from '../auth/types.ts'
 import { can } from '../rules/permissions.ts'
+import { setTravellerMode, useTravellerMode } from '../staff/mode.ts'
 import { TextField } from '../components/Fields.tsx'
 import Avatar from '../components/Avatar.tsx'
 import Dialog from '../components/Dialog.tsx'
@@ -122,6 +123,7 @@ function DeleteAccount() {
 
 export default function ProfilePage() {
   const { account, signOut, saved } = useAuth()
+  const traveller = useTravellerMode(account?.email)
   const { data } = useAppData()
   const navigate = useNavigate()
   const { choice } = useTheme()
@@ -175,6 +177,19 @@ export default function ProfilePage() {
       </SettingsGroup>
 
       <SettingsGroup title="Preferences">
+        {can(account, 'review') && (
+          <SettingsInfo icon={SteeringWheel} label="Use the app as">
+            {/* Staff get Review and Manage; a drive needs Services and Saved back (John, 2026-11-06). */}
+            <div className={styles.switch} role="group" aria-label="Use the app as">
+              <button type="button" aria-pressed={!traveller} onClick={() => setTravellerMode(account.email, false)}>
+                Staff
+              </button>
+              <button type="button" aria-pressed={traveller} onClick={() => setTravellerMode(account.email, true)}>
+                Traveller
+              </button>
+            </div>
+          </SettingsInfo>
+        )}
         <SettingsInfo icon={Palette} label="Appearance">
           <div className={styles.switch} role="group" aria-label="Appearance">
             {THEMES.map((t) => (

@@ -67,8 +67,14 @@ describe('Login', () => {
     renderAt('/login')
 
     submitSignIn(` ${email.toUpperCase()} `, 'password')
-    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('link', { name: 'Profile' })) // the avatar in Home's header
+    if (role === 'Moderator' || role === 'Admin') {
+      // Staff land on the staff Home; Profile is the button next to 911 in the top bar.
+      expect(await screen.findByRole('heading', { name: 'Hi, Test!' })).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('link', { name: 'Your profile' }))
+    } else {
+      expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('link', { name: 'Profile' })) // the avatar in Home's header
+    }
     expect(screen.getByRole('heading', { name })).toBeInTheDocument()
     expect(screen.getByText(role)).toBeInTheDocument()
     expect(localStorage.getItem('bulig.session')).toBe(email)

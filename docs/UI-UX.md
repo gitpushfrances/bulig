@@ -260,6 +260,18 @@ The original spec:
 - **Bell** on Home's header, left of the avatar, for contributors and above only. A teal count badge shows answers the person hasn't seen. No push: the phone reads `GET /me/submissions` when Home opens (at most once a minute) and when the app comes back to the screen.
 - **My updates** (from the bell and Profile → Account): filter chips All · Waiting · Approved · Not added, then one card per update, newest first: name, what was sent and when, a plain line ("A moderator will check it before anyone sees it.", "Phones see it within an hour.", "Reason: <reviewNote>") and a status pill (amber Waiting, green Approved, green outline Partly approved, grey Not added). New answers are highlighted until the person leaves the page.
 
+### Moderator app (moderators and admins; John, 2026-11-06)
+
+Preview: https://claude.ai/artifact/JBTEEuRnAKFEmtHgiw2Mik. Requests: API.md §7.8.
+
+- **Tabs:** Home · Review (teal count badge) · raised **+** · Map · Manage. No Services or Saved. Profile → Preferences → **Use the app as: Staff / Traveller** gives the everyday tabs back for a drive.
+- **Top bar on every screen** (not the Map, which draws its own): "Bulig STAFF", a red **911** pill (48px tall) and the profile button (initials). It replaces the floating Emergency button, so 911 stays one tap away without a sixth tab.
+- **Home:** four count tiles (Waiting to review, Places listed, Hotlines to check, Users), each opening its screen; Waiting (3) and Recently approved (3).
+- **Review:** chips All · New place · Changed · Flags (filter on the phone); oldest first; the moderator's own updates are greyed out. **Review one:** photos with "Add to the place" ticks, then each field current → proposed with its own tick, **nothing ticked for you**. A new place needs name, kind, town and landmark ticked. Sticky bar: Reject (floating dialog, the six reasons) and Approve ticked (n); flags get Confirm it instead.
+- **Manage:** Users · Areas · Hotlines switch, kept in the URL. Users: search (3 letters or more), masked emails, role pill; one person: User ↔ Contributor and Take down the photo, nothing for staff or yourself. Areas: by level, Add / Edit (no delete). Hotlines: chips All · To check · Province · City · Municipality, grouped by area with a status pill (Checked date, amber Hides in n days, grey Hidden); Add / Edit (area, kind, name, 1 to 3 numbers, where you got it, "I called it today"), Mark checked today. 911 and national lines never appear: admin panel only.
+- **+ for staff publishes at once** (POST /staff/services): the last step says "Publish", the end screen "Published", no note for the moderator.
+- **Loading:** each screen shows its last copy at once and refreshes quietly after a minute (5 for areas, hotlines and a submission); a row press preloads its screen. Placeholders until the first copy; if it never comes, one line "Couldn't load … Try again", never an empty or broken list; a failed refresh keeps the copy and says so.
+
 ### Saved (`/saved`)
 
 - Hearted places and numbers, kept with the signed-in account on this phone, sorted by distance.
