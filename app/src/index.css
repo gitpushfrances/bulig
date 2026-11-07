@@ -269,8 +269,10 @@
   --add-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 2px 6px rgb(0 0 0 / 0.5), 0 10px 24px rgb(34 211 238 / 0.28);
 }
 
+/* "only light", not "light": a phone in dark mode (Chrome's Auto Dark Theme, MIUI and Samsung
+   force-dark) otherwise inverts the light page, so white cards turn black. */
 :root[data-theme='light'] {
-  color-scheme: light;
+  color-scheme: only light;
 }
 
 :root[data-theme='dark'] {

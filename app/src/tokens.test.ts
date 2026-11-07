@@ -35,4 +35,9 @@ describe('theme tokens', () => {
     expect(theme).toContain(`light: '${hex}'`)
     expect(html).toContain(`content="${hex}" media="(prefers-color-scheme: light)"`)
   })
+
+  it('opts the light theme out of force-dark before the first paint', () => {
+    expect(css).toMatch(/:root\[data-theme='light'\] \{\s*color-scheme: only light;/)
+    expect(html).toContain("t === 'dark' ? 'dark' : 'only light'")
+  })
 })
