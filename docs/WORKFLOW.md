@@ -32,7 +32,7 @@ Four roles. What each may do is decided in one function, `can()` in [`app/src/ru
 
 **For now (John, 2026-11-03):** one admin and one moderator, and moderators have no area. Until area assignment ships, a moderator covers the whole country; the area rules below apply from then. The app's `can()` already has the area rule, but no screen calls it yet, and the panel enforces roles on the server.
 
-From Phase 4, roles are data on the server (`spatie/laravel-permission`), so a new role (owner, LGU partner) is added in the panel without a deploy. Details: [ARCHITECTURE.md, Spine 4](ARCHITECTURE.md#4-identity).
+From Phase 4, roles are a `role` column on the user and Policies in `bulig-backend`, so a new role (owner, LGU partner) needs a code change and a deploy. Details: [ARCHITECTURE.md, Spine 4](ARCHITECTURE.md#4-identity).
 
 - **No account at all** still gets everything a traveller needs: Emergency Help, Services, Call and Directions. Emergency Help never asks for an account, in any phase.
 - A moderator of a city also covers every barangay inside it (`isWithin()` walks up the `parent` chain).
