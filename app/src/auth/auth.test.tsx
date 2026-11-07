@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../App.tsx'
@@ -21,8 +21,8 @@ function signedOut() {
   localStorage.removeItem('bulig.session')
 }
 
-function submitSignIn(email: string, password: string) {
-  fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
+function submitSignIn(login: string, password: string) {
+  fireEvent.change(screen.getByLabelText('Username or email'), { target: { value: login } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
   fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 }
@@ -36,8 +36,10 @@ function toSignupForm(skip = true) {
   }
 }
 
-function fillSignup(name: string, email: string, password: string, agree = true, confirm = password) {
+// The username defaults to the name, squashed ("Ana Reyes" → "anareyes"; no name → none).
+function fillSignup(name: string, email: string, password: string, agree = true, confirm = password, username = name.replace(/\s/g, '').toLowerCase()) {
   fireEvent.change(screen.getByLabelText('Full name'), { target: { value: name } })
+  fireEvent.change(screen.getByLabelText('Username'), { target: { value: username } })
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: email } })
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
   fireEvent.change(screen.getByLabelText('Re-enter password'), { target: { value: confirm } })
@@ -62,6 +64,8 @@ describe('Login', () => {
     ['contributor@bulig.com', 'Test contributor', 'Contributor'],
     ['moderator@bulig.com', 'Test moderator', 'Moderator'],
     ['admin@bulig.com', 'Test admin', 'Admin'],
+    ['test', 'Test traveller', 'User'],
+    ['test_admin', 'Test admin', 'Admin'],
   ])('signs in %s and opens Home', async (email, name, role) => {
     signedOut()
     renderAt('/login')
@@ -77,7 +81,8 @@ describe('Login', () => {
     }
     expect(screen.getByRole('heading', { name })).toBeInTheDocument()
     expect(screen.getByText(role)).toBeInTheDocument()
-    expect(localStorage.getItem('bulig.session')).toBe(email)
+    // The session is keyed by email, however the person signed in.
+    expect(localStorage.getItem('bulig.session')).toMatch(email.includes('@') ? email : /@bulig\.com$/)
   })
 
   it('says what went wrong for a bad password and stays signed out', async () => {
@@ -216,6 +221,44 @@ describe('Sign up (onboarding)', () => {
     expect(screen.getByText('Type your password again.')).toBeInTheDocument()
   })
 
+  it('checks the username: format, reserved names and names in use, whatever the case', async () => {
+    signedOut()
+    renderAt('/signup')
+    toSignupForm()
+
+    fillSignup('Ana Reyes', 'ana@example.com', 'long enough', true, 'long enough', '9ana')
+    expect(screen.getByText('Start with a letter.')).toBeInTheDocument()
+    fillSignup('Ana Reyes', 'ana@example.com', 'long enough', false, 'long enough', 'ana reyes')
+    expect(screen.getByText('Use only letters, numbers, dots and underscores.')).toBeInTheDocument()
+    fillSignup('Ana Reyes', 'ana@example.com', 'long enough', false, 'long enough', 'Admin')
+    expect(screen.getByText("That username isn't allowed. Try another.")).toBeInTheDocument()
+    // "test" belongs to the test login.
+    fillSignup('Ana Reyes', 'ana@example.com', 'long enough', false, 'long enough', 'TEST')
+    expect(await screen.findByText('That username is taken. Try another.')).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.accounts')).toBeNull()
+  })
+
+  it('signs in with the username or the email of an account made on this phone', async () => {
+    signedOut()
+    renderAt('/signup')
+    toSignupForm()
+    fillSignup('Ana Reyes', 'ana@example.com', 'long enough', true, 'long enough', 'Ana_Reyes')
+    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.accounts')).toContain('"username":"ana_reyes"')
+    signedOut()
+    cleanup()
+
+    renderAt('/login')
+    submitSignIn(' ANA_reyes ', 'long enough')
+    expect(await screen.findByRole('heading', { name: 'What do you need?' })).toBeInTheDocument()
+    signedOut()
+    cleanup()
+
+    renderAt('/login')
+    submitSignIn('ana_reyes', 'wrong password')
+    expect(await screen.findByRole('alert')).toHaveTextContent("That username or email and password don't match.")
+  })
+
   it('refuses an email that already has an account, and offers sign in', async () => {
     signedOut()
     renderAt('/signup')
@@ -245,6 +288,27 @@ describe('Profile', () => {
     fireEvent.change(screen.getByLabelText('Mobile number (optional)'), { target: { value: '0917 123 4567' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     expect(await screen.findByRole('heading', { name: 'Juan Dela Cruz' })).toBeInTheDocument()
+  })
+
+  it('lets an older account add a username, and keeps test logins on theirs', async () => {
+    // Made on this phone before usernames: none stored.
+    localStorage.setItem('bulig.accounts', JSON.stringify([{ email: 'old@example.com', name: 'Old', salt: 's', hash: 'h' }]))
+    localStorage.setItem('bulig.session', 'old@example.com')
+    renderAt('/profile/edit')
+
+    const field = screen.getByLabelText('Username (optional)')
+    fireEvent.change(field, { target: { value: 'TEST' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(await screen.findByText('That username is taken. Try another.')).toBeInTheDocument()
+    fireEvent.change(field, { target: { value: 'Old.Timer' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(await screen.findByRole('heading', { name: 'Old' })).toBeInTheDocument()
+    expect(localStorage.getItem('bulig.accounts')).toContain('"username":"old.timer"')
+    cleanup()
+
+    localStorage.setItem('bulig.session', 'test@bulig.com')
+    renderAt('/profile/edit')
+    expect(screen.getByLabelText('Username')).toHaveAttribute('readonly')
   })
 
   it('takes any home area as text, listed or not, and shows it on Profile', async () => {

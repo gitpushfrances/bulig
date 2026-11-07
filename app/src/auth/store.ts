@@ -6,6 +6,7 @@ import type { Account } from './types.ts'
 
 export interface NewAccount {
   name: string
+  username: string
   email: string
   password: string
 }
@@ -17,7 +18,7 @@ export type SignInResult =
 
 export type RegisterResult =
   | { ok: true; account: Account }
-  | { ok: false; reason: 'taken' | 'unavailable' | 'offline' | 'invalid' }
+  | { ok: false; reason: 'taken' | 'usernameTaken' | 'usernameReserved' | 'unavailable' | 'offline' | 'invalid' }
 
 export type ChangePasswordResult = 'ok' | 'wrong' | 'offline'
 
@@ -37,6 +38,8 @@ export type SetPhotoResult = { ok: true; photo: string | null } | { ok: false; r
 // What PATCH /me keeps. The photo has its own call (setPhoto, API.md §5.3 and §5.4).
 export interface ServerProfile {
   name: string
+  // Sent only when it changed (API.md §5.2); it can't be cleared.
+  username?: string
   phone?: string
   homeArea: string | null
 }
@@ -52,10 +55,11 @@ export interface AccountStore {
   restore(): Account | null
   // Asks the server who is signed in. null = signed out (token gone); undefined = couldn't tell.
   refresh(): Promise<Account | null | undefined>
-  signIn(email: string, password: string): Promise<SignInResult>
+  // `login` is the email or the username (API.md §4.2).
+  signIn(login: string, password: string): Promise<SignInResult>
   register(details: NewAccount): Promise<RegisterResult>
   signOut(): Promise<void>
-  updateProfile(account: Account, details: ServerProfile): Promise<Account | 'offline' | 'invalid'>
+  updateProfile(account: Account, details: ServerProfile): Promise<Account | 'offline' | 'invalid' | 'usernameTaken' | 'usernameReserved'>
   changePassword(account: Account, current: string, next: string): Promise<ChangePasswordResult>
   // Replaces the photo (a 256px data URL from auth/photo.ts), or removes it with null.
   setPhoto(account: Account, photo: string | null): Promise<SetPhotoResult>

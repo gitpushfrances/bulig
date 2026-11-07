@@ -41,7 +41,7 @@ Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope; at login, `{"message": "...", "reason": "suspended"}` for a suspended account), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
 | CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
-| Rate limits | Auth endpoints 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; email changes 5/hour per user; everything else 120/min per token or IP. |
+| Rate limits | Auth endpoints 10/min per IP and per email or username (login counts each value it is sent, lower-cased); submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; email changes 5/hour per user; everything else 120/min per token or IP. |
 | Versioning | `/api/v1`. A breaking change means `/api/v2` (see [§11](#11-changing-this-contract)). The data envelopes keep `"version": 1`. |
 
 ---
@@ -282,6 +282,7 @@ Everything except Emergency needs an account; there is no guest mode (removed 20
 ```json
 {
   "name": "Ana Reyes",
+  "username": "ana_reyes",
   "email": "ana@example.com",
   "password": "long enough",
   "acceptedTerms": true,
@@ -292,6 +293,7 @@ Everything except Emergency needs an account; there is no guest mode (removed 20
 | Field | Rules (same as the form) |
 | --- | --- |
 | `name` | required, 1–80 characters after trimming |
+| `username` | required, see [Usernames](#usernames) |
 | `email` | required, valid email, stored lower-cased and trimmed, unique |
 | `password` | required, at least 8 characters, max 128 |
 | `acceptedTerms` | required, must be `true` (the Terms of Use / Privacy Policy box) |
@@ -302,23 +304,36 @@ Everything except Emergency needs an account; there is no guest mode (removed 20
 ```json
 {
   "token": "1|q7Z…",
-  "user": { "id": "usr_01JBX…", "email": "ana@example.com", "name": "Ana Reyes", "role": "user", "areas": [], "createdAt": "2026-10-30", "phone": null, "homeArea": null, "photoUrl": null }
+  "user": { "id": "usr_01JBX…", "username": "ana_reyes", "email": "ana@example.com", "name": "Ana Reyes", "role": "user", "areas": [], "createdAt": "2026-10-30", "phone": null, "homeArea": null, "photoUrl": null }
 }
 ```
 
-**Errors:** `422` with `errors.email: ["taken"]` when the email has an account (the app shows "That email already has an account. Sign in instead."), or the field rules above.
+**Errors:** `422` with `errors.email: ["taken"]` when the email has an account (the app shows "That email already has an account. Sign in instead."), `errors.username: ["taken"]` ("That username is taken. Try another.") or `errors.username: ["reserved"]` ("That username isn't allowed. Try another."), or the field rules above.
+
+#### Usernames
+
+Added 2026-11-07 (John) so people can sign in with a short name instead of their email.
+
+- 3–20 characters: lower-case letters `a–z`, digits and `.` or `_`, starting with a letter. Regex `^[a-z][a-z0-9._]{2,19}$`.
+- Case-insensitive: the server trims and lower-cases it before checking and storing, so `Ana_Reyes` and `ana_reyes` are one name. The column has a unique index, and a deleted account's name stays taken while the account is kept (30 days, §5.6).
+- Never contains `@`, so a sign-in value with `@` is always an email and one without is always a username.
+- Reserved, `422 ["reserved"]`: `admin`, `administrator`, `bulig`, `moderator`, `mod`, `staff`, `support`, `help`, `root`, `system`, `emergency`, `police`, `api`, `me`, `null`, `undefined`.
+- Set at sign-up. Accounts made before 2026-11-07 have `username: null` and keep signing in with their email; they can add one in Edit profile (§5.2). It can be changed there, and the old name is free at once.
+- Never shown to other people yet. Password reset stays email-only.
 
 ### 4.2 `POST /auth/login`
 
 **Request**
 
 ```json
-{ "email": "ana@example.com", "password": "long enough", "device": "Bulig PWA on Android" }
+{ "login": "ana_reyes", "password": "long enough", "device": "Bulig PWA on Android" }
 ```
+
+`login` is the email **or** the username, required, at most 191 characters, trimmed and lower-cased by the server. With `@` the server looks up the email, without it the username ([Usernames](#usernames)). Older app builds send `email` instead of `login`; the server treats it the same way until every phone has updated.
 
 **200:** same body as register (`token`, `user`).
 
-**Errors:** `422 {"message": "These credentials do not match our records."}` for a wrong email *or* password (never say which). `429` after too many tries. The app shows "That email and password don't match."
+**Errors:** `422 {"message": "These credentials do not match our records.", "errors": {"login": ["…"]}}` for an unknown email or username *or* a wrong password (never say which, and the same answer time either way). `429` after too many tries. The app shows "That username or email and password don't match."
 
 `403 {"message": "This account is suspended.", "reason": "suspended"}` when an admin has suspended the account. It comes only after a **correct** password, so it never tells a stranger that an email has an account. The app shows "Your account is suspended. If you think this is a mistake, contact us." and doesn't offer a password reset. Suspending also revokes every token at once, so a suspended person's other requests get `401` and the app goes back to the login screen. Forgot-password still answers `202` as for anyone.
 
@@ -367,12 +382,13 @@ Edit profile (`/profile/edit`). Send only what changed.
 **Request**
 
 ```json
-{ "name": "Juan Dela Cruz", "phone": "+639171234567", "homeArea": "Surok, Guiuan, Eastern Samar" }
+{ "name": "Juan Dela Cruz", "username": "juan.dc", "phone": "+639171234567", "homeArea": "Surok, Guiuan, Eastern Samar" }
 ```
 
 | Field | Rules |
 | --- | --- |
 | `name` | 1–80 characters |
+| `username` | [Usernames](#usernames) rules. Can't be cleared once set (`null` is `422`). `422 errors.username: ["taken"]` or `["reserved"]` as at sign-up; sending your own name is fine. |
 | `phone` | `null`, or a PH mobile number. The form accepts `0917 123 4567` or `+63 917 123 4567`; send it normalised to E.164 (`+639171234567`). |
 | `homeArea` | `null`, or free text up to 120 characters: the barangay and town the person calls home, listed in Bulig or not (2026-11-04; it was an area ID, and older accounts were converted to "Name, Region"). Never a house address. |
 
@@ -728,6 +744,7 @@ Render's free plan can take about a minute to wake. Staff requests have no short
 ```json
 {
   "id": "usr_01JBX…",
+  "username": "ana_reyes",
   "email": "ana@example.com",
   "name": "Ana Reyes",
   "role": "user",
@@ -739,6 +756,8 @@ Render's free plan can take about a minute to wake. Staff requests have no short
   "pendingEmail": null
 }
 ```
+
+`username` is lower-case, or `null` for an account made before usernames ([§4.1](#usernames)).
 
 `pendingEmail` is the address waiting for confirmation ([§5.7](#57-post-meemail-)), or `null`. It turns back to `null` when the link is used, cancelled or expires.
 

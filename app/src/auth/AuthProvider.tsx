@@ -238,6 +238,8 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
 
   const updateProfile = async (details: ProfileDetails): Promise<UpdateProfileResult> => {
     if (!account) return 'offline' as const
+    // The username goes only when it changed: it can't be cleared, and an old account may have none.
+    const username = details.username?.trim().toLowerCase() || undefined
     const clean: ProfileDetails = {
       name: details.name.trim() || account.name,
       phone: details.phone?.trim() || undefined,
@@ -246,10 +248,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     }
     const result = await store.updateProfile(account, {
       name: clean.name,
+      ...(username && username !== account.username ? { username } : {}),
       phone: clean.phone,
       homeArea: clean.homeArea ?? null,
     })
-    if (result === 'offline' || result === 'invalid') return result
+    if (typeof result === 'string') return result
     // The photo has its own request, only when it changed. A photo only on this phone (picked before
     // uploads existed: a data URL while the server has none) is sent on this save too.
     let photo = store.online ? result.photo : account.photo
