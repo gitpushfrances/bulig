@@ -375,6 +375,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 20px;
+  border: 1px solid var(--hotline-border);
   border-radius: var(--radius-card);
   background: var(--hotline-bg);
   color: var(--color-on-deep);
@@ -1210,14 +1211,27 @@
   text-align: center;
 }
 
+/* Disabled: its own flat colours, not a faded teal (that was 2.53:1). */
+.call:disabled,
+.secondary:disabled,
 .primaryButton:disabled {
-  opacity: 0.6;
-  cursor: progress;
+  border: 1px solid var(--color-disabled-border);
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  cursor: not-allowed;
+}
+
+.secondary:disabled svg {
+  color: inherit;
 }
 
 /* Waiting on the server: full colour, with only the spinning ring (BusyContent). */
+.call[aria-busy='true'],
 .primaryButton[aria-busy='true'] {
-  opacity: 1;
+  border: 0;
+  background: var(--button-call-bg);
+  color: var(--button-call-text);
+  cursor: progress;
 }
 
 /* ---------- Sign in / Create account ---------- */
@@ -1364,6 +1378,11 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .call:not(:disabled):hover,
+  .primaryButton:not(:disabled):hover {
+    background: var(--button-call-hover-bg);
+  }
+
   .secondary:hover,
   .offer:hover {
     border-color: var(--color-primary);

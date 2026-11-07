@@ -116,7 +116,7 @@
 .pin[data-category='food'],
 .pin[data-category='store'] {
   --pin-bg: var(--pin-supplies);
-  --pin-fg: #18181b;
+  --pin-fg: #0b2530;
 }
 
 /* You: the blue dot with a halo, never a pin. */

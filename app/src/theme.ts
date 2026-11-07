@@ -7,7 +7,7 @@ export type ThemeChoice = 'system' | 'light' | 'dark'
 
 const KEY = 'bulig.theme'
 // Matches --color-bg in index.css, for the browser and status bar colour.
-const BAR = { light: '#fafafa', dark: '#09090b' }
+const BAR = { light: '#f4f7f5', dark: '#09090b' }
 
 const listeners = new Set<() => void>()
 const darkQuery = () => (typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null)
