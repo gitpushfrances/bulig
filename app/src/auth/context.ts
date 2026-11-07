@@ -2,11 +2,11 @@ import { createContext, useContext } from 'react'
 import type { ChangePasswordResult, ConfirmEmailResult, EmailChangeResult, NewAccount, RegisterResult, SignInResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
-export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | { photo: 'offline' | 'invalid' | 'busy' | 'unavailable' }
+export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | 'usernameTaken' | 'usernameReserved' | { photo: 'offline' | 'invalid' | 'busy' | 'unavailable' }
 
 export interface Auth {
   account: Account | null
-  signIn: (email: string, password: string) => Promise<SignInResult>
+  signIn: (login: string, password: string) => Promise<SignInResult>
   register: (details: NewAccount) => Promise<RegisterResult>
   signOut: () => void
   // 'ok', or why it didn't save: no connection, or the server refused a field. `photo`: the details

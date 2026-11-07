@@ -7,6 +7,8 @@ export type Role = (typeof ROLES)[number]
 
 export interface Account {
   email: string
+  // Lower-case, API.md §4.1. Missing on accounts made before usernames; they sign in with email.
+  username?: string
   name: string
   role: Role
   // Moderators only: the areas they look after (a city, municipality or barangay).
@@ -25,7 +27,7 @@ export interface Account {
 }
 
 // The fields Edit profile may change.
-export type ProfileDetails = Pick<Account, 'name' | 'phone' | 'homeArea' | 'photo'>
+export type ProfileDetails = Pick<Account, 'name' | 'username' | 'phone' | 'homeArea' | 'photo'>
 
 export const ROLE_LABELS: Record<Role, string> = {
   user: 'User',

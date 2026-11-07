@@ -290,7 +290,7 @@ Preview: https://claude.ai/artifact/JBTEEuRnAKFEmtHgiw2Mik. Requests: API.md §7
 - No tab bar, no header, no test shortcuts, no emergency button (John, 2026-10-30). It simulates the real product.
 - **Phones:** Ropi's head in a circle (88px, tappable) tops the screen as the app mark, then "Welcome back" / "Sign in to find help along the way."
 - **From 60rem (tablet landscape, desktop):** a split screen. Left: a quiet panel with Ropi `ready` waving (260px, tap for the reaction), "Bulig", "Help along the way." Right: the form.
-- Form: Email, Password (show/hide), a full-width **Sign in**. Directly under the button: **Forgot password?**
+- Form: **Username or email** (one plain text box; with `@` it is an email, API.md §4.2), Password (show/hide), a full-width **Sign in**. A wrong value says "That username or email and password don't match.", never which one. Directly under the button: **Forgot password?**
 - A divider "New to Bulig?", then **Create an account** (outlined, full width), which opens the onboarding.
 - No guest mode and no emergency link here (John, 2026-11-04).
 - Look (all sign-in screens): one card (24px corners, layered shadow, a light top edge in dark mode) on a soft teal glow. Ropi's head in a teal ring with a shield badge, a bold title, quiet labels, filled fields with placeholders, a solid teal main button with a teal lift, teal links, and form errors in a tinted box with an X. Footer under the card: "Bulig · Road help for the Philippines". Blocks stack in a beat apart; a field shakes once when it turns invalid, and the fields shake on a wrong password. All motion is off under reduced motion.
@@ -306,7 +306,7 @@ Ropi explains Bulig before the account form. Progress dots on the top left, **Sk
 | 2 | `friendly`: "Here's how it helps on a normal day." | Every day on the road | Flat tire → Vulcanizing, gas and mechanics nearest first, restos, hotels and **Others**, the heart to save |
 | 3 | `thinking`: "Why use Bulig and not just search?" | Why Bulig | Checked with dates, works with no signal, free with no ads or paywall near 911 |
 | 4 | `head`: "One last thing: staying safe." | Safety first | The red button on every screen; pull over first (RA 10913); Bulig never sends help or location |
-| 5 | `friendly`: "Let's get started! Make your account." | Create your account | Name, Email, Password (8+), "I agree to the Terms of Use and Privacy Policy" (required), **Back** / **Create account** |
+| 5 | `friendly`: "Let's get started! Make your account." | Create your account | Name, Username (3–20 letters, numbers, `.` or `_`, starting with a letter; API.md §4.1), Email, Password (8+), "I agree to the Terms of Use and Privacy Policy" (required), **Back** / **Create account** |
 
 After **Create account** the person lands on Home (or the screen that asked for sign-in).
 

@@ -40,7 +40,7 @@ describe('apiStore', () => {
 
     expect(result).toEqual({ ok: true, account: expect.objectContaining({ email: 'ana@example.com', role: 'user' }) })
     expect(calls[0].url).toBe(`${BASE}/auth/login`)
-    expect(body(calls[0].init)).toEqual({ email: 'ana@example.com', password: 'long enough', device: 'Bulig PWA' })
+    expect(body(calls[0].init)).toEqual({ login: 'ana@example.com', password: 'long enough', device: 'Bulig PWA' })
     expect(localStorage.getItem('bulig.token')).toBe('1|abc')
     expect(store.restore()?.name).toBe('Ana Reyes')
   })
@@ -58,19 +58,35 @@ describe('apiStore', () => {
     expect(await store.signIn('a@b.co', 'x')).toEqual({ ok: false, reason: 'offline' })
   })
 
-  it('registers, and says when the email is taken', async () => {
+  it('registers, and says when the email or the username is taken or reserved', async () => {
     const { fetchFn, calls } = server(
-      { status: 201, body: { token: '2|def', user } },
+      { status: 201, body: { token: '2|def', user: { ...user, username: 'ana_reyes' } } },
       { status: 422, body: { message: 'taken', errors: { email: ['taken'] } } },
+      { status: 422, body: { message: 'taken', errors: { username: ['taken'] } } },
+      { status: 422, body: { message: 'reserved', errors: { username: ['reserved'] } } },
+      { status: 422, body: { message: 'bad', errors: { username: ['The username field format is invalid.'] } } },
     )
     const store = createApiStore(BASE, fetchFn)
+    const ana = { name: 'Ana', username: 'ana_reyes', email: 'ana@example.com', password: 'long enough' }
 
-    expect((await store.register({ name: ' Ana Reyes ', email: 'ana@example.com', password: 'long enough' })).ok).toBe(true)
-    expect(body(calls[0].init)).toMatchObject({ name: 'Ana Reyes', acceptedTerms: true })
-    expect(await store.register({ name: 'Ana', email: 'ana@example.com', password: 'long enough' })).toEqual({
-      ok: false,
-      reason: 'taken',
+    const made = await store.register({ ...ana, name: ' Ana Reyes ', username: ' Ana_Reyes ' })
+    expect(made).toEqual({ ok: true, account: expect.objectContaining({ username: 'ana_reyes' }) })
+    expect(body(calls[0].init)).toMatchObject({ name: 'Ana Reyes', username: 'ana_reyes', acceptedTerms: true })
+    expect(await store.register(ana)).toEqual({ ok: false, reason: 'taken' })
+    expect(await store.register(ana)).toEqual({ ok: false, reason: 'usernameTaken' })
+    expect(await store.register(ana)).toEqual({ ok: false, reason: 'usernameReserved' })
+    expect(await store.register(ana)).toEqual({ ok: false, reason: 'invalid' })
+  })
+
+  it('signs in with a username, sent as "login"', async () => {
+    const { fetchFn, calls } = server({ status: 200, body: { token: '1|abc', user: { ...user, username: 'ana_reyes' } } })
+    const store = createApiStore(BASE, fetchFn)
+
+    expect(await store.signIn(' ana_reyes ', 'long enough')).toEqual({
+      ok: true,
+      account: expect.objectContaining({ username: 'ana_reyes' }),
     })
+    expect(body(calls[0].init)).toEqual({ login: 'ana_reyes', password: 'long enough', device: 'Bulig PWA' })
   })
 
   it('sends the token on signed-in requests and signs the phone out on 401', async () => {
@@ -104,6 +120,22 @@ describe('apiStore', () => {
     expect(calls[0].init.method).toBe('PATCH')
     expect(body(calls[0].init)).toEqual({ name: 'Juan', phone: '+639171234567', homeArea: null })
     expect(result).toMatchObject({ name: 'Juan', phone: '+639171234567' })
+  })
+
+  it('sends a changed username lower-cased, and says when it is taken or reserved', async () => {
+    localStorage.setItem('bulig.token', '1|abc')
+    const { fetchFn, calls } = server(
+      { body: { ...user, username: 'juan.dc' } },
+      { status: 422, body: { message: 'taken', errors: { username: ['taken'] } } },
+      { status: 422, body: { message: 'reserved', errors: { username: ['reserved'] } } },
+    )
+    const store = createApiStore(BASE, fetchFn)
+    const account = { email: 'ana@example.com', name: 'Ana', role: 'user' as const, areas: [] }
+
+    expect(await store.updateProfile(account, { name: 'Ana', username: ' Juan.DC ', homeArea: null })).toMatchObject({ username: 'juan.dc' })
+    expect(body(calls[0].init)).toEqual({ name: 'Ana', username: 'juan.dc', phone: null, homeArea: null })
+    expect(await store.updateProfile(account, { name: 'Ana', username: 'taken', homeArea: null })).toBe('usernameTaken')
+    expect(await store.updateProfile(account, { name: 'Ana', username: 'admin', homeArea: null })).toBe('usernameReserved')
   })
 
   it('uploads the photo as multipart, keeps its URL, removes it, and says why it failed', async () => {

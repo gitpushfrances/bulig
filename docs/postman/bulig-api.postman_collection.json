@@ -298,7 +298,7 @@
             "description": "201 with token. 422 errors.email = already registered: run Login instead.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Postman Test\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"acceptedTerms\": true,\n  \"device\": \"Postman\"\n}",
+              "raw": "{\n  \"name\": \"Postman Test\",\n  \"username\": \"postman_{{$timestamp}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"acceptedTerms\": true,\n  \"device\": \"Postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -341,7 +341,7 @@
             "description": "422 = wrong email or password. 403 reason \"suspended\". 429 = too many tries (10/min).",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"device\": \"Postman\"\n}",
+              "raw": "{\n  \"login\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"device\": \"Postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -7,13 +7,13 @@ import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
-import { EMAIL_INPUT } from '../components/fieldRules.ts'
+import { USERNAME_INPUT } from '../auth/username.ts'
 import { shake } from '../components/shake.ts'
 import page from './Page.module.css'
 import styles from './Auth.module.css'
 
 const LOGIN_ERRORS = {
-  wrong: "That email and password don't match. Check them and try again.",
+  wrong: "That username or email and password don't match. Check them and try again.",
   suspended: 'Your account is suspended. If you think this is a mistake, contact us.',
   offline: "Couldn't reach Bulig. Check your connection and try again.",
   busy: 'Too many tries. Wait a minute, then try again.',
@@ -26,11 +26,11 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const next = safeNext(params.get('next')) ?? '/'
-  const [email, setEmail] = useState('')
+  const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
-  const [emailError, setEmailError] = useState('')
+  const [loginError, setLoginError] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  // Wrong email or password: the server never says which (API.md §4.2), so both turn red and the
+  // Wrong username, email or password: the server never says which (API.md §4.2), so both turn red and the
   // password shakes (the usual culprit). No signal or too many tries: no field is wrong.
   const [wrong, setWrong] = useState(false)
   const [formError, setFormError] = useState('')
@@ -41,14 +41,14 @@ export default function LoginPage() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    const missing = { email: email.trim() ? '' : 'Enter your email.', password: password ? '' : 'Enter your password.' }
-    if (missing.email || missing.password) {
-      setEmailError(missing.email)
+    const missing = { login: login.trim() ? '' : 'Enter your username or email.', password: password ? '' : 'Enter your password.' }
+    if (missing.login || missing.password) {
+      setLoginError(missing.login)
       setPasswordError(missing.password)
       return
     }
     setBusy(true)
-    const result = await signIn(email, password)
+    const result = await signIn(login, password)
     setBusy(false)
     if (!result.ok) {
       setFormError(LOGIN_ERRORS[result.reason])
@@ -73,22 +73,23 @@ export default function LoginPage() {
 
       <form className={styles.form} onSubmit={submit} noValidate>
         <div className={styles.fields}>
+          {/* Username or email (API.md §4.2): a plain text box, so the keyboard doesn't assume an email. */}
           <TextField
-            label="Email"
-            placeholder="you@example.com"
-            {...EMAIL_INPUT}
+            label="Username or email"
+            placeholder="juan.dc or you@example.com"
+            type="text"
+            {...USERNAME_INPUT}
             autoComplete="username"
             enterKeyHint="next"
-            value={email}
-            error={emailError}
+            value={login}
+            error={loginError}
             invalid={wrong}
             onChange={(v) => {
-              setEmail(v)
-              setEmailError('')
+              setLogin(v)
+              setLoginError('')
               setFormError('')
               setWrong(false)
             }}
-            onBlur={() => setEmailError(email && !email.includes('@') ? 'Enter an email like name@example.com.' : '')}
           />
           <div ref={passwordRef}>
             <PasswordField
