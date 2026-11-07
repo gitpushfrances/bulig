@@ -35,6 +35,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Map chips: All first, then Nearby** (2026-11-07, John). Nearby is still 5 km (the label is just "Nearby"), the dashed 5 km ring is gone, and tapping All no longer zooms out to the whole country: the map stays where it is and the hidden places appear.
 - **Light is the default theme** (2026-11-07, John). Before, a phone set to dark opened Bulig in dark. Now it opens in light unless the person picks Dark, or System to follow the phone (Profile > Appearance). The splash stays near-black in every theme.
 - **Light Call 911 red is `#B91C1C`** (was `#DC2626`): white label 6.47:1, up from 4.83:1. Dark keeps `#DC2626`.
 - **Dark card borders `#3F3F46`** (1.70:1, was 1.19:1), and the hotline card gets a teal edge in dark so it no longer melts into the black page (was 1.20:1).
@@ -45,6 +46,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Fixed
 
+- **Light theme turned dark on phones set to dark mode** (2026-11-07, John's phone screenshots). With Light picked, the status bar was light but the page was inverted: grey page, black cards. Chrome's Auto Dark Theme (and MIUI/Samsung force-dark) darkens pages that only say `color-scheme: light`. The light theme now says `only light` (CSS and the `color-scheme` meta, set before the first paint), the documented opt-out.
 - Pending and Approved pills in Updates used six hard-coded colours, and the pale amber pill glowed on the dark theme. They use the warning and checked tokens now. The mini map's amber pin icon matches the Map page (`#0B2530`). `tokens.test.ts` keeps the two dark-theme copies and `theme-color` in step.
 - **White flash when opening the installed app in dark mode** (2026-11-06, John). The manifest's `background_color` was #fafafa, so Android showed a white screen with the icon before the dark splash. The manifest and the splash now share #09090b in every theme, and the splash fades out over 320ms instead of 200ms. Phones that already installed Bulig pick up the new colour when Chrome refreshes the installed app (can take a day), or on reinstall.
 - **Theme switch repainted the route line as a road** (2026-11-05). `applyMapTheme` recoloured every layer, including the app's own route line; it now skips `route-*` and `nearby-ring-*`.
