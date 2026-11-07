@@ -21,6 +21,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Added
 
+- **Warm-neutral light mode** (2026-11-07, John). Light stays the default and now reads as Bulig, not a generic white-and-grey app: a green-grey page `#F4F7F5` with white cards, tinted text and borders, a visible teal selected fill `#D5ECEE`, and the brand teal `#0E7490` unchanged. New tokens for warning, info, primary hover and disabled. Dark keeps its look. UI-UX.md, Theme.
 - **Moderator app on the phone** (2026-11-06, John). Staff get Home (counts, waiting, recently approved) · Review (badge) · + · Map · Manage (Users, Areas, Hotlines), and lose Services and Saved unless they pick "Use the app as: Traveller" in Profile. Review one ticks fields one by one, rejects with the six reasons; + publishes at once through `POST /staff/services`. Hotlines are managed per province, city and municipality; national lines stay admin-only. UI-UX.md, Moderator app.
 - **Snapshot cache for staff screens** (`app/src/staff/snapshot.ts`). Screens open with their last copy and refresh in the background; one fetch per key; rows preload on press. Memory only and dropped on sign-out, so a shared phone never shows the last person's queue or user list.
 
@@ -34,12 +35,16 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Light Call 911 red is `#B91C1C`** (was `#DC2626`): white label 6.47:1, up from 4.83:1. Dark keeps `#DC2626`.
+- **Dark card borders `#3F3F46`** (1.70:1, was 1.19:1), and the hotline card gets a teal edge in dark so it no longer melts into the black page (was 1.20:1).
+- **Disabled buttons** use their own flat colours instead of 60% opacity, which left "Sign in" at 2.53:1. Primary and Call buttons now darken on mouse hover.
 - **Staff: 911 moved from the floating button to a top bar** on every screen, next to the profile button (2026-11-06, John). Users and contributors keep the floating button.
 - **Confirms float** (2026-11-06, John). The new-photo preview, Remove photo and Delete account open in a floating dialog (`app/src/components/Dialog.tsx`, native `<dialog>`) instead of pushing a card into the page. Delete account stays the quiet link at the very bottom of Profile.
 - **Raised Add button** (2026-11-06, John): 56px with a top-lit teal gradient and a soft teal shadow, lifted 22px instead of 28px, with room under it for the label. Was a flat 64px circle.
 
 ### Fixed
 
+- Pending and Approved pills in Updates used six hard-coded colours, and the pale amber pill glowed on the dark theme. They use the warning and checked tokens now. The mini map's amber pin icon matches the Map page (`#0B2530`). `tokens.test.ts` keeps the two dark-theme copies and `theme-color` in step.
 - **White flash when opening the installed app in dark mode** (2026-11-06, John). The manifest's `background_color` was #fafafa, so Android showed a white screen with the icon before the dark splash. The manifest and the splash now share #09090b in every theme, and the splash fades out over 320ms instead of 200ms. Phones that already installed Bulig pick up the new colour when Chrome refreshes the installed app (can take a day), or on reinstall.
 - **Theme switch repainted the route line as a road** (2026-11-05). `applyMapTheme` recoloured every layer, including the app's own route line; it now skips `route-*` and `nearby-ring-*`.
 

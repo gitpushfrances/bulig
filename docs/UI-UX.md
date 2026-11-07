@@ -492,37 +492,47 @@ Use the `regular` weight for most icons. The `fill` weight marks the selected ta
 - Every icon-only button has an accessible name (`aria-label` or visible equivalent). Decorative icons are hidden from assistive technology. A visible label accompanies every unfamiliar service-category icon.
 - Do not use emojis as UI icons. Do not combine Phosphor, Lucide, Material Symbols, and hand-picked third-party sets in the same interface. A custom SVG is permitted only when the chosen library has no clear symbol for a concept such as a flat tire.
 
-### Theme: Bulig Teal (current, 2026-11-04)
+### Theme: Bulig Teal, warm-neutral light (current, 2026-11-07)
 
-On 2026-11-04 John chose an **identity pass** over Graphite, after feedback that the app looked like a generic AI build: all greys, the stock icon kit, nothing local. Same screens and layout; the skin now carries the brand. **Teal** from the Bulig logo and Ropi's scarf is the brand colour for actions, links, selected states and category icons. **Red** stays for emergency actions only, **green** for checked, greys for everything else. Map pins keep their own category colours ([Map pins](#map-pins)). (Graphite, 2026-10-29 to 2026-11-04, used near-black as the brand colour.)
+On 2026-11-04 John chose an **identity pass** over Graphite, after feedback that the app looked like a generic AI build: all greys, the stock icon kit, nothing local. Same screens and layout; the skin now carries the brand. **Teal** from the Bulig logo and Ropi's scarf is the brand colour for actions, links, selected states and category icons. **Red** stays for emergency actions only, **green** for checked, **amber** for pending/warning, **sky** for info, neutrals for everything else. Map pins keep their own category colours ([Map pins](#map-pins)). (Graphite, 2026-10-29 to 2026-11-04, used near-black as the brand colour.)
 
-Token source: [`app/src/index.css`](../app/src/index.css), in three layers (primitive `--zinc-*`, `--teal-*`, `--red-*`, `--green-*`, `--pin-*` → semantic `--color-*` → component `--button-*`, `--hotline-*`, `--tab-*`). Components use semantic or component tokens only.
+**Light is the default** (John, 2026-11-07, after QA said light mode looked like a generic white-and-grey app): "Balanced Teal + Warm Neutral". The page is a green-grey `#F4F7F5` so white cards stand off it, text and borders are tinted to match, and selected states are a visible teal tint. Proportions: about 70% warm neutral, 20% teal, 10% status colours. Dark keeps its charcoal + cyan identity with only contrast fixes.
+
+Token source: [`app/src/index.css`](../app/src/index.css), in three layers (primitive `--zinc-*`, `--sage-*`, `--teal-*`, `--red-*`, `--green-*`, `--amber-*`, `--sky-*`, `--pin-*` → semantic `--color-*` → component `--button-*`, `--hotline-*`, `--tab-*`). Components use semantic or component tokens only. The dark theme is written twice (system setting and the Profile choice); `app/src/tokens.test.ts` fails if the two copies differ or if `theme-color` drifts from `--color-bg`.
 
 | Role | Token | Light | Dark | Use |
 | --- | --- | --- | --- | --- |
-| Page ground | `--color-bg` | `#FAFAFA` | `#09090B` | App background |
+| Page ground | `--color-bg` | `#F4F7F5` | `#09090B` | App background, `theme-color` |
 | Surface | `--color-surface` | `#FFFFFF` | `#18181B` | Cards, forms, navigation |
-| Main text | `--color-text` | `#18181B` | `#FAFAFA` | Headings and body |
-| Secondary text | `--color-text-muted` | `#52525B` | `#A1A1AA` | Supporting information |
-| Card border | `--color-border` | `#E4E4E7` | `#27272A` | Card edges, dividers |
-| Control border | `--color-border-strong` | `#71717A` | `#71717A` | Inputs and chips (WCAG 1.4.11) |
+| Subtle surface | `--color-surface-subtle` | `#EDF3F0` | `#1F1F23` | Secondary sections |
+| Main text | `--color-text` | `#182522` | `#FAFAFA` | Headings and body |
+| Secondary text | `--color-text-muted` | `#52635D` | `#A1A1AA` | Supporting information |
+| Card border | `--color-border` | `#C5D3CE` | `#3F3F46` | Card edges, dividers |
+| Control border | `--color-border-strong` | `#71817A` | `#71717A` | Inputs and chips (WCAG 1.4.11) |
 | Primary action | `--color-primary` | `#0E7490` | `#22D3EE` | Normal Call, Sign in, chips, selected states |
+| Primary hover | `--color-primary-hover` | `#155E75` | `#67E8F9` | Call / primary button under a mouse |
 | On primary | `--color-on-primary` | `#FFFFFF` | `#05222A` | Text and icons on primary |
 | Brand text | `--color-primary-text` | `#155E75` | `#67E8F9` | Links, Back, active tab icon, category icons |
-| Selected / soft fill | `--color-selected` | `#ECFEFF` | `#0C3A47` | Active tab pill, feature tile, segmented track |
-| Hotline card | `--color-deep` | `#05222A` | `#05222A` | National hotline card |
-| Emergency action | `--color-emergency` | `#DC2626` | `#DC2626` | Call 911 and every emergency action, nothing else |
+| Selected / soft fill | `--color-selected` | `#D5ECEE` | `#0C3A47` | Active tab pill, feature tile, segmented track, hover fill |
+| Hotline card | `--color-deep` / `--color-deep-border` | `#05222A` / none | `#05222A` / `#155E75` | National hotline card; the dark edge keeps it off the black page |
+| Emergency action | `--color-emergency` | `#B91C1C` | `#DC2626` | Call 911 and every emergency action, nothing else |
 | On emergency | `--color-on-emergency` | `#FFFFFF` | `#FFFFFF` | Label on the red button |
-| Checked | `--color-checked` | `#15803D` | `#4ADE80` | "Checked <date>" |
+| Checked / success | `--color-checked` / `--color-on-checked` | `#15803D` / `#FFFFFF` | `#4ADE80` / `#052E16` | "Checked <date>", Approved pill |
+| Live GPS | `--color-live` | `#15803D` | `#4ADE80` | Location dot |
+| Warning | `--color-warning` / `-bg` | `#92400E` / `#FEF3C7` | `#FBBF24` / `#422006` | Pending (Updates) |
+| Info | `--color-info` / `-bg` | `#075985` / `#E0F2FE` | `#7DD3FC` / `#082F49` | Information notes (none built yet) |
+| Disabled | `--color-disabled-bg` / `-text` / `-border` | `#EDF3F0` / `#52635D` / `#C5D3CE` | `#27272A` / `#A1A1AA` / `#3F3F46` | Disabled buttons (no more faded teal) |
 | Error | `--color-error` | `#B91C1C` | `#F87171` | Form errors |
-| Sample badge | `--color-sample-bg` / `-text` | `#EBEBED` / `#3F3F46` | `#27272A` / `#E4E4E7` | SAMPLE badge, test notices |
+| Sample / status | `--color-sample-*`, `--color-status-*` | `#E3EAE7` / `#3B4A45`, `#27352F` | `#27272A` / `#E4E4E7` | SAMPLE badge, neutral pills, skeletons |
+| Focus | `--color-focus` | `#0E7490` | `#67E8F9` | 3px focus outline |
 
-Measured contrast (WCAG), teal: white on primary `5.36:1`; brand text on white `7.27:1` and on the selected fill `6.99:1`; dark on-primary on primary `7.88:1`; dark brand text on surface `12.22:1`; the red Call 911 button against the hotline card `3.43:1` (1.4.11), its white label `4.83:1`. Unchanged from Graphite: light text on page `16.97:1`; secondary text on white `7.73:1`; white on primary `17.72:1`; white on emergency red `4.83:1`; checked on white `5.02:1`; error on white `6.47:1`; control border on white `4.83:1`. Dark: text on page `19.06:1`; secondary on surface `6.91:1`; checked on surface `10.17:1`; error on surface `6.40:1`; control border on surface `3.67:1`. Still test outdoors on a real low-cost phone.
+Measured contrast (WCAG, 2026-11-07). Light: text on page `14.68:1`, on white `15.83:1`; secondary text on white `6.36:1`, on page `5.90:1`, on the selected fill `5.17:1`; brand text on page `6.74:1`, on selected `5.90:1`; white on primary `5.36:1`, on hover `7.27:1`; white on emergency red `6.47:1`; checked on white `5.02:1`, on page `4.65:1`; warning on its fill `6.37:1`; info on its fill `6.59:1`; disabled label `5.66:1`; control border on white `4.10:1`, on page `3.80:1`; focus on page `4.97:1`. Card border on white `1.55:1` (the proposed `#D9E5E1` was 1.29:1, no better than the old 1.27:1, so it was darkened). Dark: text on page `19.06:1`; secondary on surface `6.91:1`; on-primary on primary `9.16:1`; white on red `4.83:1` (the 911 label is large bold text); warning on its fill `8.73:1`; info on its fill `8.32:1`; disabled label `5.81:1`; card border on surface `1.70:1` (was 1.19:1); hotline edge on page `2.74:1` (the card alone was 1.20:1). Card borders and fills are decorative and not held to 3:1. Still test outdoors on a real low-cost phone.
 
 - Ordinary Call buttons are the brand teal. Only Call 911 and emergency actions are red, so red always means emergency.
 - The national hotline is a deep-teal card (`#05222A`) with a red Call 911 button. It replaces the earlier pale-red card in "Component rules"; the hotline must stay the strongest block on Home.
 - Shape: cards 14px corners, controls 10px. Borders separate surfaces; no shadows except the selected segmented tab's 1px ring.
-- `theme-color`, the PWA manifest and the app icons use `#FAFAFA` / `#09090B`. The app icons are the Bulig logo (teal pin, road and hand) on white, generated from `app/brand/bulig-icon.png`.
+- Buttons: pressed scales to 0.97; primary and Call darken to `--color-primary-hover` under a mouse; disabled uses the flat disabled colours, while a button waiting on the server keeps full colour with the spinner.
+- `theme-color` uses `#F4F7F5` / `#09090B`; the PWA manifest stays `#09090B` (the splash is near-black in every theme). The app icons are the Bulig logo (teal pin, road and hand) on white, generated from `app/brand/bulig-icon.png`.
 
 ### Language
 
