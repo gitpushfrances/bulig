@@ -35,6 +35,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Light is the default theme** (2026-11-07, John). Before, a phone set to dark opened Bulig in dark. Now it opens in light unless the person picks Dark, or System to follow the phone (Profile > Appearance). The splash stays near-black in every theme.
 - **Light Call 911 red is `#B91C1C`** (was `#DC2626`): white label 6.47:1, up from 4.83:1. Dark keeps `#DC2626`.
 - **Dark card borders `#3F3F46`** (1.70:1, was 1.19:1), and the hotline card gets a teal edge in dark so it no longer melts into the black page (was 1.20:1).
 - **Disabled buttons** use their own flat colours instead of 60% opacity, which left "Sign in" at 2.53:1. Primary and Call buttons now darken on mouse hover.

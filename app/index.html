@@ -16,14 +16,18 @@
     <meta name="apple-mobile-web-app-title" content="Bulig" />
     <script>
       // The saved theme (Profile > Appearance), applied before the first paint. See src/theme.ts.
+      // Light unless the person picked Dark, or System to follow the phone.
       try {
         var t = localStorage.getItem('bulig.theme')
-        if (t === 'light' || t === 'dark') {
+        if (t !== 'system') {
+          t = t === 'dark' ? 'dark' : 'light'
           document.documentElement.setAttribute('data-theme', t)
           var c = t === 'dark' ? '#09090b' : '#f4f7f5'
           document.querySelectorAll('meta[name=theme-color]').forEach(function (m) { m.setAttribute('content', c) })
         }
-      } catch (e) {}
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light')
+      }
 
       // The splash shows once per launch, and never in front of Emergency: a link to /emergency
       // opens straight to it. Decided here, before the splash can paint.

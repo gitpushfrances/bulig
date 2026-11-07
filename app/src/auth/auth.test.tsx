@@ -303,6 +303,16 @@ describe('Profile', () => {
     expect(localStorage.getItem('bulig.theme')).toBe('dark')
     fireEvent.click(screen.getByRole('button', { name: 'System' }))
     expect(document.documentElement).not.toHaveAttribute('data-theme')
+    expect(localStorage.getItem('bulig.theme')).toBe('system')
+    fireEvent.click(screen.getByRole('button', { name: 'Light' }))
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+    expect(localStorage.getItem('bulig.theme')).toBeNull()
+  })
+
+  it('starts in Light when nothing was picked, even on a phone set to dark', () => {
+    localStorage.removeItem('bulig.theme')
+    renderAt('/profile')
+    expect(screen.getByRole('button', { name: 'Light' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('deletes an account made on this phone only after typing "delete"', async () => {
