@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { readSaved, writeSaved } from './data/storage.ts'
 
-// The person's theme choice. "system" follows the phone. index.html applies the saved choice
+// The person's theme choice. Light is the default (John, 2026-11-07); "system" follows the phone. index.html applies the saved choice
 // before the app loads, so the page never flashes the wrong colours.
 export type ThemeChoice = 'system' | 'light' | 'dark'
 
@@ -14,7 +14,7 @@ const darkQuery = () => (typeof matchMedia === 'function' ? matchMedia('(prefers
 
 export function readTheme(): ThemeChoice {
   const value = readSaved(KEY)
-  return value === 'light' || value === 'dark' ? value : 'system'
+  return value === 'dark' || value === 'system' ? value : 'light'
 }
 
 // What is on screen now: the choice, or the phone's setting under "system".
@@ -34,7 +34,8 @@ function apply(choice: ThemeChoice) {
 }
 
 export function setTheme(choice: ThemeChoice) {
-  writeSaved(KEY, choice === 'system' ? null : choice)
+  // Nothing saved means light, the default.
+  writeSaved(KEY, choice === 'light' ? null : choice)
   apply(choice)
   listeners.forEach((l) => l())
 }

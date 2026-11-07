@@ -167,7 +167,8 @@
   overscroll-behavior: none;
 }
 
-/* Dark: follows the phone unless the person picked Light or Dark in Profile (data-theme on <html>). */
+/* Dark: only when the person picked Dark, or picked System on a phone set to dark (data-theme on
+   <html>; index.html sets data-theme='light' when nothing was picked, so light is the default). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --color-bg: var(--zinc-950);
