@@ -35,6 +35,7 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Map chips: All first, then Nearby** (2026-11-07, John). Nearby is still 5 km (the label is just "Nearby"), the dashed 5 km ring is gone, and tapping All no longer zooms out to the whole country: the map stays where it is and the hidden places appear.
 - **Light is the default theme** (2026-11-07, John). Before, a phone set to dark opened Bulig in dark. Now it opens in light unless the person picks Dark, or System to follow the phone (Profile > Appearance). The splash stays near-black in every theme.
 - **Light Call 911 red is `#B91C1C`** (was `#DC2626`): white label 6.47:1, up from 4.83:1. Dark keeps `#DC2626`.
 - **Dark card borders `#3F3F46`** (1.70:1, was 1.19:1), and the hotline card gets a teal edge in dark so it no longer melts into the black page (was 1.20:1).
