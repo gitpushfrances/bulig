@@ -1,5 +1,5 @@
 import BackButton from '../components/BackButton.tsx'
-import { DownloadSimple, EnvelopeSimple, FileText, Globe, GoogleLogo, HandHeart, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
+import { DownloadSimple, EnvelopeSimple, FileText, Globe, GoogleLogo, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -138,7 +138,6 @@ export default function ProfilePage() {
   const ready = data.status === 'ready'
   const homeArea = homeAreaText(account.homeArea, ready ? data.areas : [])
   const since = monthYear(account.createdAt)
-  const request = account.contributorRequest
 
   return (
     <section className={styles.page} aria-labelledby="profile-title">
@@ -184,17 +183,6 @@ export default function ProfilePage() {
         )}
         {homeArea && <SettingsInfo icon={MapPin} label="Home area" value={homeArea} />}
       </SettingsGroup>
-
-      {account.role === 'user' && (
-        <SettingsGroup title="Help the community">
-          <SettingsLink
-            to="/profile/contributor"
-            icon={HandHeart}
-            label="Become a contributor"
-            value={request?.status === 'pending' ? 'Waiting' : undefined}
-          />
-        </SettingsGroup>
-      )}
 
       <SettingsGroup title="Preferences">
         {can(account, 'review') && (

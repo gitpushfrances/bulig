@@ -99,15 +99,9 @@ function seed(): Db {
     canChangeRole: !staff,
     canRemovePhoto: true,
   })
-  const maria = user('usr_maria', 'Maria Santos', 'user', 'ma…@yahoo.com', 2)
-  maria.contributorRequest = {
-    area: 'Guiuan to Mercedes, Eastern Samar',
-    reason: 'I drive a tricycle on this road every day.',
-    createdAt: '2026-11-09',
-  }
   const users = [
     user('usr_juan', 'Juan Dela Cruz', 'contributor', 'ju…@gmail.com', 7),
-    maria,
+    user('usr_maria', 'Maria Santos', 'user', 'ma…@yahoo.com', 2),
     user('usr_leo', 'Leo Pacaña', 'user', 'le…@gmail.com', 1),
     user('usr_mod', 'Test moderator', 'moderator', 'mo…@bulig.com', 1, true),
   ]
@@ -207,7 +201,6 @@ export const localStaff: StaffStore = {
       hiddenEmergencyContacts: db().hotlines.filter((h) => h.hidden).length,
       dueEmergencyContacts: db().hotlines.filter((h) => Date.parse(h.hidesOn) - Date.now() < 30 * 86_400_000).length,
       users: db().users.length,
-      contributorRequests: db().users.filter((u) => u.contributorRequest).length,
     }
   },
   async queue({ status = 'pending', reason } = {}) {
@@ -247,21 +240,12 @@ export const localStaff: StaffStore = {
     db().places += 1
     return ok({ id: `ph-local-${Math.random().toString(36).slice(2, 8)}` })
   },
-  async users({ q, role, requested } = {}) {
+  async users({ q, role } = {}) {
     const needle = q?.trim().toLowerCase() ?? ''
     if (needle && needle.length < 3) throw new Error('Type 3 letters or more.')
     const items = db().users
       .filter((u) => (!role || u.role === role) && (!needle || u.name.toLowerCase().includes(needle)))
-      .filter((u) => !requested || u.contributorRequest)
-      .map(({ id, name, role, email, createdAt, sent, contributorRequest }) => ({
-        id,
-        name,
-        role,
-        email,
-        createdAt,
-        sent,
-        requested: !!contributorRequest,
-      }))
+      .map(({ id, name, role, email, createdAt, sent }) => ({ id, name, role, email, createdAt, sent }))
     return { items, nextPage: null }
   },
   async user(id) {
@@ -274,14 +258,6 @@ export const localStaff: StaffStore = {
     if (!u) return fail('This is gone. Someone may have removed it.')
     if (!u.canChangeRole) return fail("Your account can't do that.")
     u.role = role
-    if (role === 'contributor') u.contributorRequest = null
-    return ok(clone(u))
-  },
-  async declineContributor(id) {
-    const u = db().users.find((x) => x.id === id)
-    if (!u) return fail('This is gone. Someone may have removed it.')
-    if (!u.contributorRequest) return fail('Someone already answered this.')
-    u.contributorRequest = null
     return ok(clone(u))
   },
   async removePhoto(id) {

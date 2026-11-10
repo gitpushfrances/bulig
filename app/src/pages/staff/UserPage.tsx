@@ -30,7 +30,7 @@ export default function UserPage() {
 }
 
 function Person({ user }: { user: StaffUserDetail }) {
-  const [busy, setBusy] = useState<'role' | 'photo' | 'decline' | null>(null)
+  const [busy, setBusy] = useState<'role' | 'photo' | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [askPhoto, setAskPhoto] = useState(false)
@@ -45,21 +45,7 @@ function Person({ user }: { user: StaffUserDetail }) {
     if (!r.ok) return setError(r.message)
     update<StaffUserDetail>(KEYS.user(user.id), () => r.value)
     invalidate('users:')
-    invalidate(KEYS.summary)
     setNotice(role === 'contributor' ? 'Now a contributor. They can add places.' : 'Now a user.')
-  }
-
-  // "Not now" on a Become a contributor request. They see it on that page and may ask again in 30 days.
-  const decline = async () => {
-    setBusy('decline')
-    setError('')
-    const r = await appStaff.declineContributor(user.id)
-    setBusy(null)
-    if (!r.ok) return setError(r.message)
-    update<StaffUserDetail>(KEYS.user(user.id), () => r.value)
-    invalidate('users:')
-    invalidate(KEYS.summary)
-    setNotice('Answered: not now. They can ask again in 30 days.')
   }
 
   const removePhoto = async () => {
@@ -107,41 +93,6 @@ function Person({ user }: { user: StaffUserDetail }) {
         <p className={page.error} role="alert">
           {error}
         </p>
-      )}
-
-      {user.contributorRequest && user.role === 'user' && user.canChangeRole && (
-        <div className={page.section}>
-          <h2 className={page.sectionTitle}>Asked to be a contributor</h2>
-          <div className={styles.request}>
-            <dl>
-              <div>
-                <dt>Asked on</dt>
-                <dd>{formatDate(user.contributorRequest.createdAt)}</dd>
-              </div>
-              <div>
-                <dt>Where they travel or know well</dt>
-                <dd>{user.contributorRequest.area}</dd>
-              </div>
-              {user.contributorRequest.reason && (
-                <div>
-                  <dt>Why</dt>
-                  <dd>{user.contributorRequest.reason}</dd>
-                </div>
-              )}
-            </dl>
-            <button type="button" className={page.primaryButton} disabled={!!busy} onClick={() => setRole('contributor')}>
-              <BusyContent busy={busy === 'role'} busyLabel="Saving">
-                Make them a contributor
-              </BusyContent>
-            </button>
-            <button type="button" className={page.secondary} disabled={!!busy} onClick={decline}>
-              <BusyContent busy={busy === 'decline'} busyLabel="Saving">
-                Not now
-              </BusyContent>
-            </button>
-          </div>
-          <p className={page.hint}>Check what they sent before. Say yes to people who know the area and send honest flags.</p>
-        </div>
       )}
 
       {staff || !user.canChangeRole ? (

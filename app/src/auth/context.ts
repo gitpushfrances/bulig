@@ -2,8 +2,6 @@ import { createContext, useContext } from 'react'
 import type {
   ChangePasswordResult,
   ConfirmEmailResult,
-  ContributorRequestInput,
-  ContributorRequestResult,
   EmailChangeResult,
   GoogleSignInResult,
   NewAccount,
@@ -26,8 +24,6 @@ export interface Auth {
   updateProfile: (details: ProfileDetails) => Promise<UpdateProfileResult>
   // Test logins keep their password. An empty `current` sets a first password (Google accounts).
   changePassword: (current: string, next: string) => Promise<ChangePasswordResult>
-  // Profile > Become a contributor (API.md §5.9).
-  requestContributor: (input: ContributorRequestInput) => Promise<ContributorRequestResult>
   // API.md §5.7: sends a link to the new address; the account shows pendingEmail until it is opened.
   requestEmailChange: (newEmail: string, password: string) => Promise<EmailChangeResult>
   // False if the server didn't answer (the link still works then).

@@ -23,12 +23,9 @@ export const useSubmission = (id: string | undefined) =>
   useSnapshot(id ? KEYS.submission(id) : null, () => appStaff.submission(id ?? ''), 5 * 60_000)
 
 // Under 3 letters asks for the newest 20 (no search), so typing "a" never lists everybody.
-// `requested`: only people waiting on a "Become a contributor" answer.
-export const useUsers = (q: string, requested = false) => {
+export const useUsers = (q: string) => {
   const needle = q.trim().length >= 3 ? q.trim().toLowerCase() : ''
-  return useSnapshot(KEYS.users(`${requested ? 'requested:' : ''}${needle}`), () =>
-    appStaff.users({ q: needle || undefined, requested: requested || undefined }),
-  )
+  return useSnapshot(KEYS.users(needle), () => appStaff.users({ q: needle || undefined }))
 }
 
 export const useStaffUser = (id: string | undefined) =>

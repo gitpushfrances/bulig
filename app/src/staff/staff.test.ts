@@ -22,17 +22,6 @@ describe('createApiStaff', () => {
     expect((fetchFn.mock.calls[1] as unknown as [string])[0]).toBe(`${BASE}/staff/emergency-contacts?level=province`)
   })
 
-  it('asks for contributor requests and says "not now" the way API.md §7.8 says', async () => {
-    const fetchFn = vi.fn(async () => json({ items: [], nextPage: null }))
-    const staff = createApiStaff(BASE, fetchFn)
-    await staff.users({ requested: true })
-    await staff.declineContributor('usr_1')
-    const calls = fetchFn.mock.calls as unknown as [string, RequestInit][]
-    expect(calls[0][0]).toBe(`${BASE}/staff/users?requested=1`)
-    expect(calls[1][0]).toBe(`${BASE}/staff/users/usr_1/contributor-request/decline`)
-    expect(calls[1][1].method).toBe('POST')
-  })
-
   it('sends the role switch, a new hotline and a reject the way API.md §7.8 says', async () => {
     const fetchFn = vi.fn(async () => json({}))
     const staff = createApiStaff(BASE, fetchFn)

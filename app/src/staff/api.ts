@@ -33,8 +33,6 @@ export interface QueueQuery {
 export interface UserQuery {
   q?: string
   role?: string
-  // Only people waiting on a "Become a contributor" answer, oldest first.
-  requested?: boolean
   page?: number
 }
 
@@ -49,10 +47,7 @@ export interface StaffStore {
   addPlace(place: NewPlaceChanges & { photoIds: string[] }): Promise<WriteResult<{ id: string }>>
   users(query?: UserQuery): Promise<Page<StaffUser>>
   user(id: string): Promise<StaffUserDetail>
-  // Making a user a contributor also approves their waiting request.
   setRole(id: string, role: 'user' | 'contributor'): Promise<WriteResult<StaffUserDetail>>
-  // "Not now" on a request: they may ask again in 30 days.
-  declineContributor(id: string): Promise<WriteResult<StaffUserDetail>>
   removePhoto(id: string): Promise<WriteResult>
   areas(): Promise<StaffArea[]>
   saveArea(input: AreaInput, id?: string): Promise<WriteResult<StaffArea>>
@@ -136,20 +131,13 @@ export function createApiStaff(base: string, fetchFn: typeof fetch = (...args) =
         }),
       ),
     addPlace: (place) => write(() => call<{ id: string }>('/services', { method: 'POST', body: place })),
-    users: ({ q, role, requested, page } = {}) =>
-      call<Page<StaffUser>>(`/users${query({ q, role, requested: requested ? 1 : undefined, page })}`),
+    users: ({ q, role, page } = {}) => call<Page<StaffUser>>(`/users${query({ q, role, page })}`),
     user: (id) => call<StaffUserDetail>(`/users/${encodeURIComponent(id)}`),
     setRole: (id, role) =>
       write(() =>
         call<StaffUserDetail>(`/users/${encodeURIComponent(id)}/role`, {
           method: 'PATCH',
           body: { role },
-        }),
-      ),
-    declineContributor: (id) =>
-      write(() =>
-        call<StaffUserDetail>(`/users/${encodeURIComponent(id)}/contributor-request/decline`, {
-          method: 'POST',
         }),
       ),
     removePhoto: (id) => write(() => done(call(`/users/${encodeURIComponent(id)}/photo`, { method: 'DELETE' }))),

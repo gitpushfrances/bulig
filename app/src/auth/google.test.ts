@@ -61,7 +61,6 @@ describe('Continue with Google (API.md §4.7)', () => {
     const { fetchFn } = server({ body: { token: '1|a', user } })
     const result = await createApiStore(BASE, fetchFn).signIn('ana@gmail.com', 'long enough')
     expect(result.ok && result.account.hasPassword).toBe(true)
-    expect(result.ok && result.account.contributorRequest).toBeNull()
   })
 
   it('sets a first password without a current one, then remembers the account has one', async () => {
@@ -92,37 +91,5 @@ describe('in-app browsers, where Google blocks sign-in', () => {
     expect(inAppBrowser('Mozilla/5.0 (Linux; Android 13; SM-A145F) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36')).toBeNull()
     expect(inAppBrowser('Mozilla/5.0 (Linux; Android 13) SamsungBrowser/23.0 Chrome/115 Mobile Safari/537.36')).toBeNull()
     expect(inAppBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Version/17.0 Mobile/15E148 Safari/604.1')).toBeNull()
-  })
-})
-
-describe('Become a contributor (API.md §5.9)', () => {
-  it('sends the request and keeps it on the account', async () => {
-    const request = { status: 'pending', area: 'Guiuan', reason: null, createdAt: '2026-11-10' }
-    const { fetchFn, calls } = server({ body: { token: '1|a', user } }, { status: 201, body: request })
-    const store = createApiStore(BASE, fetchFn)
-    const signed = await store.signIn('ana@gmail.com', 'x')
-    if (!signed.ok) throw new Error('not signed in')
-
-    const result = await store.requestContributor(signed.account, { area: ' Guiuan ', reason: '  ' })
-
-    expect(calls[1].url).toBe(`${BASE}/me/contributor-request`)
-    expect(body(calls[1].init)).toEqual({ area: 'Guiuan', reason: null, agreed: true })
-    expect(result.ok && result.account.contributorRequest?.status).toBe('pending')
-    expect(store.restore()?.contributorRequest?.status).toBe('pending')
-  })
-
-  it('says when one is waiting already, or it is too soon to ask again', async () => {
-    const { fetchFn } = server(
-      { status: 409, body: { reason: 'already' } },
-      { status: 409, body: { reason: 'wait' } },
-      { status: 422, body: { errors: { area: ['min'] } } },
-    )
-    const store = createApiStore(BASE, fetchFn)
-    const account = { email: 'a@b.co', name: 'A', role: 'user' as const, areas: [] }
-    const why = async () => {
-      const r = await store.requestContributor(account, { area: 'Guiuan', reason: '' })
-      return r.ok ? 'ok' : r.reason
-    }
-    expect([await why(), await why(), await why()]).toEqual(['already', 'wait', 'invalid'])
   })
 })

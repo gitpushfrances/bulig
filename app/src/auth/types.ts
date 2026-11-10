@@ -26,20 +26,6 @@ export interface Account {
   hasPassword?: boolean
   // True once a Google account is linked: "Continue with Google" signs in to this account.
   google?: boolean
-  // The latest "Become a contributor" request (API.md §5.9), or null/missing when there is none.
-  contributorRequest?: ContributorRequest | null
-}
-
-// API.md §5.9. A user asks; a moderator or admin answers in Manage > Users.
-export interface ContributorRequest {
-  status: 'pending' | 'approved' | 'declined'
-  // Where the person travels or knows well: free text, like the home area.
-  area: string
-  reason?: string
-  createdAt: string
-  decidedAt?: string
-  // Declined: the first day they may ask again (30 days later).
-  canAskAgainOn?: string
 }
 
 // The fields Edit profile may change.

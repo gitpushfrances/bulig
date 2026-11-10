@@ -1,7 +1,7 @@
 import { ApiError, OfflineError, apiRequest } from '../data/api.ts'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import type { AccountStore, ServerProfile } from './store.ts'
-import { ROLES, type Account, type ContributorRequest, type Role } from './types.ts'
+import { ROLES, type Account, type Role } from './types.ts'
 
 // Accounts on the backend (docs/API.md §4 to §6): Sanctum bearer tokens, no cookies.
 // The token and a copy of the account stay on the phone, so the app opens signed in with no signal.
@@ -26,7 +26,6 @@ interface ApiUser {
   pendingEmail?: string | null
   hasPassword?: boolean
   google?: boolean
-  contributorRequest?: ContributorRequest | null
 }
 
 // "data:image/webp;base64,..." → a Blob to upload as multipart (no fetch(), so it works everywhere).
@@ -53,7 +52,6 @@ export function toAccount(user: ApiUser): Account {
     pendingEmail: user.pendingEmail ?? undefined,
     hasPassword: user.hasPassword ?? true,
     google: user.google ?? false,
-    contributorRequest: user.contributorRequest ?? null,
   }
 }
 
@@ -266,26 +264,6 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
           if (errors.currentPassword) return { ok: false as const, reason: 'wrong' as const }
           const why = errors.newEmail?.[0]
           return { ok: false as const, reason: why === 'same' || why === 'taken' ? why : ('invalid' as const) }
-        }
-        if (signedOut(err)) keep(null, null)
-        return { ok: false as const, reason: 'unavailable' as const }
-      }
-    },
-
-    async requestContributor(account, { area, reason }) {
-      try {
-        const request = await call<ContributorRequest>('/me/contributor-request', {
-          method: 'POST',
-          body: { area: area.trim(), reason: reason.trim() || null, agreed: true },
-        })
-        const next = { ...account, contributorRequest: request }
-        keep(readSaved(TOKEN_KEY), next)
-        return { ok: true as const, account: next }
-      } catch (err) {
-        if (err instanceof OfflineError) return { ok: false as const, reason: 'offline' as const }
-        if (err instanceof ApiError && err.status === 422) return { ok: false as const, reason: 'invalid' as const }
-        if (err instanceof ApiError && err.status === 409) {
-          return { ok: false as const, reason: err.body.reason === 'wait' ? ('wait' as const) : ('already' as const) }
         }
         if (signedOut(err)) keep(null, null)
         return { ok: false as const, reason: 'unavailable' as const }
