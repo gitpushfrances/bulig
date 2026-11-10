@@ -102,7 +102,10 @@ function seed(): Db {
   const users = [
     user('usr_juan', 'Juan Dela Cruz', 'contributor', 'ju…@gmail.com', 7),
     user('usr_maria', 'Maria Santos', 'user', 'ma…@yahoo.com', 2),
-    user('usr_leo', 'Leo Pacaña', 'user', 'le…@gmail.com', 1),
+    {
+      ...user('usr_leo', 'Leo Pacaña', 'user', 'le…@gmail.com', 1),
+      scoutRequest: { area: 'Surok, Guiuan', travel: ['tricycle', 'motorcycle'], why: 'Tricycle driver, Guiuan to Mercedes every day.', createdAt: daysAgo(2) },
+    },
     user('usr_mod', 'Test moderator', 'moderator', 'mo…@bulig.com', 1, true),
   ]
   const sub = (
@@ -201,6 +204,7 @@ export const localStaff: StaffStore = {
       hiddenEmergencyContacts: db().hotlines.filter((h) => h.hidden).length,
       dueEmergencyContacts: db().hotlines.filter((h) => Date.parse(h.hidesOn) - Date.now() < 30 * 86_400_000).length,
       users: db().users.length,
+      scoutRequests: db().users.filter((u) => u.scoutRequest).length,
     }
   },
   async queue({ status = 'pending', reason } = {}) {
@@ -240,12 +244,20 @@ export const localStaff: StaffStore = {
     db().places += 1
     return ok({ id: `ph-local-${Math.random().toString(36).slice(2, 8)}` })
   },
-  async users({ q, role } = {}) {
+  async users({ q, role, asked } = {}) {
     const needle = q?.trim().toLowerCase() ?? ''
     if (needle && needle.length < 3) throw new Error('Type 3 letters or more.')
     const items = db().users
-      .filter((u) => (!role || u.role === role) && (!needle || u.name.toLowerCase().includes(needle)))
-      .map(({ id, name, role, email, createdAt, sent }) => ({ id, name, role, email, createdAt, sent }))
+      .filter((u) => (!role || u.role === role) && (!asked || u.scoutRequest) && (!needle || u.name.toLowerCase().includes(needle)))
+      .map(({ id, name, role, email, createdAt, sent, scoutRequest }) => ({
+        id,
+        name,
+        role,
+        email,
+        createdAt,
+        sent,
+        asked: !!scoutRequest,
+      }))
     return { items, nextPage: null }
   },
   async user(id) {
@@ -258,6 +270,15 @@ export const localStaff: StaffStore = {
     if (!u) return fail('This is gone. Someone may have removed it.')
     if (!u.canChangeRole) return fail("Your account can't do that.")
     u.role = role
+    // Saying yes answers their Scout request; the server does the same.
+    u.scoutRequest = null
+    return ok(clone(u))
+  },
+  async declineScout(id) {
+    const u = db().users.find((x) => x.id === id)
+    if (!u) return fail('This is gone. Someone may have removed it.')
+    if (!u.scoutRequest) return fail('Someone already answered this request.')
+    u.scoutRequest = null
     return ok(clone(u))
   },
   async removePhoto(id) {

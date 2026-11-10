@@ -24,6 +24,7 @@ import { HelpPage, PrivacyPage, TermsPage } from './pages/InfoPages.tsx'
 import AboutPage from './pages/AboutPage.tsx'
 import AddPlacePage from './pages/AddPlacePage.tsx'
 import UpdatesPage from './pages/UpdatesPage.tsx'
+import ScoutPage from './pages/ScoutPage.tsx'
 import NotFoundPage from './pages/NotFoundPage.tsx'
 import LoginPage from './pages/LoginPage.tsx'
 import SignupPage from './pages/SignupPage.tsx'
@@ -69,6 +70,7 @@ export default function App() {
                 <Route path="profile/edit" element={<EditProfilePage />} />
                 <Route path="profile/password" element={<ChangePasswordPage />} />
                 <Route path="profile/email" element={<ChangeEmailPage />} />
+                <Route path="profile/scout" element={<ScoutPage />} />
                 <Route path="about" element={<AboutPage />} />
                 <Route path="add" element={<AddPlacePage />} />
                 <Route path="updates" element={<UpdatesPage />} />

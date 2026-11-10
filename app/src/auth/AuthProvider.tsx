@@ -331,6 +331,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
         signIn,
         register,
         signOut,
+        refreshAccount: async () => {
+          const fresh = await store.refresh()
+          if (fresh === undefined) return
+          setAccount((current) => (fresh === null ? null : current && current.email === fresh.email ? withDetails(fresh, store) : current))
+        },
         updateProfile,
         changePassword,
         requestEmailChange,

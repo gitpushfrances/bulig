@@ -9,7 +9,7 @@ export const TEST_ACCOUNTS: Record<Role, Account> = {
   user: { email: 'test@bulig.com', name: 'Test traveller', role: 'user', areas: [], createdAt: '2026-10-01' },
   contributor: {
     email: 'contributor@bulig.com',
-    name: 'Test contributor',
+    name: 'Test Scout',
     role: 'contributor',
     areas: [],
     createdAt: '2026-10-01',
