@@ -22,22 +22,35 @@ describe('Become a Bulig Scout', () => {
     expect(row).toHaveAttribute('href', '/profile/scout')
     fireEvent.click(row)
 
-    expect(await screen.findByRole('heading', { name: 'What Scouts do' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'How it works' })).toBeInTheDocument()
+    // One idea per screen, like sign-up: no skipping past how it works or the rules.
+    expect(await screen.findByRole('heading', { level: 1, name: 'What Scouts do' })).toBeInTheDocument()
+    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'How it works' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'What Scouts do' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Next' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Scout rules' })).toBeInTheDocument()
     expect(screen.getByText(/Not a rescuer/)).toBeInTheDocument()
     // Never claims Bulig or a Scout sends help.
     expect(document.body.textContent).not.toMatch(/help is on the way|request help|location sent/i)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Apply to be a Scout' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Send request' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'About you' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
     expect(await screen.findByText('Enter the barangay and town you know well.')).toBeInTheDocument()
     expect(screen.getByText('Pick at least one.')).toBeInTheDocument()
-    expect(screen.getByText('Tick both to send your request.')).toBeInTheDocument()
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Barangay and town you know well' }), {
       target: { value: 'Surok, Guiuan' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Tricycle' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Send your request' })).toBeInTheDocument()
+    expect(screen.getByText('Surok, Guiuan')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Send request' }))
+    expect(await screen.findByText('Tick both to send your request.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('checkbox', { name: /Scout rules/ }))
     fireEvent.click(screen.getByRole('checkbox', { name: /18 or older/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Send request' }))
@@ -51,7 +64,7 @@ describe('Become a Bulig Scout', () => {
     expect(await screen.findByText(/for Surok, Guiuan/)).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Take back my request' }))
-    expect(await screen.findByRole('button', { name: 'Apply to be a Scout' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'What Scouts do' })).toBeInTheDocument()
   })
 
   it('shows Scouts their tools instead of the form, and no Profile row', async () => {

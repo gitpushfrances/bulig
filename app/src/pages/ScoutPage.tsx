@@ -1,4 +1,6 @@
 import {
+  ArrowLeft,
+  ArrowRight,
   Binoculars,
   Camera,
   CheckCircle,
@@ -14,13 +16,15 @@ import {
   XCircle,
   type Icon,
 } from '@phosphor-icons/react'
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { homeAreaText } from '../auth/homeArea.ts'
 import { SCOUT } from '../auth/types.ts'
 import { TextField } from '../components/Fields.tsx'
+import BackButton from '../components/BackButton.tsx'
 import FormAlert from '../components/FormAlert.tsx'
+import type { MascotVariant } from '../components/Mascot.tsx'
 import RopiSays from '../components/RopiSays.tsx'
 import { RowsSkeleton } from '../components/Skeleton.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
@@ -40,7 +44,9 @@ import {
 import { useAppData } from '../data/context.ts'
 import { can } from '../rules/permissions.ts'
 import { SubPage } from './AccountPages.tsx'
+import auth from './Auth.module.css'
 import page from './Page.module.css'
+import profile from './Profile.module.css'
 import styles from './Scout.module.css'
 
 // Profile → Become a Bulig Scout (John, 2026-11-10). A regular user learns what a Scout is (the
@@ -95,72 +101,74 @@ const APPLY_ERRORS: Record<Exclude<ApplyResult, { ok: true }>['reason'], string>
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
 
-function Explainer({ onApply, declined }: { onApply: () => void; declined: ScoutRequest | null }) {
+const STEP_TITLES = ['What Scouts do', 'How it works', 'Scout rules', 'About you', 'Send your request'] as const
+const RULES_STEP = 2
+const ABOUT_STEP = 3
+const SEND_STEP = 4
+
+function Dots({ at }: { at: number }) {
+  return (
+    <div className={auth.dots} aria-hidden="true">
+      {STEP_TITLES.map((t, i) => (
+        <span key={t} className={`${auth.dot} ${i === at ? auth.dotOn : ''}`} />
+      ))}
+    </div>
+  )
+}
+
+function Does() {
+  return (
+    <ul className={styles.does}>
+      {DOES.map(({ icon: Icon, title, text, soon }) => (
+        <li key={title} className={styles.do}>
+          <span className={styles.doIcon}>
+            <Icon size={24} weight="duotone" aria-hidden="true" />
+          </span>
+          <div>
+            <p className={styles.doTitle}>
+              {title}
+              {soon && <span className={styles.soon}>Soon</span>}
+            </p>
+            <p className={styles.doText}>{text}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function How() {
+  return (
+    <ol className={styles.steps}>
+      {STEPS.map(({ icon: Icon, title, text }, i) => (
+        <li key={title} className={styles.step}>
+          <span className={styles.stepDot} aria-hidden="true">
+            <Icon size={20} weight="bold" />
+          </span>
+          <div className={styles.stepBody}>
+            <p className={styles.stepTitle}>
+              <span className={styles.stepNo}>{i + 1}</span>
+              {title}
+            </p>
+            <p className={styles.doText}>{text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function Rules() {
   return (
     <>
-      {declined && <Status request={declined} />}
-      <RopiSays variant="friendly" height={112}>
-        <strong>Know your town&apos;s roads?</strong> Scouts keep Bulig right for everyone who passes through.
-      </RopiSays>
-
-      <section className={page.section} aria-labelledby="scout-does">
-        <h2 id="scout-does" className={page.sectionTitle}>
-          What Scouts do
-        </h2>
-        <ul className={styles.does}>
-          {DOES.map(({ icon: Icon, title, text, soon }) => (
-            <li key={title} className={styles.do}>
-              <span className={styles.doIcon}>
-                <Icon size={24} weight="duotone" aria-hidden="true" />
-              </span>
-              <div>
-                <p className={styles.doTitle}>
-                  {title}
-                  {soon && <span className={styles.soon}>Soon</span>}
-                </p>
-                <p className={styles.doText}>{text}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className={page.section} aria-labelledby="scout-how">
-        <h2 id="scout-how" className={page.sectionTitle}>
-          How it works
-        </h2>
-        <ol className={styles.steps}>
-          {STEPS.map(({ icon: Icon, title, text }, i) => (
-            <li key={title} className={styles.step}>
-              <span className={styles.stepDot} aria-hidden="true">
-                <Icon size={20} weight="bold" />
-              </span>
-              <div className={styles.stepBody}>
-                <p className={styles.stepTitle}>
-                  <span className={styles.stepNo}>{i + 1}</span>
-                  {title}
-                </p>
-                <p className={styles.doText}>{text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className={page.section} aria-labelledby="scout-rules">
-        <h2 id="scout-rules" className={page.sectionTitle}>
-          Scout rules
-        </h2>
-        <ul className={styles.rules}>
-          {RULES.map((r) => (
-            <li key={r}>
-              <CheckCircle size={20} weight="fill" aria-hidden="true" />
-              <span>{r}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
+      <ul className={styles.rules}>
+        {RULES.map((r) => (
+          <li key={r}>
+            <CheckCircle size={20} weight="fill" aria-hidden="true" />
+            <span>{r}</span>
+          </li>
+        ))}
+      </ul>
       <div className={styles.not}>
         <p className={styles.notTitle}>What a Scout is not</p>
         <p>
@@ -168,29 +176,41 @@ function Explainer({ onApply, declined }: { onApply: () => void; declined: Scout
           it&apos;s free and unpaid. In an emergency, everyone calls 911.
         </p>
       </div>
-
-      <div className={styles.cta}>
-        <button type="button" className={page.primaryButton} onClick={onApply}>
-          <Binoculars size={20} aria-hidden="true" />
-          {declined ? 'Apply again' : 'Apply to be a Scout'}
-        </button>
-        <p className={page.hint}>Free. A moderator reads every request.</p>
-      </div>
     </>
   )
 }
 
-function ApplyForm({
+// Ropi on the three reading steps only; the two form steps stay plain, like sign-up's form.
+const SAYS: { ropi: MascotVariant; says: ReactNode }[] = [
+  {
+    ropi: 'ready',
+    says: (
+      <>
+        <strong>Know your town&apos;s roads?</strong> Scouts keep Bulig right for everyone who passes through.
+      </>
+    ),
+  },
+  { ropi: 'thinking', says: 'From your road to every traveller, with a check in between.' },
+  { ropi: 'friendly', says: 'A few rules keep it fair and safe.' },
+]
+
+// Become a Bulig Scout, one idea per screen like sign-up (John, 2026-11-10): what Scouts do, how
+// it works, the rules, then the request in two short steps. No skip: each screen is short, and the
+// rules are what the "I'll follow the Scout rules" tick agrees to.
+function Wizard({
   store,
   initialArea,
-  onBack,
+  declined,
   onSent,
 }: {
   store: ScoutStore
   initialArea: string
-  onBack: () => void
+  declined: ScoutRequest | null
   onSent: (r: ScoutRequest) => void
 }) {
+  const [at, setAt] = useState(0)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const first = useRef(true)
   const [area, setArea] = useState(initialArea)
   const [travel, setTravel] = useState<Travel[]>([])
   const [why, setWhy] = useState('')
@@ -200,16 +220,39 @@ function ApplyForm({
   const [formError, setFormError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  // Each step starts at the top, and focus moves to its heading so screen readers hear it.
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    window.scrollTo({ top: 0 })
+    heading.current?.focus({ preventScroll: true })
+  }, [at])
+
+  const go = (to: number) => {
+    setFormError(null)
+    setAt(to)
+  }
+
+  const next = () => {
+    if (at === ABOUT_STEP) {
+      const found = {
+        area: area.trim().length < 3 ? 'Enter the barangay and town you know well.' : undefined,
+        travel: travel.length ? undefined : 'Pick at least one.',
+      }
+      setErrors(found)
+      if (found.area || found.travel) return
+    }
+    go(at + 1)
+  }
+
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    const next = {
-      area: area.trim().length < 3 ? 'Enter the barangay and town you know well.' : undefined,
-      travel: travel.length ? undefined : 'Pick at least one.',
-      agreed: agreed && adult ? undefined : 'Tick both to send your request.',
-    }
-    setErrors(next)
+    if (at !== SEND_STEP) return next()
+    if (!agreed || !adult) return setErrors({ agreed: 'Tick both to send your request.' })
+    setErrors({})
     setFormError(null)
-    if (next.area || next.travel || next.agreed) return
     setBusy(true)
     const result = await store.apply({ area, travel, why })
     setBusy(false)
@@ -221,102 +264,166 @@ function ApplyForm({
     )
   }
 
+  const says = SAYS[at]
+  const nextLabel = at === RULES_STEP ? (declined ? 'Apply again' : 'Apply') : 'Next'
+
   return (
-    <form className={styles.form} onSubmit={submit} noValidate aria-labelledby="scout-apply">
-      <h2 id="scout-apply" className={page.sectionTitle}>
-        Apply to be a Scout
-      </h2>
-      <TextField
-        label="Barangay and town you know well"
-        value={area}
-        maxLength={AREA_MAX}
-        autoComplete="off"
-        placeholder="e.g. Surok, Guiuan"
-        hint="Your barangay and town are enough. No house address."
-        error={errors.area}
-        onChange={(v) => {
-          setArea(v)
-          setErrors((x) => ({ ...x, area: undefined }))
-        }}
-      />
-      <fieldset className={styles.travel} aria-describedby={errors.travel ? 'scout-travel-error' : undefined}>
-        <legend className={page.fieldLabel}>How do you get around?</legend>
-        <div className={styles.travelChips}>
-          {TRAVEL.map((t) => (
-            <button
-              key={t}
-              type="button"
-              className={page.filterChip}
-              aria-pressed={travel.includes(t)}
-              onClick={() => {
-                setTravel((now) => (now.includes(t) ? now.filter((x) => x !== t) : [...now, t]))
-                setErrors((x) => ({ ...x, travel: undefined }))
-              }}
-            >
-              {TRAVEL_LABELS[t]}
-            </button>
-          ))}
-        </div>
-        {errors.travel && (
-          <span id="scout-travel-error" className={page.error}>
-            {errors.travel}
-          </span>
+    <form className={styles.wizard} onSubmit={submit} noValidate>
+      {/* Leaves to Profile. From step 2 on, Back at the bottom steps back instead, so there's one Back. */}
+      {at === 0 && <BackButton fallback="/profile" />}
+      <div className={auth.stepTop}>
+        <Dots at={at} />
+        <p className={styles.count}>
+          Step {at + 1} of {STEP_TITLES.length}
+        </p>
+      </div>
+
+      <div key={at} className={styles.wizardStep}>
+        {at === 0 && declined && <Status request={declined} />}
+        {says && (
+          <RopiSays variant={says.ropi} height={76} side>
+            {says.says}
+          </RopiSays>
         )}
-      </fieldset>
-      <label className={page.field}>
-        <span className={page.fieldLabel}>Anything else for the moderator? (optional)</span>
-        <textarea
-          className={`${page.input} ${styles.why}`}
-          value={why}
-          maxLength={WHY_MAX}
-          rows={3}
-          placeholder="Tricycle driver, Guiuan to Mercedes every day."
-          onChange={(e) => setWhy(e.target.value)}
-        />
-        <span className={page.hint}>Helps the moderator decide. Only staff see it.</span>
-      </label>
-      <div className={page.field}>
-        <label className={styles.check}>
-          <input
-            type="checkbox"
-            checked={agreed}
-            aria-invalid={errors.agreed && !agreed ? true : undefined}
-            aria-describedby={errors.agreed ? 'scout-agree-error' : undefined}
-            onChange={(e) => {
-              setAgreed(e.target.checked)
-              setErrors((x) => ({ ...x, agreed: undefined }))
-            }}
-          />
-          <span>I&apos;ll follow the Scout rules.</span>
-        </label>
-        <label className={styles.check}>
-          <input
-            type="checkbox"
-            checked={adult}
-            aria-invalid={errors.agreed && !adult ? true : undefined}
-            onChange={(e) => {
-              setAdult(e.target.checked)
-              setErrors((x) => ({ ...x, agreed: undefined }))
-            }}
-          />
-          <span>I&apos;m 18 or older.</span>
-        </label>
-        {errors.agreed && (
-          <span id="scout-agree-error" className={page.error}>
-            {errors.agreed}
-          </span>
+        <div className={styles.head}>
+          <p className={styles.eyebrow}>Become a {SCOUT}</p>
+          <h1 ref={heading} tabIndex={-1} className={auth.stepTitle}>
+            {STEP_TITLES[at]}
+          </h1>
+        </div>
+
+        {at === 0 && <Does />}
+        {at === 1 && <How />}
+        {at === RULES_STEP && <Rules />}
+
+        {at === ABOUT_STEP && (
+          <>
+            <p className={styles.doText}>So a moderator knows which roads you know. Nothing here is public.</p>
+            <TextField
+              label="Barangay and town you know well"
+              value={area}
+              maxLength={AREA_MAX}
+              autoComplete="off"
+              placeholder="e.g. Surok, Guiuan"
+              hint="Your barangay and town are enough. No house address."
+              error={errors.area}
+              onChange={(v) => {
+                setArea(v)
+                setErrors((x) => ({ ...x, area: undefined }))
+              }}
+            />
+            <fieldset className={styles.travel} aria-describedby={errors.travel ? 'scout-travel-error' : undefined}>
+              <legend className={page.fieldLabel}>How do you get around?</legend>
+              <span className={page.hint}>Pick all that fit.</span>
+              <div className={styles.travelChips}>
+                {TRAVEL.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={page.filterChip}
+                    aria-pressed={travel.includes(t)}
+                    onClick={() => {
+                      setTravel((now) => (now.includes(t) ? now.filter((x) => x !== t) : [...now, t]))
+                      setErrors((x) => ({ ...x, travel: undefined }))
+                    }}
+                  >
+                    {TRAVEL_LABELS[t]}
+                  </button>
+                ))}
+              </div>
+              {errors.travel && (
+                <span id="scout-travel-error" className={page.error}>
+                  {errors.travel}
+                </span>
+              )}
+            </fieldset>
+          </>
+        )}
+
+        {at === SEND_STEP && (
+          <>
+            <dl className={styles.sentList}>
+              <div>
+                <dt>Area you know</dt>
+                <dd>{area.trim()}</dd>
+              </div>
+              <div>
+                <dt>Gets around by</dt>
+                <dd>{travel.map((t) => TRAVEL_LABELS[t]).join(', ')}</dd>
+              </div>
+            </dl>
+            <label className={page.field}>
+              <span className={page.fieldLabel}>Anything else for the moderator? (optional)</span>
+              <textarea
+                className={`${page.input} ${styles.why}`}
+                value={why}
+                maxLength={WHY_MAX}
+                rows={3}
+                placeholder="Tricycle driver, Guiuan to Mercedes every day."
+                onChange={(e) => setWhy(e.target.value)}
+              />
+              <span className={page.hint}>Helps the moderator decide. Only staff see it.</span>
+            </label>
+            <div className={page.field}>
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  aria-invalid={errors.agreed && !agreed ? true : undefined}
+                  aria-describedby={errors.agreed ? 'scout-agree-error' : undefined}
+                  onChange={(e) => {
+                    setAgreed(e.target.checked)
+                    setErrors((x) => ({ ...x, agreed: undefined }))
+                  }}
+                />
+                <span>I&apos;ll follow the Scout rules.</span>
+              </label>
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={adult}
+                  aria-invalid={errors.agreed && !adult ? true : undefined}
+                  onChange={(e) => {
+                    setAdult(e.target.checked)
+                    setErrors((x) => ({ ...x, agreed: undefined }))
+                  }}
+                />
+                <span>I&apos;m 18 or older.</span>
+              </label>
+              {errors.agreed && (
+                <span id="scout-agree-error" className={page.error}>
+                  {errors.agreed}
+                </span>
+              )}
+            </div>
+            {formError && <FormAlert onClose={() => setFormError(null)}>{formError}</FormAlert>}
+          </>
         )}
       </div>
-      {formError && <FormAlert onClose={() => setFormError(null)}>{formError}</FormAlert>}
-      <button type="submit" className={page.primaryButton} disabled={busy} aria-busy={busy}>
-        <BusyContent busy={busy} busyLabel="Sending your request…">
-          <PaperPlaneTilt size={20} aria-hidden="true" />
-          Send request
-        </BusyContent>
-      </button>
-      <button type="button" className={page.secondary} disabled={busy} onClick={onBack}>
-        Back to what Scouts do
-      </button>
+
+      <div className={`${auth.nav} ${styles.bar}`}>
+        {at > 0 && (
+          <button type="button" className={page.secondary} disabled={busy} onClick={() => go(at - 1)}>
+            <ArrowLeft size={18} aria-hidden="true" />
+            Back
+          </button>
+        )}
+        {at === SEND_STEP ? (
+          <button type="submit" className={page.primaryButton} disabled={busy} aria-busy={busy}>
+            <BusyContent busy={busy} busyLabel="Sending your request…">
+              <PaperPlaneTilt size={20} aria-hidden="true" />
+              Send request
+            </BusyContent>
+          </button>
+        ) : (
+          <button type="submit" className={page.primaryButton}>
+            {at === RULES_STEP && <Binoculars size={20} aria-hidden="true" />}
+            {nextLabel}
+            {at !== RULES_STEP && <ArrowRight size={18} aria-hidden="true" />}
+          </button>
+        )}
+      </div>
+      {at === RULES_STEP && <p className={page.hint}>Free. A moderator reads every request.</p>}
     </form>
   )
 }
@@ -404,7 +511,7 @@ export default function ScoutPage() {
   // Rebuilt only when the person changes, so the local store reads the right account.
   const store = useMemo(() => createAppScout(() => email), [email])
   const [request, setRequest] = useState<ScoutRequest | null | 'error' | undefined>(undefined)
-  const [mode, setMode] = useState<'learn' | 'form' | 'sent'>('learn')
+  const [sent, setSent] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawFailed, setWithdrawFailed] = useState(false)
@@ -456,7 +563,7 @@ export default function ScoutPage() {
   const send = (r: ScoutRequest) => {
     rememberScoutRequest(account.email, r)
     setRequest(r)
-    setMode('sent')
+    setSent(true)
     window.scrollTo({ top: 0 })
   }
 
@@ -481,7 +588,7 @@ export default function ScoutPage() {
         </div>
       </div>
     )
-  else if (request?.status === 'pending' && mode === 'sent') body = <Sent request={request} />
+  else if (request?.status === 'pending' && sent) body = <Sent request={request} />
   else if (request?.status === 'pending')
     body = (
       <>
@@ -513,24 +620,17 @@ export default function ScoutPage() {
       </>
     )
   else if (request?.status === 'declined' && !canApplyAgain(request)) body = <Status request={request} />
-  else if (mode === 'form')
-    body = (
-      <ApplyForm
-        store={store}
-        initialArea={homeAreaText(account.homeArea, data.status === 'ready' ? data.areas : []) ?? ''}
-        onBack={() => setMode('learn')}
-        onSent={send}
-      />
-    )
   else
-    body = (
-      <Explainer
-        declined={request?.status === 'declined' ? request : null}
-        onApply={() => {
-          setMode('form')
-          window.scrollTo({ top: 0 })
-        }}
-      />
+    // The steps carry their own headings, so no page title above them.
+    return (
+      <section className={profile.page} aria-label={`Become a ${SCOUT}`}>
+        <Wizard
+          store={store}
+          initialArea={homeAreaText(account.homeArea, data.status === 'ready' ? data.areas : []) ?? ''}
+          declined={request?.status === 'declined' ? request : null}
+          onSent={send}
+        />
+      </section>
     )
 
   return (

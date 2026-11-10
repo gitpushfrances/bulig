@@ -45,6 +45,8 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Become a Bulig Scout is now five short steps, like sign-up** (2026-11-10, John: "cut each into smaller pages so users don't skip the details"). What Scouts do → How it works → Scout rules → About you → Send your request, with dots, "Step n of 5", a different Ropi on each reading step, and Back / Next pinned above the tab bar (the red hazard button's corner stays clear). No skip, because the rules tick agrees to step 3. The long one-page explainer and the one-page form are gone; the request, API and Sent screen are unchanged. `app/src/pages/ScoutPage.tsx`, UI-UX.md.
+
 - **Map chips: All first, then Nearby** (2026-11-07, John). Nearby is still 5 km (the label is just "Nearby"), the dashed 5 km ring is gone, and tapping All no longer zooms out to the whole country: the map stays where it is and the hidden places appear.
 - **Light is the default theme** (2026-11-07, John). Before, a phone set to dark opened Bulig in dark. Now it opens in light unless the person picks Dark, or System to follow the phone (Profile > Appearance). The splash stays near-black in every theme.
 - **Light Call 911 red is `#B91C1C`** (was `#DC2626`): white label 6.47:1, up from 4.83:1. Dark keeps `#DC2626`.
