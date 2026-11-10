@@ -18,7 +18,7 @@ Last updated: 2026-11-10 · Owner: John · Matches the frontend on `main` (v0.3.
 4. [Accounts](#4-accounts): register, login, logout, forgot and reset password, confirm a new email, continue with Google
 5. [Me](#5-me): profile, photo, password, delete account, change email
 6. [Saved places](#6-saved-places)
-7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health, staff requests)
+7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health, staff requests, becoming a Scout)
 8. [Shared objects](#8-shared-objects)
 9. [Services the app calls directly](#9-services-the-app-calls-directly-not-the-backend) (not the backend)
 10. [What moves from the phone to the server](#10-what-moves-from-the-phone-to-the-server)
@@ -37,7 +37,7 @@ Last updated: 2026-11-10 · Owner: John · Matches the frontend on `main` (v0.3.
 | Dates | `verifiedAt`, `addedAt`, `createdAt`: ISO 8601 date `"2026-10-21"`. Timestamps (`updatedAt` on envelopes, `savedAt`): ISO 8601 with `Z`. Opening hours are local `"HH:MM"`, `"24:00"` = midnight. |
 | Countries | ISO 3166-1 alpha-2, upper case: `PH`. Every public read needs `?country=`. |
 | Auth | **Laravel Sanctum personal access tokens.** Send `Authorization: Bearer <token>`. A token stops working 60 days after sign-in, however often it is used; the request then gets `401` and the app shows the login, like any other signed-out token. 🔒 in the tables = token required. Public data and Emergency never need one. |
-| Roles | `user`, `contributor`, `moderator`, `admin`. Sign-ups (email or Google) are always `user`. A moderator or admin makes a user a `contributor` in the admin panel; only an admin appoints moderators and admins. |
+| Roles | `user`, `contributor`, `moderator`, `admin`. Sign-ups (email or Google) are always `user`. A user can ask to become a `contributor` ([§7.9](#79-becoming-a-scout)); a moderator or admin decides, in the app or the admin panel; only an admin appoints moderators and admins. The app calls a `contributor` a **Scout** ("Bulig Scout", John 2026-11-10); the key stays `contributor`. |
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope; at login, `{"message": "...", "reason": "suspended"}` for a suspended account), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
 | CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
@@ -99,7 +99,11 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 45 | Add / edit an area | `POST /staff/areas`, `PATCH /staff/areas/{id}` | 🔒 staff | 4 | `saveArea()` in `staff/api.ts` (`pages/staff/AreaPage.tsx`) |
 | 46 | All local hotlines | `GET /staff/emergency-contacts[?area=][&level=][&due=]` | 🔒 staff | 4 | `hotlines()` in `staff/api.ts` (row 38 is the same request with `due`) |
 | 47 | Add / edit a hotline | `POST /staff/emergency-contacts`, `PATCH /staff/emergency-contacts/{id}` | 🔒 staff | 4 | `saveHotline()` in `staff/api.ts` (`pages/staff/HotlinePage.tsx`) |
-| 48 | Continue with Google (sign in, link or sign up) | `POST /auth/google` | — | 4 | `signInWithGoogle()` in `auth/apiStore.ts` (`components/GoogleSignIn.tsx` on `/login` and `/signup`); button only when `VITE_GOOGLE_CLIENT_ID` is set |
+| 48 | My Scout request | `GET /me/contributor-request` | 🔒 | 4 | `myRequest()` in `contribute/scout.ts` (`pages/ScoutPage.tsx`, `/profile/scout`) |
+| 49 | Ask to become a Scout | `POST /me/contributor-request` | 🔒 | 4 | `apply()` in `contribute/scout.ts` |
+| 50 | Take back a waiting request | `DELETE /me/contributor-request` | 🔒 | 4 | `withdraw()` in `contribute/scout.ts` |
+| 51 | Decline a Scout request | `POST /staff/users/{id}/contributor-request/decline` | 🔒 staff | 4 | `declineScout()` in `staff/api.ts` (`pages/staff/UserPage.tsx`). Saying yes is row 42 |
+| 52 | Continue with Google (sign in, link or sign up) | `POST /auth/google` | — | 4 | `signInWithGoogle()` in `auth/apiStore.ts` (`components/GoogleSignIn.tsx` on `/login` and `/signup`); button only when `VITE_GOOGLE_CLIENT_ID` is set |
 
 Admin and moderator screens in Filament (`/panel`, Phase 4) are server-side and not part of this contract: places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. The two jobs a moderator does on the road, the review queue and marking records checked, are also in the app, through the staff requests in [§7.8](#78-staff-requests-moderators-and-admins) (John, 2026-11-05). See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
 
@@ -726,17 +730,21 @@ The app's **Manage** tab: Users, Areas and Hotlines. Same policies as the panel 
 
 ##### `GET /staff/users?q=&role=&page=`
 
-`q`: 3 or more characters, matched against the name and the email (`422` if shorter). `role`: `user`, `contributor`, `moderator`, `admin`. 20 per page, newest first.
+`q`: 3 or more characters, matched against the name and the email (`422` if shorter). `role`: `user`, `contributor`, `moderator`, `admin`. `asked=1`: only people with a **pending** Scout request (§7.9), oldest request first. 20 per page, newest first.
 
-**200:** `{ "items": [ { "id": "usr_01JBX…", "name": "Juan Dela Cruz", "role": "contributor", "email": "ju…@gmail.com", "createdAt": "2026-10-30", "sent": 7 } ], "nextPage": 2 }`. `email` is masked: the first two characters and the domain. `sent` = submissions they sent.
+**200:** `{ "items": [ { "id": "usr_01JBX…", "name": "Juan Dela Cruz", "role": "contributor", "email": "ju…@gmail.com", "createdAt": "2026-10-30", "sent": 7, "asked": false } ], "nextPage": 2 }`. `email` is masked: the first two characters and the domain. `sent` = submissions they sent. `asked` = a Scout request is pending.
 
 ##### `GET /staff/users/{id}`
 
-**200:** the list item plus `"approved": 5, "photoUrl": "https://…" | null, "canChangeRole": true, "canRemovePhoto": true`. `canChangeRole` is `false` for the caller themselves and for any moderator or admin.
+**200:** the list item plus `"approved": 5, "photoUrl": "https://…" | null, "canChangeRole": true, "canRemovePhoto": true`. `canChangeRole` is `false` for the caller themselves and for any moderator or admin. Plus `"scoutRequest": { "area": "Surok, Guiuan", "travel": ["tricycle"], "why": "Tricycle driver…" | null, "createdAt": "2026-11-10T08:00:00Z" } | null`: the **pending** Scout request only.
 
 ##### `PATCH /staff/users/{id}/role`
 
-**Request:** `{ "role": "user" | "contributor" }`. Moderators may only move people between these two; admins do the rest in the panel. **200:** the `GET /staff/users/{id}` body. **403:** self, staff, or a role a moderator can't give.
+**Request:** `{ "role": "user" | "contributor" }`. Moderators may only move people between these two; admins do the rest in the panel. Setting `contributor` on someone with a pending Scout request also marks that request `approved` (with `reviewedAt` and the reviewer), in the same transaction. **200:** the `GET /staff/users/{id}` body. **403:** self, staff, or a role a moderator can't give.
+
+##### `POST /staff/users/{id}/contributor-request/decline`
+
+Says no to a pending Scout request (§7.9). **Request:** `{ "note": "We have enough Scouts in your barangay for now." }` (`note` optional, up to 200 characters; the person sees it). Sets the request `declined`, `reviewedAt` now, `canApplyAgainAt` 30 days later. Logged with the reviewer. **200:** the `GET /staff/users/{id}` body (with `scoutRequest: null`). **404:** no pending request. **403:** same rules as `PATCH …/role`.
 
 ##### `DELETE /staff/users/{id}/photo`
 
@@ -758,9 +766,46 @@ Without `due`: every **local** hotline in the caller's scope, grouped by the app
 
 **Request:** `{ "area": "ph-eastern-samar-guiuan", "kind": "police" | "fire" | "medical" | "rescue" | "coast_guard" | "disaster", "name": "PNP Guiuan", "phones": ["+639171234567"], "source": "Called the office", "checkedToday": true }`. 1 to 3 phones, E.164 or a short local hotline (3 to 6 digits). `checkedToday: true` sets `verifiedAt` to today; otherwise a new hotline gets today and an edit keeps its date. `area` is required (no national lines here). **201/200:** the item as in the list. **422:** field rules; `kind: national` (`National lines are changed in the panel.`). Only an admin deletes.
 
+`GET /staff/summary` also returns `"scoutRequests": 2`: pending Scout requests (§7.9). The app treats a missing key as 0.
+
 #### Waking up
 
 Render's free plan can take about a minute to wake. Staff requests have no shorter timeout: the app shows "Waking the server. This can take a minute." and waits up to 90 s before offering Try again.
+
+### 7.9 Becoming a Scout
+
+Added 2026-11-10 (John). A **Scout** ("Bulig Scout") is the app's name for the `contributor` role. A `user` asks from Profile → Become a Bulig Scout; a moderator or admin answers (§7.8: yes is `PATCH /staff/users/{id}/role` with `contributor`, no is `…/contributor-request/decline`). Nothing here changes a role by itself. One table, `contributor_requests`: `id`, `user_id`, `status` (`pending`, `approved`, `declined`), `area` (text, 120), `travel` (JSON array), `why` (text, 280, nullable), `adult_confirmed_at`, `reviewed_by`, `reviewed_at`, `review_note` (200), `created_at`. At most one `pending` row per user (a partial unique index). Deleting the account deletes its rows (RA 10173).
+
+The request object:
+
+```json
+{
+  "id": "scr_01JD…",
+  "status": "pending",
+  "area": "Surok, Guiuan",
+  "travel": ["tricycle", "motorcycle"],
+  "why": "Tricycle driver, Guiuan to Mercedes every day.",
+  "createdAt": "2026-11-10T08:00:00Z",
+  "reviewedAt": null,
+  "reviewNote": null,
+  "canApplyAgainAt": null
+}
+```
+
+`reviewNote` and `canApplyAgainAt` are only set on `declined` (30 days after `reviewedAt`). The reviewer's name is never returned.
+
+#### `GET /me/contributor-request` 🔒
+
+**200:** `{ "request": <the latest request> | null }`. `null` when they never asked, or withdrew. An `approved` request means a moderator said yes: the app then calls `GET /me` to pick up the new role.
+
+#### `POST /me/contributor-request` 🔒
+
+**Request:** `{ "area": "Surok, Guiuan", "travel": ["tricycle"], "why": "…", "agreed": true, "adult": true }`. `area` 3 to 120 characters (barangay and town; the app pre-fills Profile's home area). `travel` 1 to 7 of `motorcycle`, `tricycle`, `car`, `jeepney`, `truck`, `bicycle`, `walk`. `why` optional, up to 280. `agreed` must be `true` (the Scout rules on the page). `adult` must be `true` ("I'm 18 or older"; stored as `adult_confirmed_at`). **No birthday, no house address, no ID** (RA 10173 data minimisation: a moderator doesn't need them to decide, and a leak of them hurts people). **201:** `{ "request": … }` with `status: "pending"`.
+**409:** `{ "code": "pending" }` when one is already waiting, `{ "code": "already_contributor" }` when the role is `contributor` or above. **429:** `{ "canApplyAgainAt": "2026-12-10T08:00:00Z" }` when declined less than 30 days ago; a plain `429` (no `canApplyAgainAt`) is the rate limit, 5 an hour. **422:** field rules.
+
+#### `DELETE /me/contributor-request` 🔒
+
+Takes back a **pending** request (the row is deleted, so they can ask again at once). **204.** **404:** nothing pending (answered, or already taken back).
 
 ---
 

@@ -31,9 +31,14 @@ export interface Account {
 // The fields Edit profile may change.
 export type ProfileDetails = Pick<Account, 'name' | 'phone' | 'homeArea' | 'photo'>
 
+// What people see. The `contributor` role is called a Scout in the app (John, 2026-11-10): the
+// server and the code keep the key `contributor`, so renaming it is only this line and SCOUT below.
 export const ROLE_LABELS: Record<Role, string> = {
   user: 'User',
-  contributor: 'Contributor',
+  contributor: 'Scout',
   moderator: 'Moderator',
   admin: 'Admin',
 }
+
+// The role's full public name, for titles and buttons ("Become a Bulig Scout").
+export const SCOUT = 'Bulig Scout'

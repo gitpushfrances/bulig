@@ -19,6 +19,8 @@ export interface Auth {
   signInWithGoogle: (idToken: string) => Promise<GoogleSignInResult>
   register: (details: NewAccount) => Promise<RegisterResult>
   signOut: () => void
+  // Asks the server again who this is (GET /me), e.g. after a moderator made them a Scout.
+  refreshAccount: () => Promise<void>
   // 'ok', or why it didn't save: no connection, or the server refused a field. `photo`: the details
   // saved but the photo didn't (and why), so the page can say exactly that.
   updateProfile: (details: ProfileDetails) => Promise<UpdateProfileResult>

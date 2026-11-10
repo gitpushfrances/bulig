@@ -58,7 +58,7 @@ const SEND_ERRORS: Record<string, string> = {
   offline: "It didn't go through. Check your signal and send again; your form is saved on this phone.",
   busy: "You've sent 10 updates today. Try again tomorrow; your form is saved.",
   closed: 'Updates are paused right now. Your form is saved; try again later.',
-  forbidden: "This account can't add places. Ask a moderator to make you a contributor.",
+  forbidden: "This account can't add places. Ask to become a Bulig Scout in Profile.",
   photo: 'A photo expired. Remove it and take it again, then send.',
   invalid: 'Something in the form needs a fix. Check each step and send again.',
 }
