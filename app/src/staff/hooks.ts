@@ -23,9 +23,11 @@ export const useSubmission = (id: string | undefined) =>
   useSnapshot(id ? KEYS.submission(id) : null, () => appStaff.submission(id ?? ''), 5 * 60_000)
 
 // Under 3 letters asks for the newest 20 (no search), so typing "a" never lists everybody.
-export const useUsers = (q: string) => {
+export const useUsers = (q: string, asked = false) => {
   const needle = q.trim().length >= 3 ? q.trim().toLowerCase() : ''
-  return useSnapshot(KEYS.users(needle), () => appStaff.users({ q: needle || undefined }))
+  return useSnapshot(KEYS.users(asked ? `${needle}|asked` : needle), () =>
+    appStaff.users({ q: needle || undefined, asked: asked || undefined }),
+  )
 }
 
 export const useStaffUser = (id: string | undefined) =>

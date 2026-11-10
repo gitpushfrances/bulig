@@ -33,6 +33,8 @@ export interface QueueQuery {
 export interface UserQuery {
   q?: string
   role?: string
+  // Only people with a waiting Scout request.
+  asked?: boolean
   page?: number
 }
 
@@ -49,6 +51,8 @@ export interface StaffStore {
   user(id: string): Promise<StaffUserDetail>
   setRole(id: string, role: 'user' | 'contributor'): Promise<WriteResult<StaffUserDetail>>
   removePhoto(id: string): Promise<WriteResult>
+  // Says no to a waiting Scout request. Saying yes is setRole(id, 'contributor').
+  declineScout(id: string, note: string): Promise<WriteResult<StaffUserDetail>>
   areas(): Promise<StaffArea[]>
   saveArea(input: AreaInput, id?: string): Promise<WriteResult<StaffArea>>
   hotlines(filter?: HotlineFilter): Promise<Hotline[]>
@@ -131,13 +135,21 @@ export function createApiStaff(base: string, fetchFn: typeof fetch = (...args) =
         }),
       ),
     addPlace: (place) => write(() => call<{ id: string }>('/services', { method: 'POST', body: place })),
-    users: ({ q, role, page } = {}) => call<Page<StaffUser>>(`/users${query({ q, role, page })}`),
+    users: ({ q, role, asked, page } = {}) =>
+      call<Page<StaffUser>>(`/users${query({ q, role, asked: asked ? 1 : undefined, page })}`),
     user: (id) => call<StaffUserDetail>(`/users/${encodeURIComponent(id)}`),
     setRole: (id, role) =>
       write(() =>
         call<StaffUserDetail>(`/users/${encodeURIComponent(id)}/role`, {
           method: 'PATCH',
           body: { role },
+        }),
+      ),
+    declineScout: (id, note) =>
+      write(() =>
+        call<StaffUserDetail>(`/users/${encodeURIComponent(id)}/contributor-request/decline`, {
+          method: 'POST',
+          body: note.trim() ? { note: note.trim() } : {},
         }),
       ),
     removePhoto: (id) => write(() => done(call(`/users/${encodeURIComponent(id)}/photo`, { method: 'DELETE' }))),

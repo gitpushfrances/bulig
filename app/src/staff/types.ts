@@ -21,6 +21,8 @@ export interface Summary {
   hiddenEmergencyContacts: number
   dueEmergencyContacts: number
   users: number
+  // People waiting for an answer on "Become a Bulig Scout" (§7.9). Missing on an older server.
+  scoutRequests?: number
 }
 
 export interface QueueItem {
@@ -81,6 +83,16 @@ export interface StaffUser {
   email: string // masked by the server: "ju…@gmail.com"
   createdAt: string
   sent: number
+  // True while they have a "Become a Bulig Scout" request waiting (§7.9).
+  asked?: boolean
+}
+
+// A waiting "Become a Bulig Scout" request, as staff see it.
+export interface StaffScoutRequest {
+  area: string
+  travel: string[]
+  why: string | null
+  createdAt: string
 }
 
 export interface StaffUserDetail extends StaffUser {
@@ -88,6 +100,7 @@ export interface StaffUserDetail extends StaffUser {
   photoUrl: string | null
   canChangeRole: boolean
   canRemovePhoto: boolean
+  scoutRequest?: StaffScoutRequest | null
 }
 
 export const AREA_LEVELS = ['province', 'city', 'municipality', 'barangay'] as const

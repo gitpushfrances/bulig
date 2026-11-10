@@ -52,7 +52,9 @@ export default function ManagePage() {
           {notice}
         </p>
       )}
-      {tab === 'users' && <Users />}
+      {tab === 'users' && (
+        <Users asked={params.get('asked') === '1'} onAsked={(on) => setParams(on ? { asked: '1' } : {}, { replace: true })} />
+      )}
       {tab === 'areas' && <Areas />}
       {tab === 'hotlines' && (
         <Hotlines
@@ -77,10 +79,10 @@ function useDebounced(value: string, ms: number) {
   return v
 }
 
-function Users() {
+function Users({ asked, onAsked }: { asked: boolean; onAsked: (on: boolean) => void }) {
   const [q, setQ] = useState('')
   const typed = useDebounced(q, 300)
-  const users = useUsers(typed)
+  const users = useUsers(typed, asked)
   const short = q.trim().length > 0 && q.trim().length < 3
 
   return (
@@ -96,6 +98,14 @@ function Users() {
           autoComplete="off"
         />
       </label>
+      <div className={styles.chips} role="group" aria-label="Show">
+        <button type="button" className={page.filterChip} aria-pressed={!asked} onClick={() => onAsked(false)}>
+          Everyone
+        </button>
+        <button type="button" className={page.filterChip} aria-pressed={asked} onClick={() => onAsked(true)}>
+          Asked to be a Scout
+        </button>
+      </div>
       <p className={page.hint}>
         {short ? 'Type 3 letters or more.' : 'Newest first, 20 at a time. Emails are shortened to protect people.'}
       </p>
@@ -119,17 +129,21 @@ function Users() {
                         {u.email} · {u.sent} sent
                       </span>
                     </span>
-                    <span
-                      className={`${styles.pill} ${u.role === 'user' ? styles.grey : u.role === 'contributor' ? '' : styles.flag}`}
-                    >
-                      {ROLE_LABELS[u.role]}
-                    </span>
+                    {u.asked && u.role === 'user' ? (
+                      <span className={`${styles.pill} ${styles.asked}`}>Asked</span>
+                    ) : (
+                      <span
+                        className={`${styles.pill} ${u.role === 'user' ? styles.grey : u.role === 'contributor' ? '' : styles.flag}`}
+                      >
+                        {ROLE_LABELS[u.role]}
+                      </span>
+                    )}
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className={page.hint}>Nobody by that name.</p>
+            <p className={page.hint}>{asked ? 'Nobody is waiting to be a Scout.' : 'Nobody by that name.'}</p>
           )
         }
       </Loaded>

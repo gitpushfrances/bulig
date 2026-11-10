@@ -361,3 +361,23 @@
   background: var(--color-surface);
   color: var(--color-text);
 }
+
+/* Waiting for an answer on "Become a Bulig Scout". */
+.pill.asked {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.request {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.request p {
+  margin: 0;
+}

@@ -70,15 +70,15 @@ describe('Moderator app', () => {
     expect(await screen.findByText('Rejected. The sender sees your reason.')).toBeInTheDocument()
   })
 
-  it('switches a user to contributor, but never touches staff', async () => {
+  it('switches a user to Scout, but never touches staff', async () => {
     as('moderator@bulig.com')
     const first = renderAt('/manage')
     expect(await screen.findByText(/ma…@yahoo.com/)).toBeInTheDocument()
     // No mobile numbers or full emails in the list.
     expect(screen.queryByText(/@yahoo\.com$/)).toBeNull()
     fireEvent.click(screen.getByRole('link', { name: /Maria Santos/ }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Contributor' }))
-    expect(await screen.findByText('Now a contributor. They can add places.')).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Scout' }))
+    expect(await screen.findByText('Now a Scout. They can add places.')).toBeInTheDocument()
     first.unmount()
 
     renderAt('/manage/users/usr_mod')
@@ -118,5 +118,17 @@ describe('Moderator app', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Traveller' }))
     expect(tabs().map((l) => l.getAttribute('href'))).toEqual(['/', '/services', '/add', '/map', '/saved'])
     expect(screen.queryByRole('link', { name: 'Your profile' })).toBeNull()
+  })
+
+  it('lists Scout requests and makes a person a Scout from their request', async () => {
+    as('moderator@bulig.com')
+    renderAt('/')
+    fireEvent.click(await screen.findByRole('link', { name: /1\s*Asked to be a Scout/ }))
+    expect(await screen.findByRole('button', { name: 'Asked to be a Scout', pressed: true })).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('link', { name: /Leo Pacaña/ }))
+    expect(await screen.findByText('Tricycle driver, Guiuan to Mercedes every day.', { exact: false })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Make them a Scout' }))
+    expect(await screen.findByText('Now a Scout. They can add places.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Make them a Scout' })).not.toBeInTheDocument()
   })
 })
