@@ -2,7 +2,7 @@
 
 Who does what in Bulig, how a record moves from a report to the app, and how a change moves from a branch to the live link. [ARCHITECTURE.md](ARCHITECTURE.md) says how each part is built; this file says how the parts are used.
 
-Last updated: 2026-11-06
+Last updated: 2026-11-10
 
 ## Areas
 
@@ -53,8 +53,8 @@ flowchart TD
 | Phase | How it works |
 | --- | --- |
 | **Now (test UI)** | On `/login` and `/signup` (the onboarding). Everything except Emergency needs an account; there is no guest mode (removed 2026-11-04). Four hardcoded test logins, all with the password `password`, in [`app/src/auth/testAccount.ts`](../app/src/auth/testAccount.ts): `test@bulig.com` (**user**), `contributor@bulig.com` (**contributor**), `moderator@bulig.com` (**moderator**, no areas = the whole country), `admin@bulig.com` (**admin**). **Create account** makes a **user** kept on this phone only ([`localAccounts.ts`](../app/src/auth/localAccounts.ts)): name, email and a salted SHA-256 hash of the password in `bulig.accounts`, never the password itself. Moderators and admins are never self-registered. The session and saved places are kept in `localStorage` on the phone. |
-| **Phase 4** | Laravel Sanctum accounts; requests and payloads in [API.md](API.md#4-accounts). Admins and moderators sign in to Filament; the API checks roles with the same rules as `can()`. |
-| **Phase 5** | Travellers and business owners sign in (Google through Socialite, Sanctum tokens). Saved places sync to the account. |
+| **Phase 4** | Laravel Sanctum accounts; requests and payloads in [API.md](API.md#4-accounts). Admins and moderators sign in to Filament; the API checks roles with the same rules as `can()`. **Continue with Google** (2026-11-10, John): Google's button gives the app an ID token, `POST /auth/google` verifies it and returns a Sanctum token; it signs in, links the same email, or creates a `user` with no password ([API.md §4.7](API.md#47-post-authgoogle)). The button shows only when `VITE_GOOGLE_CLIENT_ID` is set. |
+| **Phase 5** | Business owners sign in (email or Google, Sanctum tokens) and claim listings. |
 
 **The test logins and local accounts are not security.** The test logins ship inside the app's JavaScript, so anyone can read them; they exist only so testers can try each role. Local accounts live in the phone's storage, readable by anyone holding the phone; hashing only keeps a reused password out of plain text. Never put a real password in the app, and remove `testAccount.ts` and `localAccounts.ts` when Phase 4 sign-in lands. `AuthProvider` is the only place to change: pages call `useAuth()` and don't know where the account comes from.
 

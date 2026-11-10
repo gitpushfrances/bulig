@@ -2,7 +2,7 @@
 
 Every request the app makes, or will make once the backend exists, with its exact payload and response. Build the Laravel API (Phase 4) to match this file, and the frontend switches over without page changes.
 
-Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.0).
+Last updated: 2026-11-10 · Owner: John · Matches the frontend on `main` (v0.3.0).
 
 **Why this file exists.** Until Phase 4 the app has no server: data comes from JSON files, and accounts, saved places and profiles live on the phone (`localStorage`). Each section below says **where that lives in the frontend today** and **what the API replaces it with**, so nothing is guessed when the backend is built.
 
@@ -15,7 +15,7 @@ Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.
 1. [Conventions](#1-conventions)
 2. [All requests at a glance](#2-all-requests-at-a-glance)
 3. [Public data](#3-public-data): areas, emergency contacts, services, labels
-4. [Accounts](#4-accounts): register, login, logout, forgot and reset password, confirm a new email
+4. [Accounts](#4-accounts): register, login, logout, forgot and reset password, confirm a new email, continue with Google
 5. [Me](#5-me): profile, photo, password, delete account, change email
 6. [Saved places](#6-saved-places)
 7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health, staff requests, becoming a Scout)
@@ -37,11 +37,11 @@ Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.
 | Dates | `verifiedAt`, `addedAt`, `createdAt`: ISO 8601 date `"2026-10-21"`. Timestamps (`updatedAt` on envelopes, `savedAt`): ISO 8601 with `Z`. Opening hours are local `"HH:MM"`, `"24:00"` = midnight. |
 | Countries | ISO 3166-1 alpha-2, upper case: `PH`. Every public read needs `?country=`. |
 | Auth | **Laravel Sanctum personal access tokens.** Send `Authorization: Bearer <token>`. A token stops working 60 days after sign-in, however often it is used; the request then gets `401` and the app shows the login, like any other signed-out token. 🔒 in the tables = token required. Public data and Emergency never need one. |
-| Roles | `user`, `contributor`, `moderator`, `admin`. Sign-ups are always `user`. A user can ask to become a `contributor` ([§7.9](#79-becoming-a-scout)); a moderator or admin decides, in the app or the admin panel; only an admin appoints moderators and admins. The app calls a `contributor` a **Scout** ("Bulig Scout", John 2026-11-10); the key stays `contributor`. |
+| Roles | `user`, `contributor`, `moderator`, `admin`. Sign-ups (email or Google) are always `user`. A user can ask to become a `contributor` ([§7.9](#79-becoming-a-scout)); a moderator or admin decides, in the app or the admin panel; only an admin appoints moderators and admins. The app calls a `contributor` a **Scout** ("Bulig Scout", John 2026-11-10); the key stays `contributor`. |
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope; at login, `{"message": "...", "reason": "suspended"}` for a suspended account), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
 | CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
-| Rate limits | Auth endpoints 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; email changes 5/hour per user; everything else 120/min per token or IP. |
+| Rate limits | Auth endpoints (including `/auth/google`) 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; email changes 5/hour per user; everything else 120/min per token or IP. |
 | Versioning | `/api/v1`. A breaking change means `/api/v2` (see [§11](#11-changing-this-contract)). The data envelopes keep `"version": 1`. |
 
 ---
@@ -103,6 +103,7 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 49 | Ask to become a Scout | `POST /me/contributor-request` | 🔒 | 4 | `apply()` in `contribute/scout.ts` |
 | 50 | Take back a waiting request | `DELETE /me/contributor-request` | 🔒 | 4 | `withdraw()` in `contribute/scout.ts` |
 | 51 | Decline a Scout request | `POST /staff/users/{id}/contributor-request/decline` | 🔒 staff | 4 | `declineScout()` in `staff/api.ts` (`pages/staff/UserPage.tsx`). Saying yes is row 42 |
+| 52 | Continue with Google (sign in, link or sign up) | `POST /auth/google` | — | 4 | `signInWithGoogle()` in `auth/apiStore.ts` (`components/GoogleSignIn.tsx` on `/login` and `/signup`); button only when `VITE_GOOGLE_CLIENT_ID` is set |
 
 Admin and moderator screens in Filament (`/panel`, Phase 4) are server-side and not part of this contract: places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. The two jobs a moderator does on the road, the review queue and marking records checked, are also in the app, through the staff requests in [§7.8](#78-staff-requests-moderators-and-admins) (John, 2026-11-05). See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
 
@@ -356,6 +357,44 @@ The link from [§5.7](#57-post-meemail-)'s email. No token needed: the link may 
 
 **Errors:** `422 errors.token: ["invalid"]` for an unknown, used, cancelled or expired link (the app shows "That link has expired or was already used. Ask for a new one from Profile."), `422 errors.token: ["taken"]` if another account took that email in the meantime.
 
+### 4.7 `POST /auth/google`
+
+Added 2026-11-10 (John: "login using Google… so it's easier, and they set up their profile later"). One endpoint signs in, links, or signs up. The app uses **Google Identity Services** (the "Sign in with Google" button, popup mode): Google hands the page an **ID token** (a JWT), the app posts it here, and the server answers with a Sanctum token exactly like [§4.2](#42-post-authlogin). No redirect page, no client secret anywhere, no Google API calls after sign-in. Free.
+
+**Request**
+
+```json
+{ "idToken": "eyJhbGciOiJSUzI1NiIs…", "acceptedTerms": true, "device": "Bulig PWA" }
+```
+
+| Field | Rules |
+| --- | --- |
+| `idToken` | required. The server **must** verify it itself, never trust the app: signature against Google's keys (`https://www.googleapis.com/oauth2/v3/certs`, cached per its `Cache-Control`), `iss` is `accounts.google.com` or `https://accounts.google.com`, `aud` equals the server's `GOOGLE_CLIENT_ID`, `exp` in the future, and `email_verified` is `true`. Any failure: `422`. Use a JWT library (`firebase/php-jwt` with `CachedKeySet`, or `google/apiclient`'s `verifyIdToken`), not the `tokeninfo` endpoint (Google says it's for debugging). |
+| `acceptedTerms` | required, `true`. The app shows "By continuing with Google you agree to the Terms of Use and Privacy Policy" under the button; store the time like a sign-up. |
+| `device` | optional, names the token, as in §4.1. |
+
+**What the server does, in this order**
+
+1. **A Google account already linked** (`users.google_sub` = the token's `sub`): sign in. The email may differ now (they changed it in Bulig or at Google); `sub` is the identity, never the email.
+2. **Same email, not linked yet** (an account made with a password): **link it** (store `google_sub`, set `email_verified_at` if empty) and sign in. **Then, if that account's email had never been verified, clear its password and revoke its other tokens.** Bulig doesn't verify email at sign-up, so a stranger could have registered someone's Gmail first with a password they know ("pre-account hijacking"); without this step they would keep a way in after the real owner links Google. The person can set a new password from Profile ([§5.5](#55-put-mepassword-)) or Forgot password.
+3. **New email:** create a `user` with `name` = the token's `name` (or the part of the email before `@`, 80 characters at most), `email` lower-cased, **no password** (`hasPassword: false`), `google_sub`, `email_verified_at` now, terms accepted now. The token's `picture` is **not** copied (the photo stays the person's choice, and stays on Cloudinary). Return `"created": true`.
+
+A **suspended** account answers `403 {"reason": "suspended"}` in every case, as §4.2. Old saved hearts on the phone are sent after sign-in as with §4.2.
+
+**200** (signed in or linked) or **201** (created):
+
+```json
+{ "token": "1|q7Z…", "user": { …User (§8.1)…, "hasPassword": false, "google": true }, "created": true }
+```
+
+**Errors:** `422 {"message": "…"}` for any token that doesn't check out (the app shows "Google couldn't confirm your sign-in. Try again."), `403` suspended, `429` rate limit. A server that doesn't have this yet answers `404`; the app then says Google sign-in isn't available and points to email.
+
+**Setup (John, once, free):** Google Cloud Console → a project "Bulig" → Google Auth Platform → Branding (app name, support email, the Privacy Policy and Terms links, logo), Audience **External**, then **Clients → Create client → Web application** with **Authorized JavaScript origins** `https://app.bulig.workers.dev` and `http://localhost:5173` (no redirect URIs needed for the popup). Scopes: only `openid`, `email`, `profile` (non-sensitive, so no Google verification review). Put the client ID in Cloudflare as `VITE_GOOGLE_CLIENT_ID` (it's public by design) and on Render as `GOOGLE_CLIENT_ID`. Nothing else is secret: there is no client secret in this flow.
+
+**Known limits.** Google refuses to sign in inside app web views (Facebook, Messenger, Instagram, TikTok), with "403 disallowed_useragent". Bulig links get shared on Facebook, so the app detects those browsers and shows "Open Bulig in Chrome" with Copy the link, instead of a button that fails. The Google button is Google's own 40 px pill (their branding rules), so it sits in a 48 px row.
+
+**Facebook login: not now.** Meta's Login needs a live app with a Privacy Policy URL, a data-deletion callback, and Business Verification for anything beyond the basics, and it only works in a real browser too. Revisit when Bulig has a registered business and real users ask for it.
+
 ---
 
 ## 5. Me
@@ -398,6 +437,8 @@ Edit profile (`/profile/edit`). Send only what changed.
 
 **Request:** `{ "currentPassword": "long enough", "newPassword": "a new long one" }`
 
+An account with `hasPassword: false` (made with Google) **sets** its first password with `{ "newPassword": "…" }` only; `currentPassword` is ignored for it. Profile calls this row "Set a password". After it, `hasPassword` is `true` and the person can sign in with Google or their email and password.
+
 **204.** Other tokens are revoked; this one stays signed in. **Errors:** `422 errors.currentPassword: ["incorrect"]` ("That isn't your current password."), or a new password under 8 characters.
 
 ### 5.6 `DELETE /me` 🔒
@@ -425,6 +466,8 @@ Change email (`/profile/email`). Nothing changes until the person opens the link
 Asking again replaces the earlier link. The token is 64 random characters; the server keeps only its SHA-256 hash.
 
 **Errors:** `422 errors.newEmail: ["same"]` ("That's already your email."), `422 errors.newEmail: ["taken"]` ("That email already has an account."), `422 errors.currentPassword: ["incorrect"]` ("That isn't your current password."), `429` after 5 requests in an hour (the app shows "Too many tries. Wait an hour and try again.").
+
+An account with no password (`hasPassword: false`) gets `422 errors.currentPassword: ["incorrect"]`; the app never sends it, and asks the person to set a password first. A linked Google account keeps working after the change: it signs in by `sub`, not by email.
 
 ### 5.8 `DELETE /me/email` 🔒
 
@@ -781,13 +824,17 @@ Takes back a **pending** request (the row is deleted, so they can ask again at o
   "phone": "+639171234567",
   "homeArea": "Surok, Guiuan, Eastern Samar",
   "photoUrl": null,
-  "pendingEmail": null
+  "pendingEmail": null,
+  "hasPassword": true,
+  "google": false
 }
 ```
 
+`hasPassword` is `false` for an account made with Google that never set a password ([§4.7](#47-post-authgoogle), [§5.5](#55-put-mepassword-)); `google` is `true` once a Google account is linked. Both were added 2026-11-10; the app reads a missing `hasPassword` as `true`.
+
 `pendingEmail` is the address waiting for confirmation ([§5.7](#57-post-meemail-)), or `null`. It turns back to `null` when the link is used, cancelled or expires.
 
-Matches `Account` in `app/src/auth/types.ts`, except `photo` (a data URL on the phone today) becomes `photoUrl`. `areas` lists a moderator's area IDs (each covers the areas inside it); empty for users and admins. Until area assignment ships it is `[]` for everyone, and an empty list on a moderator means the whole country. Never returned: password hashes, tokens, deleted state.
+Matches `Account` in `app/src/auth/types.ts`, except `photo` (a data URL on the phone today) becomes `photoUrl`. `areas` lists a moderator's area IDs (each covers the areas inside it); empty for users and admins. Until area assignment ships it is `[]` for everyone, and an empty list on a moderator means the whole country. Never returned: password hashes, tokens, `google_sub`, deleted state.
 
 ### 8.2 Envelope, Area, EmergencyContact, Service, Labels
 
@@ -833,6 +880,7 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.drafts.new-place.<email>` | An unsent Add a place form (upload IDs and small previews, not the photos) | Stays on the phone until sent |
 | `bulig.updatesSeen.<email>` | Which answers in My updates the person has seen, for the bell | Stays on the phone |
 | `bulig.localSubmissions` | Dev and tests only: new places sent with no backend | Not in the API build |
+| `bulig.finishProfile.<email>` | "Finish your profile" on Home was closed (Profile still shows it until a photo or home area is added) | Stays on the phone |
 | `bulig.traveller.<email>` | Staff only: "Use the app as: Traveller" (everyday tabs back) | Stays on the phone; holds no data |
 | Staff snapshots (`staff/snapshot.ts`) | The last copy of the queue, people, areas and hotlines, so screens open at once | **Memory only**, never stored; dropped on sign-out or another sign-in |
 
