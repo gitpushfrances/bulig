@@ -1,5 +1,5 @@
 import BackButton from '../components/BackButton.tsx'
-import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
+import { DownloadSimple, EnvelopeSimple, FileText, Globe, GoogleLogo, HandHeart, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
@@ -8,6 +8,7 @@ import { can } from '../rules/permissions.ts'
 import { setTravellerMode, useTravellerMode } from '../staff/mode.ts'
 import { TextField } from '../components/Fields.tsx'
 import Avatar from '../components/Avatar.tsx'
+import FinishProfile from '../components/FinishProfile.tsx'
 import Dialog from '../components/Dialog.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
 import { SettingsButton, SettingsGroup, SettingsInfo, SettingsLink } from '../components/Settings.tsx'
@@ -137,6 +138,7 @@ export default function ProfilePage() {
   const ready = data.status === 'ready'
   const homeArea = homeAreaText(account.homeArea, ready ? data.areas : [])
   const since = monthYear(account.createdAt)
+  const request = account.contributorRequest
 
   return (
     <section className={styles.page} aria-labelledby="profile-title">
@@ -157,9 +159,16 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      <FinishProfile account={account} />
+
       <SettingsGroup title="Account">
         <SettingsLink to="/profile/edit" icon={UserGear} label="Edit profile" />
-        <SettingsLink to="/profile/password" icon={Key} label="Change password" />
+        {account.google && <SettingsInfo icon={GoogleLogo} label="Google sign-in" value="On" />}
+        {account.hasPassword === false ? (
+          <SettingsLink to="/profile/password" icon={Key} label="Set a password" value="Optional" />
+        ) : (
+          <SettingsLink to="/profile/password" icon={Key} label="Change password" />
+        )}
         <SettingsLink
           to="/profile/email"
           icon={EnvelopeSimple}
@@ -175,6 +184,17 @@ export default function ProfilePage() {
         )}
         {homeArea && <SettingsInfo icon={MapPin} label="Home area" value={homeArea} />}
       </SettingsGroup>
+
+      {account.role === 'user' && (
+        <SettingsGroup title="Help the community">
+          <SettingsLink
+            to="/profile/contributor"
+            icon={HandHeart}
+            label="Become a contributor"
+            value={request?.status === 'pending' ? 'Waiting' : undefined}
+          />
+        </SettingsGroup>
+      )}
 
       <SettingsGroup title="Preferences">
         {can(account, 'review') && (

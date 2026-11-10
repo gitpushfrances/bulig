@@ -21,6 +21,24 @@ export type RegisterResult =
 
 export type ChangePasswordResult = 'ok' | 'wrong' | 'offline'
 
+// API.md §4.7. created: a new account was made (land on Home with "Finish your profile").
+// 'invalid': Google's answer didn't check out (expired, another app's, email not verified).
+// 'unavailable': this server has no Google sign-in yet.
+export type GoogleSignInResult =
+  | { ok: true; account: Account; created: boolean }
+  | { ok: false; reason: 'invalid' | 'suspended' | 'offline' | 'busy' | 'unavailable' }
+
+// API.md §5.9. 'already': a request is waiting, or the account is a contributor already.
+// 'wait': declined less than 30 days ago. 'unavailable': this server can't take requests yet.
+export type ContributorRequestResult =
+  | { ok: true; account: Account }
+  | { ok: false; reason: 'invalid' | 'already' | 'wait' | 'offline' | 'unavailable' }
+
+export interface ContributorRequestInput {
+  area: string
+  reason: string
+}
+
 // API.md §5.7. 'same': already this account's email. 'wrong': not the current password.
 // 'busy': 5 asks an hour used. 'unavailable': any other answer (e.g. a server without this yet). 'preview': this build sends no email (phone-only accounts).
 export type EmailChangeResult =
@@ -53,10 +71,15 @@ export interface AccountStore {
   // Asks the server who is signed in. null = signed out (token gone); undefined = couldn't tell.
   refresh(): Promise<Account | null | undefined>
   signIn(email: string, password: string): Promise<SignInResult>
+  // The ID token Google's button hands the page (a JWT). The server checks it and signs in, links or creates.
+  signInWithGoogle(idToken: string): Promise<GoogleSignInResult>
   register(details: NewAccount): Promise<RegisterResult>
   signOut(): Promise<void>
   updateProfile(account: Account, details: ServerProfile): Promise<Account | 'offline' | 'invalid'>
+  // `current` is empty when the account has no password yet (made with Google): that sets one.
   changePassword(account: Account, current: string, next: string): Promise<ChangePasswordResult>
+  // "Become a contributor": the account comes back with contributorRequest pending.
+  requestContributor(account: Account, input: ContributorRequestInput): Promise<ContributorRequestResult>
   // Replaces the photo (a 256px data URL from auth/photo.ts), or removes it with null.
   setPhoto(account: Account, photo: string | null): Promise<SetPhotoResult>
   // Sends a link to the new address; nothing changes until it is opened. The account comes back with pendingEmail.

@@ -3,9 +3,10 @@ import { smoothly } from '../motion.ts'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { appAccounts } from './appAccounts.ts'
 import { forgetOnSignOut } from './forgetOnSignOut.ts'
+import { forgetFinishProfile } from './finishProfile.ts'
 import { AuthContext } from './context.ts'
 import type { SavedStatus, UpdateProfileResult } from './context.ts'
-import type { AccountStore, NewAccount, SaveResult, SetPhotoResult } from './store.ts'
+import type { AccountStore, ContributorRequestInput, NewAccount, SaveResult, SetPhotoResult } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
 // Guest mode is gone (2026-11-04): Emergency is open to everyone without it. Old phones drop the flag.
@@ -216,6 +217,12 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     return result
   }
 
+  const signInWithGoogle = async (idToken: string) => {
+    const result = await store.signInWithGoogle(idToken)
+    if (result.ok) start(result.account)
+    return result
+  }
+
   const register = async (details: NewAccount) => {
     const result = await store.register(details)
     if (result.ok) start(result.account)
@@ -268,8 +275,20 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     return photoFailed ? { photo: photoFailed } : ('ok' as const)
   }
 
-  const changePassword = (current: string, next: string) =>
-    account ? store.changePassword(account, current, next) : Promise.resolve('wrong' as const)
+  const changePassword = async (current: string, next: string) => {
+    if (!account) return 'wrong' as const
+    const result = await store.changePassword(account, current, next)
+    // A Google account that just set its first password can now change its email too.
+    if (result === 'ok' && account.hasPassword === false) setAccount({ ...account, hasPassword: true })
+    return result
+  }
+
+  const requestContributor = async (input: ContributorRequestInput) => {
+    if (!account) return { ok: false as const, reason: 'offline' as const }
+    const result = await store.requestContributor(account, input)
+    if (result.ok) setAccount(withDetails(result.account, store))
+    return result
+  }
 
   const requestEmailChange = async (newEmail: string, password: string) => {
     if (!account) return { ok: false as const, reason: 'offline' as const }
@@ -298,6 +317,7 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   const deleteAccount = async () => {
     if (!account || !(await store.deleteAccount(account))) return false
     writeSaved(profileKey(account.email), null)
+    forgetFinishProfile(account.email)
     writeSaved(savedCacheKey(account.email), null)
     writeSaved(outboxKey(account.email), null)
     outbox.current = { email: null, ops: {} }
@@ -329,10 +349,12 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
       value={{
         account,
         signIn,
+        signInWithGoogle,
         register,
         signOut,
         updateProfile,
         changePassword,
+        requestContributor,
         requestEmailChange,
         cancelEmailChange,
         confirmEmail,

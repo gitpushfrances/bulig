@@ -21,6 +21,8 @@ export interface Summary {
   hiddenEmergencyContacts: number
   dueEmergencyContacts: number
   users: number
+  // "Become a contributor" requests waiting (API.md §7.8). Missing on servers without them yet.
+  contributorRequests?: number
 }
 
 export interface QueueItem {
@@ -81,6 +83,8 @@ export interface StaffUser {
   email: string // masked by the server: "ju…@gmail.com"
   createdAt: string
   sent: number
+  // Asked to be a contributor and waiting for an answer.
+  requested?: boolean
 }
 
 export interface StaffUserDetail extends StaffUser {
@@ -88,6 +92,8 @@ export interface StaffUserDetail extends StaffUser {
   photoUrl: string | null
   canChangeRole: boolean
   canRemovePhoto: boolean
+  // Their waiting "Become a contributor" request, or null. Approve = make them a contributor.
+  contributorRequest?: { area: string; reason: string | null; createdAt: string } | null
 }
 
 export const AREA_LEVELS = ['province', 'city', 'municipality', 'barangay'] as const

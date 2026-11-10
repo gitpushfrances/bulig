@@ -5,6 +5,7 @@ import { useAuth } from '../auth/context.ts'
 import { safeNext } from '../auth/next.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
+import GoogleSignIn from '../components/GoogleSignIn.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT } from '../components/fieldRules.ts'
@@ -126,6 +127,8 @@ export default function LoginPage() {
           Forgot password?
         </Link>
       </form>
+
+      <GoogleSignIn next={next} mode="signin" />
 
       <p className={styles.divider}>New to Bulig?</p>
       <Link className={`${page.secondary} ${styles.full}`} to={withNext('/signup')}>

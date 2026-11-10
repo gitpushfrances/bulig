@@ -1,0 +1,166 @@
+/* Profile > Become a contributor: a timeline, a two-column comparison and a short request. */
+
+.flow {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The line from each step's circle down to the next one. */
+.step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 40px;
+  bottom: -16px;
+  left: 19px;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.dot {
+  display: grid;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 0 0 4px var(--color-bg);
+}
+
+.step p {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding-top: 2px;
+  line-height: 1.4;
+}
+
+.step p > span {
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.compare {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  font-size: 0.9375rem;
+}
+
+.compare th,
+.compare td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.compare tbody tr:last-child th,
+.compare tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.compare thead th {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.compare tbody th {
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.compare th:not(:first-child),
+.compare td {
+  width: 88px;
+}
+
+/* The Contributor column is the one being explained: a light teal band. */
+.you {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.compare thead .you {
+  color: var(--color-primary-text);
+}
+
+.yes {
+  display: inline-grid;
+  color: var(--color-checked);
+}
+
+.no {
+  display: inline-grid;
+  color: var(--color-text-muted);
+}
+
+.ask {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ask li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  line-height: 1.45;
+}
+
+.ask svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-icon-brand);
+}
+
+.status {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-card);
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.status svg {
+  flex: none;
+}
+
+.status p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.form,
+.ready {
+  display: grid;
+  gap: 16px;
+}
+
+.reason {
+  min-height: 96px;
+  resize: vertical;
+}

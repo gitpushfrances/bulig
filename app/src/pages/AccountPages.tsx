@@ -1,6 +1,6 @@
 import { Camera, Check, FloppyDisk, Trash } from '@phosphor-icons/react'
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { toAvatar } from '../auth/photo.ts'
 import BackButton from '../components/BackButton.tsx'
@@ -314,7 +314,9 @@ export function EditProfilePage() {
 }
 
 export function ChangePasswordPage() {
-  const { canManage, changePassword } = useAuth()
+  const { account, canManage, changePassword } = useAuth()
+  // Made with Google and no password yet: set one, no current password to ask for (API.md §5.5).
+  const first = account?.hasPassword === false
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -333,7 +335,7 @@ export function ChangePasswordPage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const found = {
-      current: current ? '' : 'Enter your current password.',
+      current: current || first ? '' : 'Enter your current password.',
       next: next.length >= MIN_PASSWORD ? '' : `Use at least ${MIN_PASSWORD} characters.`,
       confirm: confirm === next ? '' : "The passwords don't match.",
     }
@@ -346,7 +348,11 @@ export function ChangePasswordPage() {
     if (result !== 'ok') {
       setErrors({
         current:
-          result === 'offline' ? "Couldn't reach Bulig. Check your connection and try again." : "That isn't your current password.",
+          result === 'offline'
+            ? "Couldn't reach Bulig. Check your connection and try again."
+            : first
+              ? "Bulig couldn't save that password. Try again."
+              : "That isn't your current password.",
       })
       return
     }
@@ -357,18 +363,29 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <SubPage title="Change password">
+    <SubPage
+      title={first ? 'Set a password' : 'Change password'}
+      lead={first ? 'You sign in with Google. A password lets you sign in with your email too.' : undefined}
+    >
       <form className={styles.form} onSubmit={submit} noValidate>
-        <PasswordField
-          label="Current password"
-          autoComplete="current-password"
-          value={current}
-          error={errors.current}
-          onChange={(v) => {
-            setCurrent(v)
-            setErrors((e) => ({ ...e, current: '' }))
-          }}
-        />
+        {first ? (
+          errors.current && (
+            <p className={page.error} role="alert">
+              {errors.current}
+            </p>
+          )
+        ) : (
+          <PasswordField
+            label="Current password"
+            autoComplete="current-password"
+            value={current}
+            error={errors.current}
+            onChange={(v) => {
+              setCurrent(v)
+              setErrors((e) => ({ ...e, current: '' }))
+            }}
+          />
+        )}
         <PasswordField
           label="New password"
           autoComplete="new-password"
@@ -392,12 +409,12 @@ export function ChangePasswordPage() {
         />
         {done && (
           <p className={styles.done} role="status">
-            Password changed.
+            {account?.google ? 'Password saved. You can sign in with Google or your email.' : 'Password changed.'}
           </p>
         )}
         <button type="submit" className={page.primaryButton} disabled={busy} aria-busy={busy}>
-          <BusyContent busy={busy} busyLabel="Changing your password…">
-            Change password
+          <BusyContent busy={busy} busyLabel={first ? 'Saving your password…' : 'Changing your password…'}>
+            {first ? 'Set password' : 'Change password'}
           </BusyContent>
         </button>
       </form>
@@ -422,6 +439,20 @@ export function ChangeEmailPage() {
     return (
       <SubPage title="Change email">
         <p className={styles.draft}>Accounts kept on this phone can&apos;t change their email. Accounts on Bulig&apos;s server can.</p>
+      </SubPage>
+    )
+  }
+
+  // The current password guards this page; a Google account sets one first.
+  if (account.hasPassword === false) {
+    return (
+      <SubPage title="Change email" lead={`You sign in with Google as ${account.email}.`}>
+        <p className={page.lead}>
+          To change your email, first set a password, so nobody else can change it from your phone.
+        </p>
+        <Link className={page.primaryButton} to="/profile/password">
+          Set a password
+        </Link>
       </SubPage>
     )
   }

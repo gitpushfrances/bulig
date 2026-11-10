@@ -5,7 +5,7 @@ import { formatDate } from '../../data/format.ts'
 import { kindLabel } from '../../data/labels.ts'
 import { appStaff } from '../../staff/api.ts'
 import { initials, localPhone } from '../../staff/format.ts'
-import { KEYS, useHotlines, useStaffAreas, useUsers } from '../../staff/hooks.ts'
+import { KEYS, useHotlines, useStaffAreas, useSummary, useUsers } from '../../staff/hooks.ts'
 import { prefetch } from '../../staff/snapshot.ts'
 import { AREA_LEVELS, type Hotline } from '../../staff/types.ts'
 import page from '../Page.module.css'
@@ -79,12 +79,35 @@ function useDebounced(value: string, ms: number) {
 
 function Users() {
   const [q, setQ] = useState('')
+  const [params, setParams] = useSearchParams()
+  // "Asked to contribute": the people waiting on Profile > Become a contributor (kept in the URL).
+  const requested = params.get('show') === 'requests'
   const typed = useDebounced(q, 300)
-  const users = useUsers(typed)
+  const users = useUsers(typed, requested)
+  const summary = useSummary()
+  const waiting = summary.data?.contributorRequests ?? 0
   const short = q.trim().length > 0 && q.trim().length < 3
 
   return (
     <>
+      <div className={styles.chips} role="group" aria-label="Show">
+        <button
+          type="button"
+          className={page.filterChip}
+          aria-pressed={!requested}
+          onClick={() => setParams({}, { replace: true })}
+        >
+          Everyone
+        </button>
+        <button
+          type="button"
+          className={page.filterChip}
+          aria-pressed={requested}
+          onClick={() => setParams({ show: 'requests' }, { replace: true })}
+        >
+          Asked to contribute{waiting > 0 ? ` (${waiting})` : ''}
+        </button>
+      </div>
       <label className={page.field}>
         <span className="visually-hidden">Search people</span>
         <input
@@ -97,7 +120,11 @@ function Users() {
         />
       </label>
       <p className={page.hint}>
-        {short ? 'Type 3 letters or more.' : 'Newest first, 20 at a time. Emails are shortened to protect people.'}
+        {short
+          ? 'Type 3 letters or more.'
+          : requested
+            ? 'Oldest first. Open one to read their request and answer it.'
+            : 'Newest first, 20 at a time. Emails are shortened to protect people.'}
       </p>
       <Loaded snap={users} what="people" rows={4}>
         {({ items }) =>
@@ -120,16 +147,16 @@ function Users() {
                       </span>
                     </span>
                     <span
-                      className={`${styles.pill} ${u.role === 'user' ? styles.grey : u.role === 'contributor' ? '' : styles.flag}`}
+                      className={`${styles.pill} ${u.requested ? styles.due : u.role === 'user' ? styles.grey : u.role === 'contributor' ? '' : styles.flag}`}
                     >
-                      {ROLE_LABELS[u.role]}
+                      {u.requested ? 'Asked' : ROLE_LABELS[u.role]}
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className={page.hint}>Nobody by that name.</p>
+            <p className={page.hint}>{requested ? 'Nobody is waiting for an answer.' : 'Nobody by that name.'}</p>
           )
         }
       </Loaded>
