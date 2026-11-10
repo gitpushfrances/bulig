@@ -327,3 +327,75 @@
   padding-left: 22px;
   line-height: 1.45;
 }
+
+/* ---------- Steps: one idea per screen, like sign-up ---------- */
+
+.wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.wizardStep {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: stepIn 200ms var(--ease-out);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-primary-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.head h1:focus {
+  outline: none;
+}
+
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wizardStep {
+    animation: none;
+  }
+}
+
+/* Back / Next stay in thumb reach above the tab bar, so a long step never hides Next. The right
+   end is kept clear for the red hazard button, which must never be covered. */
+.bar {
+  position: sticky;
+  bottom: calc(var(--bottombar-h, 64px) + 8px);
+  z-index: 2;
+  margin: 0 -8px;
+  padding: 8px 76px 8px 8px;
+  border-radius: var(--radius-card);
+  background: var(--color-bg);
+  box-shadow: 0 -8px 16px -12px rgb(0 0 0 / 0.25);
+}
+
+@media (min-width: 48rem) {
+  .bar {
+    padding-right: 8px;
+  }
+}
