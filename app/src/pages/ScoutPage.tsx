@@ -13,6 +13,7 @@ import {
   SealCheck,
   Storefront,
   UsersThree,
+  X,
   XCircle,
   type Icon,
 } from '@phosphor-icons/react'
@@ -22,7 +23,6 @@ import { useAuth } from '../auth/context.ts'
 import { homeAreaText } from '../auth/homeArea.ts'
 import { SCOUT } from '../auth/types.ts'
 import { TextField } from '../components/Fields.tsx'
-import BackButton from '../components/BackButton.tsx'
 import FormAlert from '../components/FormAlert.tsx'
 import type { MascotVariant } from '../components/Mascot.tsx'
 import RopiSays from '../components/RopiSays.tsx'
@@ -56,38 +56,38 @@ const DOES: { icon: Icon; title: string; text: string; soon?: boolean }[] = [
   {
     icon: Storefront,
     title: 'Add new places',
-    text: 'A new vulcanizing shop, a carinderia by the highway, a gas station that just opened.',
+    text: 'Shops, carinderias, gas stations.',
   },
   {
     icon: PencilSimpleLine,
     title: 'Fix what changed',
-    text: 'New prices, hours, services or phone numbers on places already in Bulig.',
+    text: 'Prices, hours, phone numbers.',
     soon: true,
   },
   {
     icon: Camera,
     title: 'Show it with a photo',
-    text: 'Taken on the spot, so a moderator can see it is real.',
+    text: 'Taken on the spot, to be checked.',
   },
 ]
 
 const STEPS: { icon: Icon; title: string; text: string }[] = [
-  { icon: Eye, title: 'You see it', text: 'On your usual road, in your own town.' },
-  { icon: PaperPlaneTilt, title: 'You send it', text: 'In Bulig, with a photo. Takes about a minute.' },
+  { icon: Eye, title: 'You see it', text: 'On your usual road.' },
+  { icon: PaperPlaneTilt, title: 'You send it', text: 'With a photo, in a minute.' },
   {
     icon: SealCheck,
     title: 'A moderator checks it',
-    text: 'Detail by detail. Only what they approve goes in; nothing is public before that.',
+    text: 'Detail by detail. Nothing is public before that.',
   },
   { icon: UsersThree, title: 'Every traveller sees it', text: 'With the date it was checked.' },
 ]
 
 const RULES = [
-  'Only send what you saw yourself, recently.',
-  'Take photos on the spot. Keep faces and plate numbers out.',
+  'Only what you saw yourself, recently.',
+  'Photos on the spot. No faces or plates.',
   'Pull over before you use your phone.',
-  'Not for your own business. Owners get their own tools later.',
-  'Made-up or copied details lose the Scout badge.',
+  'Not for your own business.',
+  'Made-up details lose the Scout badge.',
 ]
 
 const APPLY_ERRORS: Record<Exclude<ApplyResult, { ok: true }>['reason'], string> = {
@@ -172,26 +172,25 @@ function Rules() {
       <div className={styles.not}>
         <p className={styles.notTitle}>What a Scout is not</p>
         <p>
-          Not a rescuer: Scouts don&apos;t go out to help people, take calls or get anyone&apos;s location. Not a job:
-          it&apos;s free and unpaid. In an emergency, everyone calls 911.
+          Not a rescuer and not a job. Scouts don&apos;t take calls or get anyone&apos;s location. In an emergency,
+          everyone calls 911.
         </p>
       </div>
     </>
   )
 }
 
-// Ropi on the three reading steps only; the two form steps stay plain, like sign-up's form.
+// Ropi on the first two steps only, so every step fits one phone screen without scrolling.
 const SAYS: { ropi: MascotVariant; says: ReactNode }[] = [
   {
     ropi: 'ready',
     says: (
       <>
-        <strong>Know your town&apos;s roads?</strong> Scouts keep Bulig right for everyone who passes through.
+        <strong>Know your town&apos;s roads?</strong> Help keep Bulig right.
       </>
     ),
   },
-  { ropi: 'thinking', says: 'From your road to every traveller, with a check in between.' },
-  { ropi: 'friendly', says: 'A few rules keep it fair and safe.' },
+  { ropi: 'thinking', says: 'From your road to every traveller, checked first.' },
 ]
 
 // Become a Bulig Scout, one idea per screen like sign-up (John, 2026-11-10): what Scouts do, how
@@ -269,9 +268,11 @@ function Wizard({
 
   return (
     <form className={styles.wizard} onSubmit={submit} noValidate>
-      {/* Leaves to Profile. From step 2 on, Back at the bottom steps back instead, so there's one Back. */}
-      {at === 0 && <BackButton fallback="/profile" />}
-      <div className={auth.stepTop}>
+      {/* Close leaves to Profile; Back at the bottom steps back, so there's only one Back. */}
+      <div className={styles.top}>
+        <Link to="/profile" className={styles.close} aria-label="Close">
+          <X size={22} weight="bold" aria-hidden="true" />
+        </Link>
         <Dots at={at} />
         <p className={styles.count}>
           Step {at + 1} of {STEP_TITLES.length}
@@ -281,16 +282,13 @@ function Wizard({
       <div key={at} className={styles.wizardStep}>
         {at === 0 && declined && <Status request={declined} />}
         {says && (
-          <RopiSays variant={says.ropi} height={76} side>
+          <RopiSays variant={says.ropi} height={60} side>
             {says.says}
           </RopiSays>
         )}
-        <div className={styles.head}>
-          <p className={styles.eyebrow}>Become a {SCOUT}</p>
-          <h1 ref={heading} tabIndex={-1} className={auth.stepTitle}>
-            {STEP_TITLES[at]}
-          </h1>
-        </div>
+        <h1 ref={heading} tabIndex={-1} className={`${auth.stepTitle} ${styles.title}`}>
+          {STEP_TITLES[at]}
+        </h1>
 
         {at === 0 && <Does />}
         {at === 1 && <How />}
@@ -298,14 +296,13 @@ function Wizard({
 
         {at === ABOUT_STEP && (
           <>
-            <p className={styles.doText}>So a moderator knows which roads you know. Nothing here is public.</p>
             <TextField
               label="Barangay and town you know well"
               value={area}
               maxLength={AREA_MAX}
               autoComplete="off"
               placeholder="e.g. Surok, Guiuan"
-              hint="Your barangay and town are enough. No house address."
+              hint="No house address. Only staff see this."
               error={errors.area}
               onChange={(v) => {
                 setArea(v)
@@ -313,8 +310,7 @@ function Wizard({
               }}
             />
             <fieldset className={styles.travel} aria-describedby={errors.travel ? 'scout-travel-error' : undefined}>
-              <legend className={page.fieldLabel}>How do you get around?</legend>
-              <span className={page.hint}>Pick all that fit.</span>
+              <legend className={page.fieldLabel}>How do you get around? Pick all that fit.</legend>
               <div className={styles.travelChips}>
                 {TRAVEL.map((t) => (
                   <button
@@ -342,27 +338,20 @@ function Wizard({
 
         {at === SEND_STEP && (
           <>
-            <dl className={styles.sentList}>
-              <div>
-                <dt>Area you know</dt>
-                <dd>{area.trim()}</dd>
-              </div>
-              <div>
-                <dt>Gets around by</dt>
-                <dd>{travel.map((t) => TRAVEL_LABELS[t]).join(', ')}</dd>
-              </div>
-            </dl>
+            <p className={styles.summary}>
+              <strong>{area.trim()}</strong>
+              <span>{travel.map((t) => TRAVEL_LABELS[t]).join(', ')}</span>
+            </p>
             <label className={page.field}>
-              <span className={page.fieldLabel}>Anything else for the moderator? (optional)</span>
+              <span className={page.fieldLabel}>Note for the moderator (optional)</span>
               <textarea
                 className={`${page.input} ${styles.why}`}
                 value={why}
                 maxLength={WHY_MAX}
-                rows={3}
+                rows={2}
                 placeholder="Tricycle driver, Guiuan to Mercedes every day."
                 onChange={(e) => setWhy(e.target.value)}
               />
-              <span className={page.hint}>Helps the moderator decide. Only staff see it.</span>
             </label>
             <div className={page.field}>
               <label className={styles.check}>
@@ -401,7 +390,7 @@ function Wizard({
         )}
       </div>
 
-      <div className={`${auth.nav} ${styles.bar}`}>
+      <div className={`${auth.nav} ${styles.nav}`}>
         {at > 0 && (
           <button type="button" className={page.secondary} disabled={busy} onClick={() => go(at - 1)}>
             <ArrowLeft size={18} aria-hidden="true" />
@@ -423,7 +412,6 @@ function Wizard({
           </button>
         )}
       </div>
-      {at === RULES_STEP && <p className={page.hint}>Free. A moderator reads every request.</p>}
     </form>
   )
 }

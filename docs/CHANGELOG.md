@@ -45,6 +45,8 @@ Phase 3: First pilot (target `v0.3`). Bulig covers the whole Philippines; the pi
 
 ### Changed
 
+- **Become a Bulig Scout steps fit one screen, and Back / Next no longer float** (2026-11-11, John: "avoid scrolling; the floating Back and Next is unclean"). The pinned bar is gone: the steps fill the screen above the tab bar and the buttons sit in the page at its bottom, in the same place on every step. Shorter copy (one line per card, rule and timeline item), compact cards, a Close X instead of the Back link on top, no Ropi on the rules step, and a one-card summary on the last step. Every step fits 360×680 without scrolling (checked with Playwright at 660, 680, 720 and 780px tall). `app/src/pages/ScoutPage.tsx`, `Scout.module.css`, UI-UX.md.
+
 - **Become a Bulig Scout is now five short steps, like sign-up** (2026-11-10, John: "cut each into smaller pages so users don't skip the details"). What Scouts do → How it works → Scout rules → About you → Send your request, with dots, "Step n of 5", a different Ropi on each reading step, and Back / Next pinned above the tab bar (the red hazard button's corner stays clear). No skip, because the rules tick agrees to step 3. The long one-page explainer and the one-page form are gone; the request, API and Sent screen are unchanged. `app/src/pages/ScoutPage.tsx`, UI-UX.md.
 
 - **Map chips: All first, then Nearby** (2026-11-07, John). Nearby is still 5 km (the label is just "Nearby"), the dashed 5 km ring is gone, and tapping All no longer zooms out to the whole country: the map stays where it is and the hidden places appear.
