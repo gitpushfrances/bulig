@@ -246,6 +246,7 @@ Only places staff have let through: never one that is closed, a duplicate, not r
 | `addedAt` | no | Date first listed; the app shows **NEW** for 60 days. |
 | `prices` | no | Phase 4. Newest approved price per item: `[{ "item": "ron91", "amount": 82.0, "currency": "PHP", "unit": "L", "seenAt": "2026-10-30" }]`. `item` keys, their words and `unit` come from `labels.json` `priceItems`, and `currency` from its `currency`. The app shows "seen <date> by a Bulig user", greys it after 7 days and hides it after 30. Never "current price". |
 | `photos` | no | Phase 4. Public photo URLs on Cloudinary (WebP, max 1280 px), first is the cover: `["https://res.cloudinary.com/…/bulig/places/….webp"]`. Added by staff in the panel, or from an approved update's photos. Left out when there are none. |
+| `unchecked` | no | `true` for a place imported from OpenStreetMap that no person has checked yet (its `source` starts with "OpenStreetMap"). The app shows "From OpenStreetMap, not checked yet" instead of "Last checked", because `verifiedAt` is then only the map's edit date. Gone once staff mark it checked (§7.8, which changes `source`). Hospitals, clinics and police from OpenStreetMap stay in review until a person publishes them. |
 | `sample` | no | Test data only. |
 
 ### 3.4 `GET /labels?country=PH`

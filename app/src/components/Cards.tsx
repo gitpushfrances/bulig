@@ -1,4 +1,4 @@
-import { CaretRight, CheckCircle, Clock, MapPin, NavigationArrow, Phone } from '@phosphor-icons/react'
+import { CaretRight, CheckCircle, Clock, MapPin, NavigationArrow, Phone, Question } from '@phosphor-icons/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { formatDate, telHref } from '../data/format.ts'
@@ -12,7 +12,15 @@ import styles from '../pages/Page.module.css'
 import { CATEGORY_ICONS, KIND_ICONS } from './icons.ts'
 import SaveButton from './SaveButton.tsx'
 
-function Checked({ date }: { date: string }) {
+function Checked({ date, unchecked }: { date: string; unchecked?: true }) {
+  // An OpenStreetMap place nobody has checked: say so, never "Last checked" with the map's edit date.
+  if (unchecked)
+    return (
+      <p className={`${styles.checked} ${styles.unchecked}`}>
+        <Question size={15} aria-hidden="true" />
+        From OpenStreetMap, not checked yet
+      </p>
+    )
   return (
     <p className={styles.checked}>
       <CheckCircle size={15} aria-hidden="true" />
@@ -218,7 +226,7 @@ export function ServiceCard({
           )}
         </div>
       )}
-      <Checked date={service.verifiedAt} />
+      <Checked date={service.verifiedAt} unchecked={service.unchecked} />
     </li>
   )
 }

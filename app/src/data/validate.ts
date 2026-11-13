@@ -61,6 +61,7 @@ function checkItem(kind: FileKind, item: Rec): string[] {
     need(item.features === undefined || isFeatures(item.features), 'features')
     need(item.weeklyHours === undefined || isWeeklyHours(item.weeklyHours), 'weeklyHours')
     need(item.open24h === undefined || typeof item.open24h === 'boolean', 'open24h')
+    need(item.unchecked === undefined || item.unchecked === true, 'unchecked')
   }
   return problems
 }

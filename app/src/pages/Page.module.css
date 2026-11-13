@@ -1403,3 +1403,23 @@
     color: var(--color-primary-text);
   }
 }
+
+/* An OpenStreetMap place nobody has checked yet: amber, not the green "Last checked". */
+.unchecked {
+  color: var(--color-warning);
+}
+
+/* Report wrong info (PlacePage): one reason per 48px row. */
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.radio input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--color-primary);
+}
