@@ -192,6 +192,8 @@ Road services and local businesses. The app ranks them on the phone (distance, c
 
 **Query:** `country` (required); `area`, `category` (optional). `category`: `tire_repair | mechanic | fuel | hospital | food | lodging | store | other`.
 
+Only places staff have let through: never one that is closed, a duplicate, not road help, or still in review (§7.8).
+
 **200**
 
 ```json
@@ -613,7 +615,8 @@ Added 2026-11-05 (John). The app's moderator screens use these; the panel keeps 
 **Rules that hold everywhere** (same as the panel):
 
 - Nobody reviews their own submission, or one already reviewed. Both are `422` with the messages below.
-- Moderators never delete places or emergency contacts, here or in the panel. Admins can, in the panel only. Instead a moderator uses **Mark closed** or **Mark duplicate** on a place in the panel: it leaves `GET /services`, its row and history stay, and an admin can reopen or delete it. A place can have up to 6 public photos.
+- Moderators never delete places or emergency contacts, here or in the panel. Admins can, in the panel only. Instead a moderator uses **Mark closed**, **Mark duplicate** or **Hide: not road help** on a place in the panel (the place page or the Places map): it leaves `GET /services`, its row and history stay, and an admin can reopen or delete it. A place can have up to 6 public photos.
+- A place can be **In review** (John, 2026-11-13): staff haven't checked it yet, like an OpenStreetMap import. It stays out of `GET /services` until a moderator presses **Publish** in the panel, and **Send to review** takes a live place back out. Nothing is deleted, and each change shows in the place's history.
 - A change reaches phones on the next public read, which may be cached for up to 1 hour.
 
 **`422` messages** (the app shows these words as they are):
