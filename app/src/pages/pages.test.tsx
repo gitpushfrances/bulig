@@ -2,8 +2,13 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../App.tsx'
+import { UNPLACED_TEXT } from '../data/useNearby.ts'
 
-// jsdom has no GPS, so these run the "location unavailable" path: all areas, with a manual picker.
+// jsdom has no GPS, so these run the "location unavailable" path, with a manual picker. Places load
+// only around a town (API.md §3.3), so tests that list places pick one first.
+const GUIUAN = 'ph-eastern-samar-guiuan'
+const inGuiuan = () => localStorage.setItem('bulig.area', GUIUAN)
+
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -14,6 +19,7 @@ function renderAt(path: string) {
 
 describe('Home', () => {
   it('keeps the national number one tap away and links to every section', async () => {
+    inGuiuan()
     renderAt('/')
 
     const hotline = await screen.findByRole('region', { name: 'National Emergency Hotline' })
@@ -22,6 +28,15 @@ describe('Home', () => {
     expect(await screen.findByRole('link', { name: /^Flat tire/ })).toHaveAttribute('href', '/nearby/flat-tire')
     expect(screen.getByRole('link', { name: 'All numbers' })).toHaveAttribute('href', '/emergency')
     expect(screen.getByRole('list', { name: 'Nearest places' })).toBeInTheDocument()
+  })
+})
+
+describe('Home without a town', () => {
+  it('asks for location or a town instead of loading the whole country', async () => {
+    renderAt('/')
+
+    expect(await screen.findByText(UNPLACED_TEXT)).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Nearest places' })).not.toBeInTheDocument()
   })
 })
 
@@ -70,34 +85,37 @@ describe('Emergency page', () => {
 
 describe('What we offer', () => {
   it('shows a card for every kind of service, with its count', async () => {
+    inGuiuan()
     renderAt('/services')
 
     const offers = await screen.findByRole('navigation', { name: 'Services' })
     expect(within(offers).getAllByRole('link')).toHaveLength(8)
-    expect(within(offers).getByRole('link', { name: /^Hotel and inn/ })).toHaveTextContent('9 places')
+    expect(within(offers).getByRole('link', { name: /^Vulcanizing/ })).toHaveTextContent('3 places')
   })
 
   it('opens Nearby results from a card: the nearest big, the rest as rows', async () => {
+    inGuiuan()
     renderAt('/services')
 
     fireEvent.click(await screen.findByRole('link', { name: /^Vulcanizing/ }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Flat tire' })).toBeInTheDocument()
-    const nearest = screen.getAllByRole('article')
+    const nearest = await screen.findAllByRole('article')
     expect(nearest).toHaveLength(1)
     expect(within(nearest[0]).getByRole('link', { name: /^Call / })).toHaveAttribute('href', expect.stringMatching(/^tel:/))
     // Route opens the in-app route on the Map, not another app.
     expect(within(nearest[0]).getByRole('link', { name: /^Route to / })).toHaveAttribute('href', expect.stringMatching(/^\/map\?to=/))
     const more = screen.getByRole('list', { name: 'More vulcanizing shops' })
-    expect(within(more).getAllByRole('listitem')).toHaveLength(9)
+    expect(within(more).getAllByRole('listitem')).toHaveLength(2)
     expect(screen.getByRole('link', { name: 'Show on map' })).toHaveAttribute('href', '/map?cat=tire_repair')
     expect(screen.getAllByText('SAMPLE').length).toBeGreaterThan(0)
   })
 
   it('opens the same page from /nearby/<need>, and points hospital seekers at 911', async () => {
+    inGuiuan()
     renderAt('/nearby/hospital')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Hospital' })).toBeInTheDocument()
-    expect(within(screen.getByRole('article')).getByRole('link', { name: /^Call / })).toHaveTextContent('Call hospital')
+    expect(within(await screen.findByRole('article')).getByRole('link', { name: /^Call / })).toHaveTextContent('Call hospital')
     expect(screen.getByRole('link', { name: /Life-threatening\?/ })).toHaveAttribute('href', '/emergency')
   })
 
@@ -119,13 +137,14 @@ describe('What we offer', () => {
 
 describe('Nearby filters and Place details', () => {
   it('filters with chips, and clears them when nothing matches', async () => {
+    inGuiuan()
     renderAt('/nearby/flat-tire')
 
-    expect(await screen.findByText(/^10 vulcanizing shops in all areas/)).toBeInTheDocument()
+    expect(await screen.findByText(/^3 vulcanizing shops near Guiuan/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Tubeless' }))
     expect(screen.getByRole('button', { name: 'Tubeless' })).toHaveAttribute('aria-pressed', 'true')
-    const lead = screen.getByText(/vulcanizing shops? in all areas/).textContent ?? ''
-    expect(Number(lead.split(' ')[0])).toBeLessThan(10)
+    const lead = screen.getByText(/vulcanizing shops? near Guiuan/).textContent ?? ''
+    expect(Number(lead.split(' ')[0])).toBeLessThan(3)
     // The nearest card shows what it offers.
     expect(within(screen.getByRole('article')).getByRole('list', { name: 'What it offers' })).toHaveTextContent('Tubeless')
   })
@@ -156,6 +175,7 @@ describe('Nearby filters and Place details', () => {
   })
 
   it('opens a place from a Nearby row', async () => {
+    inGuiuan()
     renderAt('/nearby/flat-tire')
 
     const more = await screen.findByRole('list', { name: 'More vulcanizing shops' })

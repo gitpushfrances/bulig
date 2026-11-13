@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import BackButton from '../../components/BackButton.tsx'
 import Dialog from '../../components/Dialog.tsx'
 import { BusyContent } from '../../components/Spinner.tsx'
-import { useAppData } from '../../data/context.ts'
+import { useAppData, usePlaceIds } from '../../data/context.ts'
 import { telHref } from '../../data/format.ts'
 import { categoryLabel } from '../../data/labels.ts'
 import { appStaff } from '../../staff/api.ts'
@@ -40,6 +40,7 @@ export default function ReviewOnePage() {
 function Review({ sub }: { sub: SubmissionDetail }) {
   const navigate = useNavigate()
   const { data } = useAppData()
+  usePlaceIds(sub.recordId ? [sub.recordId] : [])
   const [ticks, setTicks] = useState<Set<string>>(() => new Set())
   const [photoTicks, setPhotoTicks] = useState<Set<string>>(() => new Set())
   const [rejecting, setRejecting] = useState(false)

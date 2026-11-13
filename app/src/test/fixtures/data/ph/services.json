@@ -724,6 +724,132 @@
       }
     },
     {
+      "id": "ph-eastern-samar-guiuan-sample-vulcanizing-port",
+      "country": "PH",
+      "area": "ph-eastern-samar-guiuan",
+      "category": "tire_repair",
+      "name": "Sample Port Vulcanizing",
+      "phone": "+63 900 000 0102",
+      "landmark": "Sample landmark: by the port",
+      "lat": 11.0291,
+      "lng": 125.7302,
+      "hours": "7am to 6pm",
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real shop",
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "air_pump": true,
+        "tube_type": true
+      }
+    },
+    {
+      "id": "ph-eastern-samar-guiuan-sample-vulcanizing-highway",
+      "country": "PH",
+      "area": "ph-eastern-samar-guiuan",
+      "category": "tire_repair",
+      "name": "Sample Highway Vulcanizing",
+      "phone": "+63 900 000 0103",
+      "landmark": "Sample landmark: on the highway",
+      "lat": 11.0512,
+      "lng": 125.7121,
+      "hours": "7am to 6pm",
+      "verifiedAt": "2026-10-20",
+      "source": "Sample data, not a real shop",
+      "sample": true,
+      "weeklyHours": {
+        "sun": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "mon": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "tue": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "07:00",
+            "18:00"
+          ]
+        ]
+      },
+      "features": {
+        "tube_type": true,
+        "motorcycle": true
+      }
+    },
+    {
       "id": "ph-eastern-samar-mercedes-sample-vulcanizing",
       "country": "PH",
       "area": "ph-eastern-samar-mercedes",

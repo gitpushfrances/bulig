@@ -7,7 +7,7 @@ import { CATEGORY_ICONS } from '../components/icons.ts'
 import { StatusLine } from '../components/PlaceInfo.tsx'
 import SaveButton from '../components/SaveButton.tsx'
 import { PlaceSkeleton } from '../components/Skeleton.tsx'
-import { useAppData } from '../data/context.ts'
+import { useAppData, usePlaceIds } from '../data/context.ts'
 import { formatDate, telHref } from '../data/format.ts'
 import { categoryLabel } from '../data/labels.ts'
 import { routeHref } from '../data/links.ts'
@@ -27,8 +27,10 @@ const WEEK: Day[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 // what it offers, when it was checked, and Call, Route, Save and Share. A link to it can be shared.
 export default function PlacePage() {
   const { id } = useParams()
-  const { data } = useAppData()
+  const { data, missingPlaces, loadingPlaces, fromBackup } = useAppData()
   const { ranked, labels } = useNearby()
+  // A shared link or a saved place may be anywhere in the country: load it by ID.
+  usePlaceIds(id ? [id] : [])
   const [now] = useState(() => new Date())
   const [shared, setShared] = useState<'copied' | null>(null)
 
@@ -40,6 +42,19 @@ export default function PlacePage() {
       </section>
     )
   const place = data.services.find((s) => s.id === id)
+  if (!place && id && !missingPlaces.has(id) && (loadingPlaces || fromBackup))
+    return (
+      <section className={`${styles.page} ${styles.readable}`} aria-label="Place details">
+        <BackButton fallback="/services" />
+        {loadingPlaces ? (
+          <PlaceSkeleton />
+        ) : (
+          <p className={styles.notice} role="status">
+            This place will show once Bulig reaches the server.
+          </p>
+        )}
+      </section>
+    )
   if (!place) return <NotFoundPage />
 
   const Icon = CATEGORY_ICONS[place.category]
