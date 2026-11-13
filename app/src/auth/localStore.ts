@@ -36,8 +36,8 @@ export const localStore: AccountStore = {
     return this.restore()
   },
 
-  async signIn(email, password) {
-    const account = checkLogin(email, password) ?? (await checkLocalLogin(email, password))
+  async signIn(login, password) {
+    const account = checkLogin(login, password) ?? (await checkLocalLogin(login, password))
     if (!account) return { ok: false, reason: 'wrong' }
     writeSaved(SESSION_KEY, account.email)
     return { ok: true, account }
@@ -59,8 +59,14 @@ export const localStore: AccountStore = {
   },
 
   async updateProfile(account, details) {
-    if (isLocalAccount(account.email)) renameLocalAccount(account.email, details.name)
-    return { ...account, ...details }
+    if (isLocalAccount(account.email)) {
+      const bad = renameLocalAccount(account.email, details.name, details.username)
+      if (bad) return bad
+    } else if (details.username !== undefined) {
+      return 'invalid' // test logins keep their username
+    }
+    const { username, ...rest } = details
+    return { ...account, ...rest, ...(username !== undefined ? { username: username.trim().toLowerCase() } : {}) }
   },
 
   // Phone-only accounts keep the photo with their other details (AuthProvider, bulig.profile.*).

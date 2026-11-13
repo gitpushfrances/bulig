@@ -2,6 +2,7 @@ import { ApiError, OfflineError, apiRequest } from '../data/api.ts'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import type { AccountStore, ServerProfile } from './store.ts'
 import { ROLES, type Account, type Role } from './types.ts'
+import { normalizeUsername } from './username.ts'
 
 // Accounts on the backend (docs/API.md §4 to §6): Sanctum bearer tokens, no cookies.
 // The token and a copy of the account stay on the phone, so the app opens signed in with no signal.
@@ -15,6 +16,7 @@ const DEVICE = 'Bulig PWA'
 // API.md §8.1. Unknown roles count as "user", so a new server role never unlocks anything here.
 interface ApiUser {
   id: string
+  username?: string | null
   email: string
   name: string
   role: string
@@ -38,10 +40,16 @@ function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([out], { type })
 }
 
+// API.md §4.1: errors.username is ["taken"] or ["reserved"]; anything else is a plain bad value.
+function usernameReason(why: string | undefined): 'usernameTaken' | 'usernameReserved' | undefined {
+  return why === 'taken' ? 'usernameTaken' : why === 'reserved' ? 'usernameReserved' : undefined
+}
+
 export function toAccount(user: ApiUser): Account {
   const role: Role = (ROLES as readonly string[]).includes(user.role) ? (user.role as Role) : 'user'
   return {
     email: user.email,
+    username: user.username ?? undefined,
     name: user.name,
     role,
     areas: user.areas ?? [],
@@ -130,10 +138,10 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
       }
     },
 
-    async signIn(email, password) {
+    async signIn(login, password) {
       try {
         const account = await startSession(
-          call('/auth/login', { method: 'POST', body: { email: email.trim(), password, device: DEVICE }, token: null }),
+          call('/auth/login', { method: 'POST', body: { login: login.trim(), password, device: DEVICE }, token: null }),
         )
         await sendOldHearts(account)
         return { ok: true, account }
@@ -169,20 +177,24 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
       }
     },
 
-    async register({ name, email, password }) {
+    async register({ name, username, email, password }) {
       try {
         const account = await startSession(
           call('/auth/register', {
             method: 'POST',
-            body: { name: name.trim(), email: email.trim(), password, acceptedTerms: true, device: DEVICE },
+            body: { name: name.trim(), username: normalizeUsername(username), email: email.trim(), password, acceptedTerms: true, device: DEVICE },
             token: null,
           }),
         )
         return { ok: true, account }
       } catch (err) {
         if (err instanceof OfflineError) return { ok: false, reason: 'offline' }
-        if (err instanceof ApiError && err.status === 422)
-          return { ok: false, reason: err.fieldErrors().email ? 'taken' : 'invalid' }
+        if (err instanceof ApiError && err.status === 422) {
+          const errors = err.fieldErrors()
+          if (errors.email) return { ok: false, reason: 'taken' }
+          const why = usernameReason(errors.username?.[0])
+          return { ok: false, reason: why ?? 'invalid' }
+        }
         if (err instanceof ApiError && err.status === 429) return { ok: false, reason: 'offline' }
         throw err
       }
@@ -195,19 +207,24 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
       if (token) await call('/auth/logout', { method: 'POST', token, timeoutMs: 10_000 }).catch(() => undefined)
     },
 
-    async updateProfile(_account, { name, phone, homeArea }: ServerProfile) {
+    async updateProfile(_account, { name, username, phone, homeArea }: ServerProfile) {
       try {
         const account = toAccount(
           await call<ApiUser>('/me', {
             method: 'PATCH',
-            body: { name: name.trim(), phone: phone ? toE164(phone) : null, homeArea },
+            body: {
+              name: name.trim(),
+              ...(username ? { username: normalizeUsername(username) } : {}),
+              phone: phone ? toE164(phone) : null,
+              homeArea,
+            },
           }),
         )
         keep(readSaved(TOKEN_KEY), account)
         return account
       } catch (err) {
         if (err instanceof OfflineError) return 'offline'
-        if (err instanceof ApiError && err.status === 422) return 'invalid'
+        if (err instanceof ApiError && err.status === 422) return usernameReason(err.fieldErrors().username?.[0]) ?? 'invalid'
         throw err
       }
     },

@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { canRegister } from '../auth/canRegister.ts'
 import { safeNext } from '../auth/next.ts'
+import { USERNAME_HINT, USERNAME_INPUT, usernameError } from '../auth/username.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
 import GoogleSignIn from '../components/GoogleSignIn.tsx'
@@ -87,7 +88,7 @@ function Dots({ at }: { at: number }) {
 
 const SIGNUP_ERRORS = {
   offline: "Couldn't reach Bulig. Check your connection and try again.",
-  invalid: "Bulig couldn't accept those details. Check your name, email and password.",
+  invalid: "Bulig couldn't accept those details. Check your name, username, email and password.",
   unavailable: 'Creating an account needs a secure (https) connection. Open Bulig from its usual address.',
 } as const
 
@@ -95,17 +96,19 @@ function SignupForm({ next }: { next: string }) {
   const { register, accountsOnline } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [agreed, setAgreed] = useState(false)
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirm?: string; agreed?: string }>({})
+  const [errors, setErrors] = useState<{ name?: string; username?: string; email?: string; password?: string; confirm?: string; agreed?: string }>({})
   const [formError, setFormError] = useState<'taken' | 'unavailable' | 'offline' | 'invalid' | null>(null)
   const [busy, setBusy] = useState(false)
   const form = useRef<HTMLFormElement>(null)
 
   const check = {
     name: (v: string) => (v.trim() ? '' : 'Enter your name.'),
+    username: usernameError,
     email: (v: string) => (looksLikeEmail(v) ? '' : 'Enter an email like name@example.com.'),
     password: (v: string) => (v.length >= MIN_PASSWORD ? '' : `Use at least ${MIN_PASSWORD} characters.`),
     confirm: (v: string) => (v === password ? '' : 'The passwords don\u2019t match.'),
@@ -122,6 +125,7 @@ function SignupForm({ next }: { next: string }) {
     e.preventDefault()
     const found = {
       name: check.name(name),
+      username: check.username(username),
       email: check.email(email),
       password: check.password(password),
       confirm: confirm ? check.confirm(confirm) : 'Type your password again.',
@@ -130,9 +134,17 @@ function SignupForm({ next }: { next: string }) {
     setErrors(found)
     if (Object.values(found).some(Boolean)) return shakeInvalid(form.current, `.${page.field}`)
     setBusy(true)
-    const result = await register({ name, email, password })
+    const result = await register({ name, username, email, password })
     setBusy(false)
     if (!result.ok) {
+      // A username problem belongs to its field, like a bad value typed there.
+      if (result.reason === 'usernameTaken' || result.reason === 'usernameReserved') {
+        setErrors((e) => ({
+          ...e,
+          username: result.reason === 'usernameTaken' ? 'That username is taken. Try another.' : "That username isn't allowed. Try another.",
+        }))
+        return shakeInvalid(form.current, `.${page.field}`)
+      }
       setFormError(result.reason)
       // A taken email is the email field's problem: it turns red and shakes. Other reasons aren't a field's.
       if (result.reason === 'taken') shakeInvalid(form.current, `.${page.field}`)
@@ -160,6 +172,23 @@ function SignupForm({ next }: { next: string }) {
           clear('name')
         }}
         onBlur={() => blur('name', name)}
+      />
+      <TextField
+        label="Username"
+        placeholder="e.g. juan.dc"
+        type="text"
+        {...USERNAME_INPUT}
+        autoComplete="username"
+        enterKeyHint="next"
+        maxLength={20}
+        value={username}
+        hint={USERNAME_HINT}
+        error={errors.username}
+        onChange={(v) => {
+          setUsername(v)
+          clear('username')
+        }}
+        onBlur={() => blur('username', username)}
       />
       <TextField
         label="Email"

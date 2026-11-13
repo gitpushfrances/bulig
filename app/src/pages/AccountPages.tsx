@@ -3,6 +3,7 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { toAvatar } from '../auth/photo.ts'
+import { USERNAME_HINT, USERNAME_INPUT, usernameError } from '../auth/username.ts'
 import BackButton from '../components/BackButton.tsx'
 import Dialog from '../components/Dialog.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
@@ -36,11 +37,13 @@ type PhotoStep =
   | { kind: 'remove' } // waiting for "Remove photo"
 
 export function EditProfilePage() {
-  const { account, updateProfile, accountsOnline } = useAuth()
+  const { account, updateProfile, accountsOnline, canManage } = useAuth()
   const { data } = useAppData()
   const navigate = useNavigate()
   const areas = data.status === 'ready' ? data.areas : []
   const [name, setName] = useState(account?.name ?? '')
+  const [username, setUsername] = useState(account?.username ?? '')
+  const [usernameErr, setUsernameErr] = useState('')
   const [phone, setPhone] = useState(account?.phone ?? '')
   // null until the person types: the saved value then shows even if the area list loads late.
   const [homeEdit, setHomeEdit] = useState<string | null>(null)
@@ -95,22 +98,27 @@ export function EditProfilePage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const n = name.trim() ? '' : 'Enter your name.'
+    // Optional for accounts made before usernames; once set it can change but not be emptied.
+    const u = !username.trim() && !account.username ? '' : usernameError(username)
     const p = checkPhone(phone)
     const h = checkHome(homeArea)
     setNameError(n)
+    setUsernameErr(u)
     setPhoneError(p)
     setHomeError(h)
     setSaveError('')
-    if (n || p || h) return
+    if (n || u || p || h) return
     setSaving(true)
-    const result = await updateProfile({ name, phone, homeArea: homeArea.trim() || null, photo })
+    const result = await updateProfile({ name, username: username.trim() || undefined, phone, homeArea: homeArea.trim() || null, photo })
     setSaving(false)
     if (result === 'ok' || typeof result === 'object') navigate('/profile')
+    else if (result === 'usernameTaken') setUsernameErr('That username is taken. Try another.')
+    else if (result === 'usernameReserved') setUsernameErr("That username isn't allowed. Try another.")
     else
       setSaveError(
         result === 'offline'
           ? "Couldn't reach Bulig. Check your connection and try again."
-          : 'Bulig couldn\u2019t save that. Check your name, phone number and home area.',
+          : 'Bulig couldn\u2019t save that. Check your name, username, phone number and home area.',
       )
   }
 
@@ -254,6 +262,28 @@ export function EditProfilePage() {
             setName(v)
             setNameError('')
           }}
+        />
+        <TextField
+          label={account.username ? 'Username' : 'Username (optional)'}
+          type="text"
+          {...USERNAME_INPUT}
+          autoComplete="username"
+          maxLength={20}
+          value={username}
+          readOnly={!canManage}
+          hint={
+            !canManage
+              ? 'Test logins keep their username.'
+              : account.username
+                ? USERNAME_HINT
+                : `${USERNAME_HINT} Until then, sign in with your email.`
+          }
+          error={usernameErr}
+          onChange={(v) => {
+            setUsername(v)
+            setUsernameErr('')
+          }}
+          onBlur={() => setUsernameErr(username.trim() || account.username ? usernameError(username) : '')}
         />
         <TextField
           label="Email"

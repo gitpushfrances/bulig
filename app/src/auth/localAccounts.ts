@@ -1,5 +1,6 @@
 import { readSaved, writeSaved } from '../data/storage.ts'
-import { accountFor as testAccountFor, normalizeEmail } from './testAccount.ts'
+import { accountFor as testAccountFor, isTestUsername, normalizeEmail } from './testAccount.ts'
+import { isReservedUsername, normalizeUsername, usernameError } from './username.ts'
 import type { NewAccount, RegisterResult } from './store.ts'
 import type { Account } from './types.ts'
 
@@ -11,6 +12,8 @@ const ACCOUNTS_KEY = 'bulig.accounts'
 
 interface StoredAccount {
   email: string
+  // Missing on accounts made on this phone before usernames.
+  username?: string
   name: string
   salt: string
   hash: string
@@ -38,7 +41,7 @@ function writeAll(all: StoredAccount[]) {
 
 function toAccount(stored: StoredAccount): Account {
   // Everyone who signs up is a user. Moderators and admins are appointed, never self-made.
-  return { email: stored.email, name: stored.name, role: 'user', areas: [], createdAt: stored.createdAt }
+  return { email: stored.email, username: stored.username, name: stored.name, role: 'user', areas: [], createdAt: stored.createdAt }
 }
 
 function toHex(bytes: ArrayBuffer | Uint8Array): string {
@@ -68,14 +71,30 @@ export function localAccountFor(email: string | null): Account | null {
   return stored ? toAccount(stored) : null
 }
 
-export async function register({ name, email, password }: NewAccount): Promise<RegisterResult> {
+// Taken by a test login or another account on this phone (not counting `except`, the owner).
+function usernameTaken(all: StoredAccount[], username: string, except?: string) {
+  return isTestUsername(username) || all.some((a) => a.username === username && a.email !== except)
+}
+
+// Same answers as the server (API.md §4.1), so pages handle one set of reasons.
+function checkUsername(all: StoredAccount[], username: string, except?: string) {
+  if (isReservedUsername(username)) return 'usernameReserved' as const
+  if (usernameError(username)) return 'invalid' as const
+  return usernameTaken(all, username, except) ? ('usernameTaken' as const) : null
+}
+
+export async function register({ name, username, email, password }: NewAccount): Promise<RegisterResult> {
   if (!canRegister()) return { ok: false, reason: 'unavailable' }
   const key = normalizeEmail(email)
+  const handle = normalizeUsername(username)
   const all = readAll()
   if (testAccountFor(key) || all.some((a) => a.email === key)) return { ok: false, reason: 'taken' }
+  const bad = checkUsername(all, handle)
+  if (bad) return { ok: false, reason: bad }
 
   const stored: StoredAccount = {
     email: key,
+    username: handle,
     name: name.trim(),
     createdAt: new Date().toISOString().slice(0, 10),
     ...(await withPassword(password)),
@@ -84,9 +103,11 @@ export async function register({ name, email, password }: NewAccount): Promise<R
   return { ok: true, account: toAccount(stored) }
 }
 
-export async function checkLocalLogin(email: string, password: string): Promise<Account | null> {
+// `login` is the email or the username: with "@" it is an email (API.md §4.2).
+export async function checkLocalLogin(login: string, password: string): Promise<Account | null> {
   if (!canRegister()) return null
-  const stored = readAll().find((a) => a.email === normalizeEmail(email))
+  const key = normalizeEmail(login)
+  const stored = readAll().find((a) => (key.includes('@') ? a.email === key : !!a.username && a.username === key))
   if (!stored) return null
   return (await hashPassword(password, stored.salt)) === stored.hash ? toAccount(stored) : null
 }
@@ -100,12 +121,20 @@ export async function changeLocalPassword(email: string, current: string, next: 
   return true
 }
 
-export function renameLocalAccount(email: string, name: string) {
+// Name and, when sent, username. Returns why the username can't be used, or null when saved.
+export function renameLocalAccount(email: string, name: string, username?: string) {
   const all = readAll()
   const stored = all.find((a) => a.email === email)
-  if (!stored) return
+  if (!stored) return null
+  if (username !== undefined) {
+    const handle = normalizeUsername(username)
+    const bad = checkUsername(all, handle, email)
+    if (bad) return bad
+    stored.username = handle
+  }
   stored.name = name
   writeAll(all)
+  return null
 }
 
 export function deleteLocalAccount(email: string) {

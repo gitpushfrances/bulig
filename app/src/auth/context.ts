@@ -10,11 +10,11 @@ import type {
 } from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
-export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | { photo: 'offline' | 'invalid' | 'busy' | 'unavailable' }
+export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | 'usernameTaken' | 'usernameReserved' | { photo: 'offline' | 'invalid' | 'busy' | 'unavailable' }
 
 export interface Auth {
   account: Account | null
-  signIn: (email: string, password: string) => Promise<SignInResult>
+  signIn: (login: string, password: string) => Promise<SignInResult>
   // "Continue with Google" (API.md §4.7): signs in, links the same email, or makes a new account.
   signInWithGoogle: (idToken: string) => Promise<GoogleSignInResult>
   register: (details: NewAccount) => Promise<RegisterResult>

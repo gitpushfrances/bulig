@@ -7,6 +7,8 @@ export type Role = (typeof ROLES)[number]
 
 export interface Account {
   email: string
+  // Lower-case, API.md §4.1. Missing on accounts made before usernames; they sign in with email.
+  username?: string
   name: string
   role: Role
   // Moderators only: the areas they look after (a city, municipality or barangay).
@@ -29,7 +31,7 @@ export interface Account {
 }
 
 // The fields Edit profile may change.
-export type ProfileDetails = Pick<Account, 'name' | 'phone' | 'homeArea' | 'photo'>
+export type ProfileDetails = Pick<Account, 'name' | 'username' | 'phone' | 'homeArea' | 'photo'>
 
 // What people see. The `contributor` role is called a Scout in the app (John, 2026-11-10): the
 // server and the code keep the key `contributor`, so renaming it is only this line and SCOUT below.
