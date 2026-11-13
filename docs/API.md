@@ -54,7 +54,7 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | --- | --- | --- | --- | --- | --- |
 | 1 | Areas of a country | `GET /areas?country=PH` | — | 4 | `data/ApiSource.ts` (production build), `data/JsonSource.ts` fallback |
 | 2 | Emergency contacts | `GET /emergency-contacts?country=PH[&area=]` | — | 4 | `data/ApiSource.ts`, `data/JsonSource.ts` fallback |
-| 3 | Services (places) | `GET /services?country=PH[&area=][&category=]` | — | 4 | `data/ApiSource.ts`, `data/JsonSource.ts` fallback |
+| 3 | Services (places) | `GET /services?country=PH[&area=][&category=][&bbox=][&ids=]` | — | 4 | `data/ApiSource.ts`, `data/JsonSource.ts` fallback |
 | 4 | Local category words | `GET /labels?country=PH` | — | 4 | `data/ApiSource.ts`, `data/JsonSource.ts` fallback |
 | 5 | Create account | `POST /auth/register` | — | 4 | `register()` in `auth/apiStore.ts` (production build); `auth/localAccounts.ts` in dev and tests |
 | 6 | Sign in | `POST /auth/login` | — | 4 | `signIn()` in `auth/apiStore.ts`; token in `bulig.token`, account copy in `bulig.account` |
@@ -190,7 +190,11 @@ The national line(s) and checked local numbers. **Never requires a login, in any
 
 Road services and local businesses. The app ranks them on the phone (distance, chips, open now); see ARCHITECTURE.md Phase 7 for moving ranking to the server later (`&near=lat,lng`).
 
-**Query:** `country` (required); `area`, `category` (optional). `category`: `tire_repair | mechanic | fuel | hospital | food | lodging | store | other`.
+**Query:** `country` (required); `area`, `category`, `bbox`, `ids` (optional). `category`: `tire_repair | mechanic | fuel | hospital | food | lodging | store | other`.
+
+- `bbox=<west>,<south>,<east>,<north>` (degrees, John 2026-11-13): only places with a pin inside that box. At most 1° on each side, else `422`. The app asks for fixed 0.25° squares (about 28 km; corners on multiples of 0.25), so the same square is the same URL for every phone and caches well. Places without a pin are never in a `bbox` answer.
+- `ids=<id>,<id>`: only these places (1 to 100 IDs), for saved places and links to a place that may be far away. An ID that isn't listed is left out, not an error.
+- The app no longer reads the whole country at once (it doesn't scale past a few thousand places on phones or on the free server). A request without `bbox`, `ids` or `area` still answers the whole country, for older app builds.
 
 Only places staff have let through: never one that is closed, a duplicate, not road help, or still in review (§7.8).
 

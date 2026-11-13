@@ -12,7 +12,7 @@ import { NearbySkeleton } from '../components/Skeleton.tsx'
 import { formatDate, telHref } from '../data/format.ts'
 import { categoryFromSlug, categoryLabel } from '../data/labels.ts'
 import { placeHref, routeHref } from '../data/links.ts'
-import { useNearby } from '../data/useNearby.ts'
+import { UNPLACED_TEXT, useNearby } from '../data/useNearby.ts'
 import { openStatus, shortStatus } from '../rules/hours.ts'
 import { CHIP_LABELS, needById, needForCategory, rankForNeed, type Chip, type Need } from '../rules/needs.ts'
 import { formatDistance, type Ranked } from '../rules/nearby.ts'
@@ -113,7 +113,7 @@ export default function NearbyPage() {
   const params = useParams()
   const fromCategory = categoryFromSlug(params.category)
   const need = params.need !== undefined ? needById(params.need) : fromCategory ? needForCategory(fromCategory) : null
-  const { ready, loading, where, ranked, labels, position } = useNearby()
+  const { ready, loading, where, ranked, labels, position, unplaced } = useNearby()
   const [chips, setChips] = useState<Chip[]>([])
   // One clock for the page, so every card agrees on "now".
   const [now] = useState(() => new Date())
@@ -175,7 +175,7 @@ export default function NearbyPage() {
       {ready && all.length === 0 && (
         <div className={`${styles.card} ${styles.empty} ${styles.emptyMascot}`}>
           <RopiSays variant="thinking">
-            No {need.finds.toLowerCase()} listed {where} yet.
+            {unplaced ? UNPLACED_TEXT : `No ${need.finds.toLowerCase()} listed ${where} yet.`}
           </RopiSays>
           <Link className={styles.secondary} to="/services">
             See other services

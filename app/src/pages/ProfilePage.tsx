@@ -258,7 +258,7 @@ export default function ProfilePage() {
         <SettingsInfo
           icon={HardDrive}
           label="Offline data"
-          value={ready ? `${data.services.length} places · ${data.emergency.length} numbers` : 'Loading…'}
+          value={ready ? `${data.services.length} places loaded · ${data.emergency.length} numbers` : 'Loading…'}
         />
       </SettingsGroup>
 

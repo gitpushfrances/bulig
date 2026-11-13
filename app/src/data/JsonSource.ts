@@ -1,5 +1,5 @@
 import type { Area, CountryCode, EmergencyContact, Envelope, Labels, Service } from '../types.ts'
-import type { DataSource } from './DataSource.ts'
+import type { DataSource, PlaceQuery } from './DataSource.ts'
 import { validateEnvelope, type FileKind } from './validate.ts'
 
 // Reads public/data/<cc>/*.json. Offline, the service worker answers from its cache.
@@ -17,9 +17,20 @@ async function getEnvelope<T>(country: CountryCode, file: string, kind: FileKind
   return data as Envelope<T>
 }
 
+export function matches(s: Service, query: PlaceQuery): boolean {
+  if ('ids' in query) return query.ids.includes(s.id)
+  if ('area' in query) return s.area === query.area
+  const [w, south, e, n] = query.bbox
+  return s.lat !== undefined && s.lng !== undefined && s.lng >= w && s.lng <= e && s.lat >= south && s.lat <= n
+}
+
 export const jsonSource: DataSource = {
   areas: (cc) => getEnvelope<Area>(cc, 'areas.json', 'areas'),
   emergencyContacts: (cc) => getEnvelope<EmergencyContact>(cc, 'emergency-contacts.json', 'emergency'),
-  services: (cc) => getEnvelope<Service>(cc, 'services.json', 'services'),
+  // The bundled file is small (a fallback only), so it is read whole and filtered like the API would.
+  services: async (cc, query) => {
+    const all = await getEnvelope<Service>(cc, 'services.json', 'services')
+    return { ...all, items: all.items.filter((s) => matches(s, query)) }
+  },
   labels: async (cc) => (await getJson(cc, 'labels.json')) as Labels,
 }

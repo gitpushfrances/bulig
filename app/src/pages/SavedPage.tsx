@@ -4,7 +4,7 @@ import { ContactCard, SectionHead, ServiceCard } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
 import RopiSays from '../components/RopiSays.tsx'
 import { CardListSkeleton } from '../components/Skeleton.tsx'
-import { useAppData } from '../data/context.ts'
+import { useAppData, usePlaceIds } from '../data/context.ts'
 import { useNearby } from '../data/useNearby.ts'
 import { byDistance } from '../rules/nearby.ts'
 import { transitionName } from '../motion.ts'
@@ -12,18 +12,22 @@ import styles from './Page.module.css'
 
 export default function SavedPage() {
   const { account, saved, savedStatus, retrySaved } = useAuth()
-  const { data, fromBackup, retry } = useAppData()
+  const { data, fromBackup, retry, missingPlaces, loadingPlaces } = useAppData()
   const { position } = useNearby()
 
   const ready = data.status === 'ready'
   const areaNames = new Map(ready ? data.areas.map((a) => [a.id, a.name]) : [])
-  // Places come nearest first when GPS is on. A saved record that was removed simply drops out.
-  const places = byDistance(ready ? saved.flatMap((id) => data.services.filter((s) => s.id === id)) : [], position)
   const numbers = ready ? saved.flatMap((id) => data.emergency.filter((c) => c.id === id)) : []
-  // Hearts whose places aren't here yet because the server's data hasn't arrived (it is asleep and the
-  // app is showing its bundled files). They are not gone: never show "nothing saved" for them.
-  const waitingForServer = ready && !!fromBackup && saved.length > places.length + numbers.length
-  const listLoading = data.status === 'loading' || savedStatus === 'loading'
+  // Saved places load by ID, wherever they are in the country.
+  const placeIds = ready ? saved.filter((id) => !numbers.some((c) => c.id === id)) : []
+  usePlaceIds(placeIds)
+  // Places come nearest first when GPS is on. A saved record that was removed simply drops out.
+  const places = byDistance(ready ? placeIds.flatMap((id) => data.services.filter((s) => s.id === id)) : [], position)
+  // Hearts whose places haven't arrived: still on their way, or the server is asleep and the app is
+  // showing its bundled files. They are not gone: never show "nothing saved" for them.
+  const unresolved = placeIds.filter((id) => !missingPlaces.has(id) && !places.some((p) => p.item.id === id)).length
+  const waitingForServer = ready && !!fromBackup && !loadingPlaces && unresolved > 0
+  const listLoading = data.status === 'loading' || savedStatus === 'loading' || (loadingPlaces && unresolved > 0)
   const empty = ready && !listLoading && !waitingForServer && savedStatus !== 'error' && places.length + numbers.length === 0
 
   return (
@@ -56,7 +60,7 @@ export default function SavedPage() {
           {waitingForServer && savedStatus !== 'error' && (
             <div className={styles.notice} role="status">
               <p>
-                {saved.length - places.length - numbers.length === 1 ? 'One saved place' : 'Some saved places'} will show
+                {unresolved === 1 ? 'One saved place' : 'Some saved places'} will show
                 once Bulig reaches the server.
               </p>
               <button type="button" className={styles.secondary} onClick={retry}>

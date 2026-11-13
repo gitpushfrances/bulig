@@ -7,7 +7,8 @@ import { PlaceRow } from '../components/Cards.tsx'
 import { CATEGORY_ICONS } from '../components/icons.ts'
 import RopiSays from '../components/RopiSays.tsx'
 import SaveButton from '../components/SaveButton.tsx'
-import { useAppData } from '../data/context.ts'
+import { cellsInBox } from '../data/cells.ts'
+import { useAppData, usePlaceIds } from '../data/context.ts'
 import { telHref } from '../data/format.ts'
 import { placeHref } from '../data/links.ts'
 import { categoryLabel } from '../data/labels.ts'
@@ -75,7 +76,13 @@ function placesSource(m: MapLibreMap): GeoJSONSource {
 // Places on a free OpenFreeMap map, styled in Graphite. MapLibre loads only when this tab opens,
 // so Home and Emergency never wait for it. No signal or no WebGL: the nearest places as a list.
 export default function MapPage() {
-  const { online, data } = useAppData()
+  const { online, data, ensurePlaces } = useAppData()
+  // Places load by map square as the view moves (DataProvider); too far out, none are asked for.
+  const ensureRef = useRef(ensurePlaces)
+  useEffect(() => {
+    ensureRef.current = ensurePlaces
+  })
+  const [tooWide, setTooWide] = useState(false)
   const { ranked, labels, area, position } = useNearby()
   const { refresh, status: gps, settling } = usePhoneLocation()
   const { resolved } = useTheme()
@@ -105,6 +112,8 @@ export default function MapPage() {
   // A ?to= link wins; otherwise pick up the route this session already had.
   const [restored] = useState(() => (params.get('to') ? { to: params.get('to')!, mode: 'car' as TravelMode } : readRoute()))
   const [selected, setSelected] = useState<string | null>(() => restored?.to ?? null)
+  // A ?to= link or a kept route may point anywhere in the country: load that place by ID.
+  usePlaceIds(restored?.to ? [restored.to] : [])
   const [routeTo, setRouteTo] = useState<string | null>(() => restored?.to ?? null)
   const [mode, setMode] = useState<TravelMode>(() => restored?.mode ?? 'car')
   const [minimized, setMinimized] = useState(false)
@@ -159,10 +168,20 @@ export default function MapPage() {
       const onClick = () => setSelected(routeToRef.current)
       // Moving the map yourself stops it following you; Go to my location turns following back on.
       const onDrag = () => setFollowing(false)
+      // Ask for the places in view, square by square; zoomed out past the cap, say so instead.
+      const loadView = () => {
+        const b = m.getBounds()
+        const view: [number, number, number, number] = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]
+        const wide = cellsInBox(view).length === 0
+        setTooWide(wide)
+        if (!wide) ensureRef.current({ box: view })
+      }
       const onMoveEnd = () => {
         const c = m.getCenter()
         saveView({ lng: c.lng, lat: c.lat, zoom: m.getZoom() })
+        loadView()
       }
+      loadView()
       m.on('click', onClick)
       m.on('dragstart', onDrag)
       m.on('moveend', onMoveEnd)
@@ -712,13 +731,21 @@ export default function MapPage() {
         data.status === 'ready' &&
         scope === 'nearby' &&
         shown.length === 0 &&
-        !settling && (
+        !settling ? (
           <div className={styles.toast} role="status">
             <span>{origin ? `Nothing listed within ${NEARBY_KM} km${filter ? ' for that' : ''}.` : 'Nearby needs your location.'}</span>
             <button type="button" onClick={() => pickScope('all')}>
               Show all
             </button>
           </div>
+        ) : (
+          // Zoomed out too far to load a whole region on a phone: the places already loaded stay.
+          status === 'ready' &&
+          tooWide && (
+            <div className={`${styles.toast} ${styles.toastQuiet}`} role="status">
+              <span>Zoom in to see places here</span>
+            </div>
+          )
         )
       )}
     </section>

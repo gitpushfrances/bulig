@@ -52,6 +52,7 @@ describe('Mascot', () => {
 
 describe('Where Ropi appears', () => {
   it('never on Home or Emergency', async () => {
+    localStorage.setItem('bulig.area', 'ph-eastern-samar-guiuan')
     renderAt('/')
     await screen.findByRole('list', { name: 'Nearest places' })
     expect(screen.queryByTestId('mascot')).not.toBeInTheDocument()
