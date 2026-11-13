@@ -17,6 +17,7 @@ import { hasWebGL, LOAD_TIMEOUT_MS, PROBLEM_TEXT, type MapProblem } from '../map
 import { attachMap, detachMap, dropMap, keepMap, keptMap, readView, saveView, type KeptMap } from '../map/mapKeeper.ts'
 import { applyMapTheme, MAP_CREDIT, mapRenderOptions, themedStyle } from '../map/mapTheme.ts'
 import { boundsOf, circle, NEARBY_KM, placesInScope, type MapScope } from '../map/mapScope.ts'
+import { clusterLabel, onScreen } from '../map/visiblePlaces.ts'
 import { readRoute, readScope, saveRoute, saveScope, type SavedRoute } from '../map/mapSession.ts'
 import { fetchRoute, REROUTE_DEG, type Route, type TravelMode } from '../map/route.ts'
 import RouteSheet, { type RouteState } from '../map/RouteSheet.tsx'
@@ -58,6 +59,19 @@ function drawRoute(m: MapLibreMap, path: [number, number][] | null, theme: 'ligh
   m.setPaintProperty('route-casing', 'line-color', ROUTE_CASING[theme])
 }
 
+// Every shown place, grouped by MapLibre on the GPU (clusterMaxZoom: past street level each place
+// stands alone). Only what is on screen becomes a DOM pin (visiblePlaces.ts). The invisible layer
+// makes MapLibre load the source, so it can be read back.
+function placesSource(m: MapLibreMap): GeoJSONSource {
+  let source = m.getSource('places') as GeoJSONSource | undefined
+  if (!source) {
+    m.addSource('places', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, cluster: true, clusterRadius: 80, clusterMaxZoom: 14 })
+    m.addLayer({ id: 'places-hit', type: 'circle', source: 'places', paint: { 'circle-radius': 0, 'circle-opacity': 0, 'circle-stroke-opacity': 0 } })
+    source = m.getSource('places') as GeoJSONSource
+  }
+  return source
+}
+
 // Places on a free OpenFreeMap map, styled in Graphite. MapLibre loads only when this tab opens,
 // so Home and Emergency never wait for it. No signal or no WebGL: the nearest places as a list.
 export default function MapPage() {
@@ -79,7 +93,8 @@ export default function MapPage() {
   // Try again bumps this, which makes the map from scratch.
   const [attempt, setAttempt] = useState(0)
   const [following, setFollowing] = useState(() => keptMap()?.following ?? true)
-  const [pins, setPins] = useState<{ id: string; el: HTMLElement }[]>([])
+  // DOM pins on screen: a place (id) or a group of places (clusterId + count).
+  const [pins, setPins] = useState<{ key: string; el: HTMLElement; id?: string; clusterId?: number; count?: number; lng?: number; lat?: number }[]>([])
   const [params] = useSearchParams()
   // /map?cat=<category> (the Map button on Nearby results): open with that kind of place only.
   const [filter, setFilter] = useState<Category | null>(() => {
@@ -108,6 +123,12 @@ export default function MapPage() {
   const everywhere = placesInScope(services, { scope: 'all', category: null, position, origin })
   const shown = placesInScope(services, { scope, category: filter, position, origin })
   const picked = everywhere.find((r) => r.item.id === selected) ?? null
+  // id → place, so drawing hundreds of pins never searches the whole list for each one.
+  const byId = new Map(shown.map((r) => [r.item.id, r.item]))
+  const byIdRef = useRef(byId)
+  useEffect(() => {
+    byIdRef.current = byId
+  })
   const target = everywhere.find((r) => r.item.id === routeTo) ?? null
 
   // Where to open a brand-new map, read when it is made (refs, so making it doesn't wait on GPS).
@@ -302,31 +323,95 @@ export default function MapPage() {
     } else userMarker.current.setLngLat([position.lng, position.lat])
   }, [status, position])
 
-  // One pin per place on the map, drawn by React into MapLibre's marker elements.
+  // The shown places go to the clustered source; a change of filter or scope only swaps its data.
   const shownIds = shown.map((r) => r.item.id).join(',')
+  useEffect(() => {
+    const m = map.current
+    if (status !== 'ready' || !m) return
+    placesSource(m).setData({
+      type: 'FeatureCollection',
+      features: shown.map(({ item }) => ({
+        type: 'Feature' as const,
+        properties: { id: item.id },
+        geometry: { type: 'Point' as const, coordinates: [item.lng!, item.lat!] },
+      })),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, shownIds])
+
+  // Pins for what is on screen only, drawn by React into MapLibre's marker elements. Re-read when
+  // the map stops moving or the source finishes loading, at most once a frame.
+  const selectedRef = useRef(selected)
+  useEffect(() => {
+    selectedRef.current = selected
+  }, [selected])
   useEffect(() => {
     const m = map.current
     const ml = lib.current
     if (status !== 'ready' || !m || !ml) return
-    const keep = new Set(shown.map((r) => r.item.id))
-    markers.current.forEach((mk, id) => {
-      if (!keep.has(id)) {
-        mk.remove()
-        markers.current.delete(id)
+    placesSource(m)
+    let frame = 0
+    const refresh = () => {
+      frame = 0
+      const b = m.getBounds()
+      const view = onScreen(
+        m.querySourceFeatures('places'),
+        [
+          [b.getWest(), b.getSouth()],
+          [b.getEast(), b.getNorth()],
+        ],
+        selectedRef.current,
+      )
+      const want = new Map<string, { lng: number; lat: number; id?: string; clusterId?: number; count?: number }>()
+      for (const c of view.clusters) want.set(`c:${c.clusterId}:${c.count}`, c)
+      for (const id of view.places) {
+        const f = byIdRef.current.get(id)
+        if (f) want.set(`p:${id}`, { id, lng: f.lng!, lat: f.lat! })
       }
-    })
-    for (const { item } of shown) {
-      if (markers.current.has(item.id)) continue
-      const el = document.createElement('div')
-      el.addEventListener('click', (e) => {
-        e.stopPropagation()
-        setSelected(item.id)
+      markers.current.forEach((mk, key) => {
+        if (!want.has(key)) {
+          mk.remove()
+          markers.current.delete(key)
+        }
       })
-      markers.current.set(item.id, new ml.Marker({ element: el, anchor: 'bottom' }).setLngLat([item.lng!, item.lat!]).addTo(m))
+      for (const [key, spot] of want) {
+        if (markers.current.has(key)) continue
+        const el = document.createElement('div')
+        el.addEventListener('click', (e) => {
+          e.stopPropagation()
+          if (spot.id) setSelected(spot.id)
+          else if (spot.clusterId !== undefined) {
+            // Zoom to where the group splits apart.
+            placesSource(m)
+              .getClusterExpansionZoom(spot.clusterId)
+              .then((zoom) => m.easeTo({ center: [spot.lng, spot.lat], zoom: Math.min(zoom, 17) }))
+              .catch(() => m.easeTo({ center: [spot.lng, spot.lat], zoom: m.getZoom() + 2 }))
+          }
+        })
+        markers.current.set(key, new ml.Marker({ element: el, anchor: spot.id ? 'bottom' : 'center' }).setLngLat([spot.lng, spot.lat]).addTo(m))
+      }
+      setPins(
+        [...markers.current].map(([key, mk]) => {
+          const spot = want.get(key)!
+          return { key, el: mk.getElement(), id: spot.id, clusterId: spot.clusterId, count: spot.count }
+        }),
+      )
     }
-    setPins([...markers.current].map(([id, mk]) => ({ id, el: mk.getElement() })))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, shownIds])
+    const later = () => {
+      if (!frame) frame = requestAnimationFrame(refresh)
+    }
+    const onData = (e: { sourceId?: string; isSourceLoaded?: boolean }) => {
+      if (e.sourceId === 'places' && e.isSourceLoaded) later()
+    }
+    m.on('moveend', later)
+    m.on('sourcedata', onData)
+    later()
+    return () => {
+      cancelAnimationFrame(frame)
+      m.off('moveend', later)
+      m.off('sourcedata', onData)
+    }
+  }, [status])
 
   useEffect(() => {
     routeToRef.current = routeTo
@@ -536,21 +621,30 @@ export default function MapPage() {
         </button>
       </div>
 
-      {pins.map(({ id, el }) => {
-        const r = shown.find((s) => s.item.id === id)
-        if (!r) return null
-        const Icon = CATEGORY_ICONS[r.item.category]
+      {pins.map(({ key, el, id, count }) => {
+        if (!id) {
+          return createPortal(
+            <button type="button" className={styles.cluster} aria-label={`${count} places here. Zoom in`}>
+              {clusterLabel(count ?? 0)}
+            </button>,
+            el,
+            key,
+          )
+        }
+        const item = byId.get(id)
+        if (!item) return null
+        const Icon = CATEGORY_ICONS[item.category]
         return createPortal(
           <button
             type="button"
             className={`${styles.pin} ${selected === id ? styles.pinOn : ''}`}
-            data-category={r.item.category}
-            aria-label={`${r.item.name}, ${r.item.subtype ?? categoryLabel(r.item.category, labels)}`}
+            data-category={item.category}
+            aria-label={`${item.name}, ${item.subtype ?? categoryLabel(item.category, labels)}`}
           >
             <Icon size={18} aria-hidden="true" />
           </button>,
           el,
-          id,
+          key,
         )
       })}
 
