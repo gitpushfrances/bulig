@@ -54,7 +54,7 @@ export default function AboutPage() {
         <section>
           <h2>Credits</h2>
           <p>
-            Map data © OpenStreetMap contributors (ODbL). Map tiles by OpenFreeMap with the OpenMapTiles schema,
+            Map and place data © OpenStreetMap contributors (ODbL). Map tiles by OpenFreeMap with the OpenMapTiles schema,
             drawn by MapLibre. Addresses by Nominatim and routes by OSRM on routing.openstreetmap.de (FOSSGIS).
             Built with React, Phosphor Icons and IBM Plex Sans. Thank you to everyone behind them.
           </p>
