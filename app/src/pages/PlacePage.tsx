@@ -1,4 +1,4 @@
-import { Check, CheckCircle, Link as LinkIcon, MapPin, NavigationArrow, Path as RouteIcon, Phone, ShareNetwork, X } from '@phosphor-icons/react'
+import { Check, CheckCircle, Link as LinkIcon, MapPin, NavigationArrow, Path as RouteIcon, Phone, Question, ShareNetwork, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import BackButton from '../components/BackButton.tsx'
@@ -6,6 +6,7 @@ import DataNotice from '../components/DataNotice.tsx'
 import { CATEGORY_ICONS } from '../components/icons.ts'
 import { StatusLine } from '../components/PlaceInfo.tsx'
 import SaveButton from '../components/SaveButton.tsx'
+import ReportPlace from '../components/ReportPlace.tsx'
 import { PlaceSkeleton } from '../components/Skeleton.tsx'
 import { useAppData, usePlaceIds } from '../data/context.ts'
 import { formatDate, telHref } from '../data/format.ts'
@@ -185,12 +186,25 @@ export default function PlacePage() {
         <h2 id="checked-title" className={styles.sectionTitle}>
           Checked
         </h2>
-        <p className={styles.checked}>
-          <CheckCircle size={15} aria-hidden="true" />
-          Last checked {formatDate(place.verifiedAt)}
+        {place.unchecked ? (
+          <p className={`${styles.checked} ${styles.unchecked}`}>
+            <Question size={15} aria-hidden="true" />
+            From OpenStreetMap, not checked yet
+          </p>
+        ) : (
+          <p className={styles.checked}>
+            <CheckCircle size={15} aria-hidden="true" />
+            Last checked {formatDate(place.verifiedAt)}
+          </p>
+        )}
+        <p className={styles.hint}>
+          {place.unchecked
+            ? 'Someone added it to the free OpenStreetMap map. Call before you go.'
+            : `Source: ${place.source}`}
         </p>
-        <p className={styles.hint}>Source: {place.source}</p>
       </section>
+
+      <ReportPlace id={place.id} name={place.name} />
 
       {route && (
         <a

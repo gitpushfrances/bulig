@@ -90,6 +90,8 @@ export interface Service {
   open24h?: boolean
   verifiedAt: string
   source: string
+  // From OpenStreetMap and not checked by a person yet: the app says so instead of "Last checked".
+  unchecked?: true
   sample?: boolean
 }
 

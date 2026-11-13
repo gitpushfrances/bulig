@@ -236,6 +236,8 @@ Filter presets:
 
 **Built (2026-10-30).** `PlacePage.tsx`: Back; kind · area; the name with NEW / SAMPLE and the heart; distance and landmark; the status line; 52px **Call** ("Call hospital"), **Route** and **Share** (the phone's share sheet, or "Link copied"); the number in text; **Usual hours** for the week from Monday with **Today** marked, and "Hours can change, especially on holidays. Call first." (or the reported text and "Usual hours aren't recorded yet. Call to check."); **What it offers** (✓ confirmed, struck through "No …" when confirmed not offered, unknown left out); **Checked** with the source; and "Open in Google Maps". Opened from Nearby rows and names, Saved card names, and **Details** on a map pin's sheet. The Services tab stays selected. Not yet: Update details (SCRUM-30, Phase 4, in the app).
 
+**OpenStreetMap places and Report wrong info (2026-11-13, John).** A place with `unchecked` shows an amber "From OpenStreetMap, not checked yet" (cards and here) instead of the green "Last checked", and "Someone added it to the free OpenStreetMap map. Call before you go." instead of the source. Every place ends with **Something wrong? → Report wrong info**: a dialog with Closed for good, Wrong place on the map, The phone number doesn't work, Listed twice, Something else, an optional note, and Send report (`POST /submissions`, §7.2). It thanks the person and points to Updates. `components/ReportPlace.tsx`.
+
 The original spec:
 
 - Name, category, barangay, distance, heart (save), SAMPLE badge.
