@@ -60,7 +60,7 @@ describe('createApiSource', () => {
         new Promise((_resolve, reject) => init?.signal?.addEventListener('abort', () => reject(new Error('aborted')))),
     )
     const api = createApiSource(BASE, hang, 20)
-    await expect(api.services('PH')).rejects.toThrow('no answer')
+    await expect(api.services('PH', { ids: ['x'] })).rejects.toThrow('no answer')
   })
 
   it('checks labels too', async () => {

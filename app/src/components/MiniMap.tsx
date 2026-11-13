@@ -15,6 +15,8 @@ import styles from './MiniMap.module.css'
 
 // How many of the nearest places get a pin on Home's map.
 export const MINI_PINS = 5
+// Two pins closer than this on screen overlap (28px pins plus their white ring).
+const PIN_GAP_PX = 30
 
 // Home's "Nearest to you" map: the real map with you and the nearest few places, as a picture that
 // opens the Map tab. It never slows down 911: MapLibre loads only once Home has drawn, the card is on
@@ -104,7 +106,8 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
           [c.lng - dLng, c.lat - dLat],
           [c.lng + dLng, c.lat + dLat],
         ],
-        { padding: { top: 44, bottom: 20, left: 24, right: 24 }, maxZoom: 16 },
+        // A pin stands 33px above its point, and the map credit takes the bottom 20px.
+        { padding: { top: 56, bottom: 30, left: 24, right: 24 }, maxZoom: 16 },
       )
       zoom = Math.max(12, camera?.zoom ?? 15)
     }
@@ -112,6 +115,23 @@ export default function MiniMap({ centre, places }: { centre: Position; places: 
     k.me.setLngLat([c.lng, c.lat])
     k.map.jumpTo({ center: [c.lng, c.lat], zoom })
     sizeRing(k)
+    declutter(k)
+  }
+
+  // Pins that would sit on a nearer one are left off (the list under the map still has them), and
+  // nearer pins draw on top, so the card never shows a pile of half-hidden icons.
+  const declutter = (k: KeptMini) => {
+    const drawn: { x: number; y: number }[] = []
+    placesRef.current.forEach((p, rank) => {
+      const pin = k.pins.get(p.item.id)
+      if (!pin) return
+      const { x, y } = k.map.project([p.item.lng!, p.item.lat!])
+      const clash = drawn.some((d) => Math.abs(d.x - x) < PIN_GAP_PX && Math.abs(d.y - y) < PIN_GAP_PX)
+      const el = pin.marker.getElement()
+      el.style.visibility = clash ? 'hidden' : ''
+      el.style.zIndex = String(MINI_PINS - rank)
+      if (!clash) drawn.push({ x, y })
+    })
   }
 
   const sizeRing = (k: KeptMini) => {

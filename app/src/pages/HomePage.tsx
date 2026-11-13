@@ -1,4 +1,5 @@
 import { Bell, CaretRight } from '@phosphor-icons/react'
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import Avatar from '../components/Avatar.tsx'
@@ -10,10 +11,10 @@ import LocationLine from '../components/LocationLine.tsx'
 import MiniMap, { MINI_PINS } from '../components/MiniMap.tsx'
 import { BentoSkeleton, RowsSkeleton } from '../components/Skeleton.tsx'
 import { useMyUpdates } from '../contribute/useMyUpdates.ts'
-import { useAppData } from '../data/context.ts'
+import { useAppData, usePlaceIds } from '../data/context.ts'
 import { fallbackHotline } from '../data/countries.ts'
 import { countryName } from '../data/format.ts'
-import { useNearby } from '../data/useNearby.ts'
+import { UNPLACED_TEXT, useNearby } from '../data/useNearby.ts'
 import { visibleContacts } from '../rules/emergency.ts'
 import styles from './Page.module.css'
 import home from './HomePage.module.css'
@@ -22,11 +23,33 @@ import { useWelcome } from './welcome.ts'
 // Home answers "what do I need?": who and where you are, the six common problems, then the nearest
 // places on a real map, the local hotlines and what you saved. The red Emergency button floats over
 // all of it (Layout), so 911 stays one tap away while the hotlines sit lower on the page.
+// While Local hotlines is on screen, the floating Emergency button steps aside: it sat over "All numbers"
+// (John, 2026-11-13), and that section already offers the same tap (the 911 card, All numbers → Emergency).
+function useHideEmergencyButtonOver() {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const root = document.documentElement
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) root.dataset.hotlinesOnScreen = ''
+      else delete root.dataset.hotlinesOnScreen
+    })
+    io.observe(el)
+    return () => {
+      io.disconnect()
+      delete root.dataset.hotlinesOnScreen
+    }
+  }, [])
+  return ref
+}
+
 export default function HomePage() {
   const { country, data, area } = useAppData()
   const { account, saved, savedStatus } = useAuth()
-  const { ready, loading, ranked, labels, position, areaName } = useNearby()
+  const { ready, loading, ranked, labels, position, areaName, unplaced } = useNearby()
   const welcome = useWelcome()
+  const hotlinesRef = useHideEmergencyButtonOver()
   // Contributors and above: the bell lights up when a moderator has answered (no push; UI-UX.md).
   const updates = useMyUpdates()
   // A new account (often one tap with Google) fills in the rest later (UI-UX.md, Home).
@@ -39,8 +62,10 @@ export default function HomePage() {
   const hotline = national ?? (ready ? null : fallbackHotline(country))
 
   const nearest = ranked.slice(0, 3)
-  const savedPlaces =
-    data.status === 'ready' ? saved.flatMap((id) => data.services.filter((s) => s.id === id)).slice(0, 3) : []
+  // The first few saved places, loaded by ID wherever they are.
+  const savedIds = data.status === 'ready' ? saved.filter((id) => !data.emergency.some((c) => c.id === id)).slice(0, 3) : []
+  usePlaceIds(savedIds)
+  const savedPlaces = data.status === 'ready' ? savedIds.flatMap((id) => data.services.filter((s) => s.id === id)) : []
 
   // The map centres on you, else on the area picked; with neither there is no map, only the list.
   const areaCentre = data.status === 'ready' && area ? data.areas.find((a) => a.id === area) : undefined
@@ -117,7 +142,7 @@ export default function HomePage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className={styles.panelEmpty}>No places listed here yet.</p>
+                    <p className={styles.panelEmpty}>{unplaced ? UNPLACED_TEXT : 'No places listed here yet.'}</p>
                   )}
                 </div>
               )}
@@ -126,7 +151,7 @@ export default function HomePage() {
         </div>
 
         <div className={styles.homeColumn}>
-          <div className={styles.section}>
+          <div className={styles.section} ref={hotlinesRef}>
             <SectionHead title="Local hotlines" to="/emergency" more="All numbers" />
             {hotline && <HotlineCard contact={hotline} countryName={countryName(country)} compact />}
             {local.length > 0 && (

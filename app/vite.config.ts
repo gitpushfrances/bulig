@@ -108,7 +108,7 @@ export default defineConfig({
             options: {
               cacheName: 'bulig-api',
               networkTimeoutSeconds: 3,
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 200, purgeOnQuotaError: true, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [200] },
             },
           },

@@ -1,5 +1,5 @@
 import type { Area, CountryCode, EmergencyContact, Envelope, Labels, Service } from '../types.ts'
-import type { DataSource } from './DataSource.ts'
+import type { DataSource, PlaceQuery } from './DataSource.ts'
 import { jsonSource } from './JsonSource.ts'
 import { splitEnvelope, type FileKind } from './validate.ts'
 
@@ -11,6 +11,13 @@ export const API_TIMEOUT_MS = 4000
 
 type Fetch = typeof fetch
 
+// "&bbox=125.5,11,125.75,11.25", "&ids=a,b" or "&area=…" (API.md §3.3).
+export function placeParams(query: PlaceQuery): string {
+  if ('bbox' in query) return `&bbox=${query.bbox.join(',')}`
+  if ('ids' in query) return `&ids=${query.ids.map(encodeURIComponent).join(',')}`
+  return `&area=${encodeURIComponent(query.area)}`
+}
+
 export function createApiSource(
   baseUrl: string,
   fetchFn: Fetch = fetch,
@@ -20,11 +27,11 @@ export function createApiSource(
 ): DataSource {
   const base = baseUrl.replace(/\/+$/, '')
 
-  async function get(path: string, country: CountryCode): Promise<unknown> {
+  async function get(path: string, country: CountryCode, extra = ''): Promise<unknown> {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
     try {
-      const res = await fetchFn(`${base}/${path}?country=${encodeURIComponent(country)}`, {
+      const res = await fetchFn(`${base}/${path}?country=${encodeURIComponent(country)}${extra}`, {
         headers: { Accept: 'application/json' },
         // The API lets browsers keep these for an hour. Always ask again (a cheap 304 when nothing
         // changed), so a place added in the admin panel shows on the next open, not an hour later.
@@ -41,8 +48,8 @@ export function createApiSource(
     }
   }
 
-  async function envelope<T>(path: string, country: CountryCode, kind: FileKind): Promise<Envelope<T>> {
-    const data = await get(path, country)
+  async function envelope<T>(path: string, country: CountryCode, kind: FileKind, extra = ''): Promise<Envelope<T>> {
+    const data = await get(path, country, extra)
     const { problems, items, dropped } = splitEnvelope(kind, data)
     if (problems.length) throw new Error(`${path}: ${problems.join('; ')}`)
     if (dropped.length) onDropped(path, dropped)
@@ -52,7 +59,7 @@ export function createApiSource(
   return {
     areas: (cc) => envelope<Area>('areas', cc, 'areas'),
     emergencyContacts: (cc) => envelope<EmergencyContact>('emergency-contacts', cc, 'emergency'),
-    services: (cc) => envelope<Service>('services', cc, 'services'),
+    services: (cc, query) => envelope<Service>('services', cc, 'services', placeParams(query)),
     labels: async (cc) => {
       const data = (await get('labels', cc)) as Partial<Labels> | null
       if (data?.version !== 1 || typeof data.categories !== 'object' || data.categories === null)
@@ -80,7 +87,7 @@ export function withFallback(
     areas: (cc) => rescue('areas', primary.areas(cc), () => fallback.areas(cc)),
     emergencyContacts: (cc) =>
       rescue('emergencyContacts', primary.emergencyContacts(cc), () => fallback.emergencyContacts(cc)),
-    services: (cc) => rescue('services', primary.services(cc), () => fallback.services(cc)),
+    services: (cc, query) => rescue('services', primary.services(cc, query), () => fallback.services(cc, query)),
     labels: (cc) => rescue('labels', primary.labels(cc), () => fallback.labels(cc)),
   }
 }
