@@ -3,7 +3,7 @@ import { useLocation } from 'react-router'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { whenSplashGone } from '../splash.ts'
 import { distanceKm, type Position } from '../rules/nearby.ts'
-import { lookUpAddress, needsLookup, type PlacedAddress } from './address.ts'
+import { ADDRESS_KEY, lookUpAddress, needsLookup, type PlacedAddress } from './address.ts'
 import { fromGeolocation, keepFix, type GpsFix } from './fixes.ts'
 import { LocationContext, type LocationStatus } from './context.ts'
 
@@ -17,7 +17,6 @@ const LIVE_MS = 3_000
 const WATCH: PositionOptions = { enableHighAccuracy: true, maximumAge: LIVE_MS, timeout: 20_000 }
 const FRESH: PositionOptions = { enableHighAccuracy: true, maximumAge: 0, timeout: 20_000 }
 
-const ADDRESS_KEY = 'bulig.address'
 const STALE_KM = 2
 const SETTLE_MS = 8_000
 const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password']

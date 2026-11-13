@@ -1,5 +1,5 @@
-/* Bulig Teal: zinc greys and white, with the teal of the Bulig logo (and Ropi's scarf) as the
-   brand colour for actions, links and selected states. Red is for emergencies only, green for
+/* Bulig Teal: warm green-grey neutrals in light (zinc greys in dark), with the teal of the Bulig
+   logo (and Ropi's scarf) as the brand colour for actions, links and selected states. Red is for emergencies only, green for
    checked, and the map pins have their own category colours (docs/UI-UX.md, "Map pins").
    Tokens come in three layers (docs/UI-UX.md, "Tokens"): primitives are raw values, semantic
    tokens name a job, component tokens name a part. Components only use semantic or component
@@ -23,15 +23,36 @@
   --zinc-850: #1f1f23;
   --zinc-900: #18181b;
   --zinc-950: #09090b;
+  /* Warm neutrals for light mode (Balanced Teal + Warm Neutral, John 2026-11-07). */
+  --sage-25: #f4f7f5;
+  --sage-50: #edf3f0;
+  --sage-100: #e3eae7;
+  --sage-300: #c5d3ce;
+  --sage-500: #71817a;
+  --sage-600: #52635d;
+  --sage-700: #3b4a45;
+  --sage-800: #27352f;
+  --sage-900: #182522;
   --red-600: #dc2626;
   --red-700: #b91c1c;
   --red-400: #f87171;
   --green-700: #15803d;
   --green-400: #4ade80;
+  --green-950: #052e16;
+  --amber-100: #fef3c7;
+  --amber-400: #fbbf24;
+  --amber-800: #92400e;
+  --amber-950: #422006;
+  --sky-100: #e0f2fe;
+  --sky-300: #7dd3fc;
+  --sky-800: #075985;
+  --sky-950: #082f49;
   --teal-50: #ecfeff;
+  --teal-selected: #d5ecee;
   --teal-100: #cffafe;
   --teal-300: #67e8f9;
   --teal-400: #22d3ee;
+  --teal-600: #0891b2;
   --teal-700: #0e7490;
   --teal-800: #155e75;
   --teal-900: #0c3a47;
@@ -49,29 +70,42 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --press-ms: 160ms;
 
-  /* 2. Semantic, light */
-  --color-bg: var(--zinc-25);
+  /* 2. Semantic, light (the default theme) */
+  --color-bg: var(--sage-25);
   --color-surface: var(--zinc-0);
-  --color-text: var(--zinc-900);
-  --color-text-muted: var(--zinc-600);
-  --color-border: var(--zinc-200);
+  /* Secondary sections and disabled controls. */
+  --color-surface-subtle: var(--sage-50);
+  --color-text: var(--sage-900);
+  --color-text-muted: var(--sage-600);
+  --color-border: var(--sage-300);
   /* Inputs and other controls whose edge must be seen (WCAG 1.4.11, 3:1 or more). */
-  --color-border-strong: var(--zinc-500);
+  --color-border-strong: var(--sage-500);
   --color-primary: var(--teal-700);
+  --color-primary-hover: var(--teal-800);
   --color-on-primary: var(--zinc-0);
   --color-primary-text: var(--teal-800);
-  --color-selected: var(--teal-50);
+  --color-selected: var(--teal-selected);
   --color-deep: var(--teal-950);
   --color-on-deep: var(--zinc-0);
   --color-on-deep-muted: var(--teal-100);
-  --color-emergency: var(--red-600);
+  /* An edge for the hotline card where it would melt into the page (dark). */
+  --color-deep-border: transparent;
+  --color-emergency: var(--red-700);
   --color-on-emergency: var(--zinc-0);
   --color-checked: var(--green-700);
-  --color-live: #16a34a;
-  --color-sample-bg: var(--zinc-100);
-  --color-sample-text: var(--zinc-700);
-  --color-status-bg: var(--zinc-100);
-  --color-status-text: var(--zinc-800);
+  --color-on-checked: var(--zinc-0);
+  --color-live: var(--green-700);
+  --color-warning: var(--amber-800);
+  --color-warning-bg: var(--amber-100);
+  --color-info: var(--sky-800);
+  --color-info-bg: var(--sky-100);
+  --color-disabled-bg: var(--sage-50);
+  --color-disabled-text: var(--sage-600);
+  --color-disabled-border: var(--sage-300);
+  --color-sample-bg: var(--sage-100);
+  --color-sample-text: var(--sage-700);
+  --color-status-bg: var(--sage-100);
+  --color-status-text: var(--sage-800);
   --color-focus: var(--teal-700);
   --color-selection: var(--teal-100);
   --color-error: var(--red-700);
@@ -81,12 +115,18 @@
   /* 3. Component */
   --button-call-bg: var(--color-primary);
   --button-call-text: var(--color-on-primary);
+  --button-call-hover-bg: var(--color-primary-hover);
   --hotline-bg: var(--color-deep);
+  --hotline-border: var(--color-deep-border);
   --hotline-call-bg: var(--color-emergency);
   --hotline-call-text: var(--color-on-emergency);
   --chip-active-bg: var(--color-primary);
   --chip-active-text: var(--color-on-primary);
   --tab-active-bg: var(--color-selected);
+  /* The raised Add button: a top-lit teal gradient with a soft teal lift, never flat. */
+  --add-bg: linear-gradient(160deg, var(--teal-600) 0%, var(--teal-800) 100%);
+  --add-text: var(--zinc-0);
+  --add-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), 0 2px 4px rgb(14 116 144 / 0.25), 0 10px 22px rgb(14 116 144 / 0.38);
   --skeleton-bg: var(--color-status-bg);
   --radius-card: 14px;
   --radius-control: 10px;
@@ -104,7 +144,7 @@
   /* Elevation: two soft layers, never one grey smudge. Raised = sheets, the tab bar, map overlays. */
   --shadow-card: 0 1px 2px rgb(9 9 11 / 0.06), 0 4px 12px rgb(9 9 11 / 0.06);
   --shadow-raised: 0 2px 4px rgb(9 9 11 / 0.08), 0 8px 24px rgb(9 9 11 / 0.12);
-  --shadow-emergency: 0 6px 16px rgb(220 38 38 / 0.35);
+  --shadow-emergency: 0 6px 16px rgb(185 28 28 / 0.35);
   /* A 1px light edge on top of dark-mode cards, where shadows can't be seen. */
   --card-highlight: none;
   /* Sign-in screens: a teal glow from the top, a soft teal lift under the main button, and the
@@ -127,26 +167,38 @@
   overscroll-behavior: none;
 }
 
-/* Dark: follows the phone unless the person picked Light or Dark in Profile (data-theme on <html>). */
+/* Dark: only when the person picked Dark, or picked System on a phone set to dark (data-theme on
+   <html>; index.html sets data-theme='light' when nothing was picked, so light is the default). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --color-bg: var(--zinc-950);
     --color-surface: var(--zinc-900);
+    --color-surface-subtle: var(--zinc-850);
     --color-text: var(--zinc-25);
     --color-text-muted: var(--zinc-400);
-    --color-border: var(--zinc-800);
+    --color-border: var(--zinc-700);
     --color-border-strong: var(--zinc-500);
     --color-primary: var(--teal-400);
+    --color-primary-hover: var(--teal-300);
     --color-on-primary: var(--teal-950);
     --color-primary-text: var(--teal-300);
     --color-selected: var(--teal-900);
     --color-deep: var(--teal-950);
     --color-on-deep: var(--zinc-25);
     --color-on-deep-muted: var(--teal-100);
+    --color-deep-border: var(--teal-800);
     --color-emergency: var(--red-600);
     --color-on-emergency: var(--zinc-0);
     --color-checked: var(--green-400);
+    --color-on-checked: var(--green-950);
     --color-live: var(--green-400);
+    --color-warning: var(--amber-400);
+    --color-warning-bg: var(--amber-950);
+    --color-info: var(--sky-300);
+    --color-info-bg: var(--sky-950);
+    --color-disabled-bg: var(--zinc-800);
+    --color-disabled-text: var(--zinc-400);
+    --color-disabled-border: var(--zinc-700);
     --color-sample-bg: var(--zinc-800);
     --color-sample-text: var(--zinc-200);
     --color-status-bg: var(--zinc-800);
@@ -162,27 +214,41 @@
     --auth-glow: rgb(34 211 238 / 0.16);
     --shadow-primary: 0 6px 18px rgb(34 211 238 / 0.18);
     --focus-ring: 0 0 0 3px rgb(34 211 238 / 0.3);
+    --add-bg: linear-gradient(160deg, var(--teal-300) 0%, var(--teal-600) 100%);
+    --add-text: var(--teal-950);
+    --add-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 2px 6px rgb(0 0 0 / 0.5), 0 10px 24px rgb(34 211 238 / 0.28);
   }
 }
 
 :root[data-theme='dark'] {
   --color-bg: var(--zinc-950);
   --color-surface: var(--zinc-900);
+  --color-surface-subtle: var(--zinc-850);
   --color-text: var(--zinc-25);
   --color-text-muted: var(--zinc-400);
-  --color-border: var(--zinc-800);
+  --color-border: var(--zinc-700);
   --color-border-strong: var(--zinc-500);
   --color-primary: var(--teal-400);
+  --color-primary-hover: var(--teal-300);
   --color-on-primary: var(--teal-950);
   --color-primary-text: var(--teal-300);
   --color-selected: var(--teal-900);
   --color-deep: var(--teal-950);
   --color-on-deep: var(--zinc-25);
   --color-on-deep-muted: var(--teal-100);
+  --color-deep-border: var(--teal-800);
   --color-emergency: var(--red-600);
   --color-on-emergency: var(--zinc-0);
   --color-checked: var(--green-400);
+  --color-on-checked: var(--green-950);
   --color-live: var(--green-400);
+  --color-warning: var(--amber-400);
+  --color-warning-bg: var(--amber-950);
+  --color-info: var(--sky-300);
+  --color-info-bg: var(--sky-950);
+  --color-disabled-bg: var(--zinc-800);
+  --color-disabled-text: var(--zinc-400);
+  --color-disabled-border: var(--zinc-700);
   --color-sample-bg: var(--zinc-800);
   --color-sample-text: var(--zinc-200);
   --color-status-bg: var(--zinc-800);
@@ -198,10 +264,15 @@
   --auth-glow: rgb(34 211 238 / 0.16);
   --shadow-primary: 0 6px 18px rgb(34 211 238 / 0.18);
   --focus-ring: 0 0 0 3px rgb(34 211 238 / 0.3);
+  --add-bg: linear-gradient(160deg, var(--teal-300) 0%, var(--teal-600) 100%);
+  --add-text: var(--teal-950);
+  --add-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 2px 6px rgb(0 0 0 / 0.5), 0 10px 24px rgb(34 211 238 / 0.28);
 }
 
+/* "only light", not "light": a phone in dark mode (Chrome's Auto Dark Theme, MIUI and Samsung
+   force-dark) otherwise inverts the light page, so white cards turn black. */
 :root[data-theme='light'] {
-  color-scheme: light;
+  color-scheme: only light;
 }
 
 :root[data-theme='dark'] {
@@ -342,4 +413,58 @@ button,
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* ---------- Smooth everywhere (John, 2026-11-06) ----------
+   All of it is off under reduced motion (the rule near the top of this file, and the media queries
+   here). Opacity and transform only, so a low-cost phone keeps 60 fps. */
+
+/* Scrolling: an in-page jump (a link to #main, a form error scrolled into view) glides. A new page
+   still opens at its top at once (Layout's useScrollMemory scrolls with behavior: 'instant'). */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* View transitions (motion.ts): a removed card fades and shrinks a little, the others glide to their
+   new places. The page itself doesn't crossfade, so tapping a heart elsewhere looks the same as before. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(*) {
+  animation-duration: 280ms;
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(*):only-child {
+  animation: vt-out 200ms var(--ease-out) both;
+}
+
+::view-transition-new(*):only-child {
+  animation: vt-in 240ms var(--ease-out) both;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

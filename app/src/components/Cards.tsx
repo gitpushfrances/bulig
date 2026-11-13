@@ -1,5 +1,5 @@
 import { CaretRight, CheckCircle, Clock, MapPin, NavigationArrow, Phone } from '@phosphor-icons/react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { formatDate, telHref } from '../data/format.ts'
 import { placeHref } from '../data/links.ts'
@@ -98,10 +98,19 @@ export function HotlineCard({
   )
 }
 
-export function ContactCard({ contact, areaName }: { contact: EmergencyContact; areaName?: string }) {
+export function ContactCard({
+  contact,
+  areaName,
+  transition,
+}: {
+  contact: EmergencyContact
+  areaName?: string
+  // A view-transition-name (motion.ts), so the card glides when the list around it changes.
+  transition?: string
+}) {
   const Icon = KIND_ICONS[contact.kind]
   return (
-    <li className={styles.card}>
+    <li className={styles.card} style={transition ? ({ viewTransitionName: transition } as CSSProperties) : undefined}>
       <div className={styles.cardHead}>
         <div className={styles.cardHeading}>
           <h3 className={styles.cardTitle}>{contact.name}</h3>
@@ -137,16 +146,19 @@ export function ServiceCard({
   labels,
   areaName,
   km = null,
+  transition,
 }: {
   service: Service
   labels: Labels | null
   areaName?: string
   km?: number | null
+  // A view-transition-name (motion.ts), so the card glides when the list around it changes.
+  transition?: string
 }) {
   const Icon = CATEGORY_ICONS[service.category]
   const hasMap = service.lat !== undefined && service.lng !== undefined
   return (
-    <li className={styles.card}>
+    <li className={styles.card} style={transition ? ({ viewTransitionName: transition } as CSSProperties) : undefined}>
       <div className={styles.cardHead}>
         <div className={styles.cardHeading}>
           <h3 className={styles.cardTitle}>

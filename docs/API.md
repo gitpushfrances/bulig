@@ -2,7 +2,7 @@
 
 Every request the app makes, or will make once the backend exists, with its exact payload and response. Build the Laravel API (Phase 4) to match this file, and the frontend switches over without page changes.
 
-Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.0).
+Last updated: 2026-11-10 · Owner: John · Matches the frontend on `main` (v0.3.0).
 
 **Why this file exists.** Until Phase 4 the app has no server: data comes from JSON files, and accounts, saved places and profiles live on the phone (`localStorage`). Each section below says **where that lives in the frontend today** and **what the API replaces it with**, so nothing is guessed when the backend is built.
 
@@ -15,10 +15,10 @@ Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.
 1. [Conventions](#1-conventions)
 2. [All requests at a glance](#2-all-requests-at-a-glance)
 3. [Public data](#3-public-data): areas, emergency contacts, services, labels
-4. [Accounts](#4-accounts): register, login, logout, forgot and reset password, confirm a new email
+4. [Accounts](#4-accounts): register, login, logout, forgot and reset password, confirm a new email, continue with Google
 5. [Me](#5-me): profile, photo, password, delete account, change email
 6. [Saved places](#6-saved-places)
-7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health, staff requests)
+7. [Community updates](#7-community-updates-update-details) (Update details, photos, my submissions, app issues, settings, health, staff requests, becoming a Scout)
 8. [Shared objects](#8-shared-objects)
 9. [Services the app calls directly](#9-services-the-app-calls-directly-not-the-backend) (not the backend)
 10. [What moves from the phone to the server](#10-what-moves-from-the-phone-to-the-server)
@@ -37,11 +37,11 @@ Last updated: 2026-11-06 · Owner: John · Matches the frontend on `main` (v0.3.
 | Dates | `verifiedAt`, `addedAt`, `createdAt`: ISO 8601 date `"2026-10-21"`. Timestamps (`updatedAt` on envelopes, `savedAt`): ISO 8601 with `Z`. Opening hours are local `"HH:MM"`, `"24:00"` = midnight. |
 | Countries | ISO 3166-1 alpha-2, upper case: `PH`. Every public read needs `?country=`. |
 | Auth | **Laravel Sanctum personal access tokens.** Send `Authorization: Bearer <token>`. A token stops working 60 days after sign-in, however often it is used; the request then gets `401` and the app shows the login, like any other signed-out token. 🔒 in the tables = token required. Public data and Emergency never need one. |
-| Roles | `user`, `contributor`, `moderator`, `admin`. Sign-ups are always `user`. A moderator or admin makes a user a `contributor` in the admin panel; only an admin appoints moderators and admins. |
+| Roles | `user`, `contributor`, `moderator`, `admin`. Sign-ups (email or Google) are always `user`. A user can ask to become a `contributor` ([§7.9](#79-becoming-a-scout)); a moderator or admin decides, in the app or the admin panel; only an admin appoints moderators and admins. The app calls a `contributor` a **Scout** ("Bulig Scout", John 2026-11-10); the key stays `contributor`. |
 | Errors | Laravel's shape. Validation: `422 {"message": "...", "errors": {"field": ["..."]}}`. Others: `{"message": "..."}` with `401` (no or bad token), `403` (role or scope; at login, `{"message": "...", "reason": "suspended"}` for a suspended account), `404`, `409`, `429` (rate limit, with `Retry-After`). The app shows its own friendly words; `message` is for logs. |
 | Caching | Public reads: `Cache-Control: public, max-age=3600` and an `ETag`; the service worker uses NetworkFirst with a 3 s timeout, then its cache (offline still works). 🔒 responses: `Cache-Control: no-store`. |
 | CORS | Only the app's origin (`https://app.bulig.workers.dev`, later the real domain). |
-| Rate limits | Auth endpoints 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; email changes 5/hour per user; everything else 120/min per token or IP. |
+| Rate limits | Auth endpoints (including `/auth/google`) 10/min per IP and per email; submissions 10/day per user (admin-configurable); uploads 30/day per user; issues 5/day per user; email changes 5/hour per user; everything else 120/min per token or IP. |
 | Versioning | `/api/v1`. A breaking change means `/api/v2` (see [§11](#11-changing-this-contract)). The data envelopes keep `"version": 1`. |
 
 ---
@@ -80,17 +80,30 @@ The production build (`app/.env.production`) calls the API; `npm run dev` and th
 | 26 | Change email (sends a confirmation link) | `POST /me/email` | 🔒 | 4 | `requestEmailChange()` in `auth/apiStore.ts` (`pages/AccountPages.tsx`, `/profile/email`) |
 | 27 | Cancel an email change | `DELETE /me/email` | 🔒 | 4 | `cancelEmailChange()` in `auth/apiStore.ts` |
 | 28 | Confirm the new email (the link) | `POST /auth/confirm-email` | — | 4 | `pages/ConfirmEmailPage.tsx` at `/confirm-email?token=` |
-| 29 | Staff counts (dashboard, "12 to review") | `GET /staff/summary` | 🔒 staff | 4 | Not built (§7.8) |
-| 30 | Review queue | `GET /staff/submissions` | 🔒 staff | 4 | Not built (§7.8) |
-| 31 | One submission to review | `GET /staff/submissions/{id}` | 🔒 staff | 4 | Not built (§7.8) |
-| 32 | Approve ticked fields | `POST /staff/submissions/{id}/approve` | 🔒 staff | 4 | Not built (§7.8) |
-| 33 | Confirm a flag | `POST /staff/submissions/{id}/confirm` | 🔒 staff | 4 | Not built (§7.8) |
-| 34 | Reject one | `POST /staff/submissions/{id}/reject` | 🔒 staff | 4 | Not built (§7.8) |
-| 35 | Reject many | `POST /staff/submissions/reject` | 🔒 staff | 4 | Not built (§7.8) |
-| 36 | Add a place directly | `POST /staff/services` | 🔒 staff | 4 | Not built (§7.8) |
-| 37 | Mark a place checked | `POST /staff/services/{id}/verify` | 🔒 staff | 4 | Not built (§7.8) |
-| 38 | Emergency numbers due for a check | `GET /staff/emergency-contacts?due=30` | 🔒 staff | 4 | Not built (§7.8) |
-| 39 | Mark an emergency number checked | `POST /staff/emergency-contacts/{id}/verify` | 🔒 staff | 4 | Not built (§7.8) |
+| 29 | Staff counts (dashboard, "12 to review") | `GET /staff/summary` | 🔒 staff | 4 | `summary()` in `staff/api.ts` |
+| 30 | Review queue | `GET /staff/submissions` | 🔒 staff | 4 | `queue()` in `staff/api.ts` |
+| 31 | One submission to review | `GET /staff/submissions/{id}` | 🔒 staff | 4 | `submission()` in `staff/api.ts` |
+| 32 | Approve ticked fields | `POST /staff/submissions/{id}/approve` | 🔒 staff | 4 | `approve()` in `staff/api.ts` |
+| 33 | Confirm a flag | `POST /staff/submissions/{id}/confirm` | 🔒 staff | 4 | `confirm()` in `staff/api.ts` |
+| 34 | Reject one | `POST /staff/submissions/{id}/reject` | 🔒 staff | 4 | `reject()` in `staff/api.ts` |
+| 35 | Reject many | `POST /staff/submissions/reject` | 🔒 staff | 4 | `rejectMany()` in `staff/api.ts` |
+| 36 | Add a place directly | `POST /staff/services` | 🔒 staff | 4 | `addPlace()` in `staff/api.ts` |
+| 37 | Mark a place checked | `POST /staff/services/{id}/verify` | 🔒 staff | 4 | `verifyPlace()` in `staff/api.ts` |
+| 38 | Emergency numbers due for a check | `GET /staff/emergency-contacts?due=30` | 🔒 staff | 4 | `hotlines({ due: 30 })` in `staff/api.ts` |
+| 39 | Mark an emergency number checked | `POST /staff/emergency-contacts/{id}/verify` | 🔒 staff | 4 | `verifyHotline()` in `staff/api.ts` |
+| 40 | People (masked) | `GET /staff/users?q=&role=&page=` | 🔒 staff | 4 | `users()` in `staff/api.ts` (`pages/staff/ManagePage.tsx`) |
+| 41 | One person | `GET /staff/users/{id}` | 🔒 staff | 4 | `user()` in `staff/api.ts` (`pages/staff/UserPage.tsx`) |
+| 42 | Switch user ↔ contributor | `PATCH /staff/users/{id}/role` | 🔒 staff | 4 | `setRole()` in `staff/api.ts` |
+| 43 | Take down a profile photo | `DELETE /staff/users/{id}/photo` | 🔒 staff | 4 | `removePhoto()` in `staff/api.ts` |
+| 44 | Areas with counts | `GET /staff/areas` | 🔒 staff | 4 | `areas()` in `staff/api.ts` |
+| 45 | Add / edit an area | `POST /staff/areas`, `PATCH /staff/areas/{id}` | 🔒 staff | 4 | `saveArea()` in `staff/api.ts` (`pages/staff/AreaPage.tsx`) |
+| 46 | All local hotlines | `GET /staff/emergency-contacts[?area=][&level=][&due=]` | 🔒 staff | 4 | `hotlines()` in `staff/api.ts` (row 38 is the same request with `due`) |
+| 47 | Add / edit a hotline | `POST /staff/emergency-contacts`, `PATCH /staff/emergency-contacts/{id}` | 🔒 staff | 4 | `saveHotline()` in `staff/api.ts` (`pages/staff/HotlinePage.tsx`) |
+| 48 | My Scout request | `GET /me/contributor-request` | 🔒 | 4 | `myRequest()` in `contribute/scout.ts` (`pages/ScoutPage.tsx`, `/profile/scout`) |
+| 49 | Ask to become a Scout | `POST /me/contributor-request` | 🔒 | 4 | `apply()` in `contribute/scout.ts` |
+| 50 | Take back a waiting request | `DELETE /me/contributor-request` | 🔒 | 4 | `withdraw()` in `contribute/scout.ts` |
+| 51 | Decline a Scout request | `POST /staff/users/{id}/contributor-request/decline` | 🔒 staff | 4 | `declineScout()` in `staff/api.ts` (`pages/staff/UserPage.tsx`). Saying yes is row 42 |
+| 52 | Continue with Google (sign in, link or sign up) | `POST /auth/google` | — | 4 | `signInWithGoogle()` in `auth/apiStore.ts` (`components/GoogleSignIn.tsx` on `/login` and `/signup`); button only when `VITE_GOOGLE_CLIENT_ID` is set |
 
 Admin and moderator screens in Filament (`/panel`, Phase 4) are server-side and not part of this contract: places, photos, users and moderators, areas, emergency contacts, app issues, settings, activity log and the Pulse dashboard. The two jobs a moderator does on the road, the review queue and marking records checked, are also in the app, through the staff requests in [§7.8](#78-staff-requests-moderators-and-admins) (John, 2026-11-05). See [ARCHITECTURE.md, Phase 4](ARCHITECTURE.md#phase-4-backend-and-admin-v04).
 
@@ -344,6 +357,44 @@ The link from [§5.7](#57-post-meemail-)'s email. No token needed: the link may 
 
 **Errors:** `422 errors.token: ["invalid"]` for an unknown, used, cancelled or expired link (the app shows "That link has expired or was already used. Ask for a new one from Profile."), `422 errors.token: ["taken"]` if another account took that email in the meantime.
 
+### 4.7 `POST /auth/google`
+
+Added 2026-11-10 (John: "login using Google… so it's easier, and they set up their profile later"). One endpoint signs in, links, or signs up. The app uses **Google Identity Services** (the "Sign in with Google" button, popup mode): Google hands the page an **ID token** (a JWT), the app posts it here, and the server answers with a Sanctum token exactly like [§4.2](#42-post-authlogin). No redirect page, no client secret anywhere, no Google API calls after sign-in. Free.
+
+**Request**
+
+```json
+{ "idToken": "eyJhbGciOiJSUzI1NiIs…", "acceptedTerms": true, "device": "Bulig PWA" }
+```
+
+| Field | Rules |
+| --- | --- |
+| `idToken` | required. The server **must** verify it itself, never trust the app: signature against Google's keys (`https://www.googleapis.com/oauth2/v3/certs`, cached per its `Cache-Control`), `iss` is `accounts.google.com` or `https://accounts.google.com`, `aud` equals the server's `GOOGLE_CLIENT_ID`, `exp` in the future, and `email_verified` is `true`. Any failure: `422`. Use a JWT library (`firebase/php-jwt` with `CachedKeySet`, or `google/apiclient`'s `verifyIdToken`), not the `tokeninfo` endpoint (Google says it's for debugging). |
+| `acceptedTerms` | required, `true`. The app shows "By continuing with Google you agree to the Terms of Use and Privacy Policy" under the button; store the time like a sign-up. |
+| `device` | optional, names the token, as in §4.1. |
+
+**What the server does, in this order**
+
+1. **A Google account already linked** (`users.google_sub` = the token's `sub`): sign in. The email may differ now (they changed it in Bulig or at Google); `sub` is the identity, never the email.
+2. **Same email, not linked yet** (an account made with a password): **link it** (store `google_sub`, set `email_verified_at` if empty) and sign in. **Then, if that account's email had never been verified, clear its password and revoke its other tokens.** Bulig doesn't verify email at sign-up, so a stranger could have registered someone's Gmail first with a password they know ("pre-account hijacking"); without this step they would keep a way in after the real owner links Google. The person can set a new password from Profile ([§5.5](#55-put-mepassword-)) or Forgot password.
+3. **New email:** create a `user` with `name` = the token's `name` (or the part of the email before `@`, 80 characters at most), `email` lower-cased, **no password** (`hasPassword: false`), `google_sub`, `email_verified_at` now, terms accepted now. The token's `picture` is **not** copied (the photo stays the person's choice, and stays on Cloudinary). Return `"created": true`.
+
+A **suspended** account answers `403 {"reason": "suspended"}` in every case, as §4.2. Old saved hearts on the phone are sent after sign-in as with §4.2.
+
+**200** (signed in or linked) or **201** (created):
+
+```json
+{ "token": "1|q7Z…", "user": { …User (§8.1)…, "hasPassword": false, "google": true }, "created": true }
+```
+
+**Errors:** `422 {"message": "…"}` for any token that doesn't check out (the app shows "Google couldn't confirm your sign-in. Try again."), `403` suspended, `429` rate limit. A server that doesn't have this yet answers `404`; the app then says Google sign-in isn't available and points to email.
+
+**Setup (John, once, free):** Google Cloud Console → a project "Bulig" → Google Auth Platform → Branding (app name, support email, the Privacy Policy and Terms links, logo), Audience **External**, then **Clients → Create client → Web application** with **Authorized JavaScript origins** `https://app.bulig.workers.dev` and `http://localhost:5173` (no redirect URIs needed for the popup). Scopes: only `openid`, `email`, `profile` (non-sensitive, so no Google verification review). Put the client ID in Cloudflare as `VITE_GOOGLE_CLIENT_ID` (it's public by design) and on Render as `GOOGLE_CLIENT_ID`. Nothing else is secret: there is no client secret in this flow.
+
+**Known limits.** Google refuses to sign in inside app web views (Facebook, Messenger, Instagram, TikTok), with "403 disallowed_useragent". Bulig links get shared on Facebook, so the app detects those browsers and shows "Open Bulig in Chrome" with Copy the link, instead of a button that fails. The Google button is Google's own 40 px pill (their branding rules), so it sits in a 48 px row.
+
+**Facebook login: not now.** Meta's Login needs a live app with a Privacy Policy URL, a data-deletion callback, and Business Verification for anything beyond the basics, and it only works in a real browser too. Revisit when Bulig has a registered business and real users ask for it.
+
 ---
 
 ## 5. Me
@@ -386,6 +437,8 @@ Edit profile (`/profile/edit`). Send only what changed.
 
 **Request:** `{ "currentPassword": "long enough", "newPassword": "a new long one" }`
 
+An account with `hasPassword: false` (made with Google) **sets** its first password with `{ "newPassword": "…" }` only; `currentPassword` is ignored for it. Profile calls this row "Set a password". After it, `hasPassword` is `true` and the person can sign in with Google or their email and password.
+
 **204.** Other tokens are revoked; this one stays signed in. **Errors:** `422 errors.currentPassword: ["incorrect"]` ("That isn't your current password."), or a new password under 8 characters.
 
 ### 5.6 `DELETE /me` 🔒
@@ -413,6 +466,8 @@ Change email (`/profile/email`). Nothing changes until the person opens the link
 Asking again replaces the earlier link. The token is 64 random characters; the server keeps only its SHA-256 hash.
 
 **Errors:** `422 errors.newEmail: ["same"]` ("That's already your email."), `422 errors.newEmail: ["taken"]` ("That email already has an account."), `422 errors.currentPassword: ["incorrect"]` ("That isn't your current password."), `429` after 5 requests in an hour (the app shows "Too many tries. Wait an hour and try again.").
+
+An account with no password (`hasPassword: false`) gets `422 errors.currentPassword: ["incorrect"]`; the app never sends it, and asks the person to set a password first. A linked Google account keeps working after the change: it signs in by `sub`, not by email.
 
 ### 5.8 `DELETE /me/email` 🔒
 
@@ -667,9 +722,90 @@ Mark checked today. **Request:** `{ "source": "called" }`, one of `called`, `vis
 
 Local emergency numbers already hidden or hiding within `due` days (0 to 90), oldest check first, inside the caller's areas. **200:** `{ "items": [ { …EmergencyContact (§3.2)…, "hidden": true, "hidesOn": "2026-11-20" } ] }`.
 
+#### People, areas and hotlines (added 2026-11-06, John)
+
+The app's **Manage** tab: Users, Areas and Hotlines. Same policies as the panel (`UserPolicy`, `AreaPolicy`, `EmergencyContactPolicy`), so both give the same answer. Every write goes into the activity log with who did it.
+
+**No leakage.** These answers carry only what the screens show. Never: full email, mobile, home area, saved places, photo of a deleted account, tokens or another staff member's activity. The app keeps them in memory only (never `localStorage` or the offline cache) and forgets them on sign-out.
+
+##### `GET /staff/users?q=&role=&page=`
+
+`q`: 3 or more characters, matched against the name and the email (`422` if shorter). `role`: `user`, `contributor`, `moderator`, `admin`. `asked=1`: only people with a **pending** Scout request (§7.9), oldest request first. 20 per page, newest first.
+
+**200:** `{ "items": [ { "id": "usr_01JBX…", "name": "Juan Dela Cruz", "role": "contributor", "email": "ju…@gmail.com", "createdAt": "2026-10-30", "sent": 7, "asked": false } ], "nextPage": 2 }`. `email` is masked: the first two characters and the domain. `sent` = submissions they sent. `asked` = a Scout request is pending.
+
+##### `GET /staff/users/{id}`
+
+**200:** the list item plus `"approved": 5, "photoUrl": "https://…" | null, "canChangeRole": true, "canRemovePhoto": true`. `canChangeRole` is `false` for the caller themselves and for any moderator or admin. Plus `"scoutRequest": { "area": "Surok, Guiuan", "travel": ["tricycle"], "why": "Tricycle driver…" | null, "createdAt": "2026-11-10T08:00:00Z" } | null`: the **pending** Scout request only.
+
+##### `PATCH /staff/users/{id}/role`
+
+**Request:** `{ "role": "user" | "contributor" }`. Moderators may only move people between these two; admins do the rest in the panel. Setting `contributor` on someone with a pending Scout request also marks that request `approved` (with `reviewedAt` and the reviewer), in the same transaction. **200:** the `GET /staff/users/{id}` body. **403:** self, staff, or a role a moderator can't give.
+
+##### `POST /staff/users/{id}/contributor-request/decline`
+
+Says no to a pending Scout request (§7.9). **Request:** `{ "note": "We have enough Scouts in your barangay for now." }` (`note` optional, up to 200 characters; the person sees it). Sets the request `declined`, `reviewedAt` now, `canApplyAgainAt` 30 days later. Logged with the reviewer. **200:** the `GET /staff/users/{id}` body (with `scoutRequest: null`). **404:** no pending request. **403:** same rules as `PATCH …/role`.
+
+##### `DELETE /staff/users/{id}/photo`
+
+For an offensive profile photo. **204.** The person sees Ropi's head again; nothing tells others why.
+
+##### `GET /staff/areas`
+
+Every area in the caller's scope (all of them for now), as in §3.1, plus `"places": 41, "hotlines": 4, "inUse": true`. Sorted by `level` (province, city, municipality, barangay), then name.
+
+##### `POST /staff/areas` and `PATCH /staff/areas/{id}`
+
+**Request:** `{ "name": "Salcedo", "level": "province" | "city" | "municipality" | "barangay", "parent": "ph-eastern-samar" | null, "region": "Eastern Samar", "lat": 11.15, "lng": 125.66 }` (`lat`/`lng` optional, together). The server makes the ID from the parent and name and never changes it on `PATCH`. **201/200:** the area as in `GET /staff/areas`. **422:** a name already used under the same parent (`That area is already listed.`), or a parent that would make a loop. Only an admin deletes, in the panel, and only an unused area.
+
+##### `GET /staff/emergency-contacts[?area=][&level=][&due=]`
+
+Without `due`: every **local** hotline in the caller's scope, grouped by the app, sorted by area level then name. `area` = that area only; `level` = only areas of that level. With `due` it is row 38 (unchanged). Each item: the EmergencyContact (§3.2) plus `"areaName": "Guiuan", "areaLevel": "municipality", "hidden": false, "hidesOn": "2027-04-20"`. National lines (`kind: "national"`, `area: null`) are never in this list: they are admin-only, in the panel (one typo there breaks the most important button in Bulig).
+
+##### `POST /staff/emergency-contacts` and `PATCH /staff/emergency-contacts/{id}`
+
+**Request:** `{ "area": "ph-eastern-samar-guiuan", "kind": "police" | "fire" | "medical" | "rescue" | "coast_guard" | "disaster", "name": "PNP Guiuan", "phones": ["+639171234567"], "source": "Called the office", "checkedToday": true }`. 1 to 3 phones, E.164 or a short local hotline (3 to 6 digits). `checkedToday: true` sets `verifiedAt` to today; otherwise a new hotline gets today and an edit keeps its date. `area` is required (no national lines here). **201/200:** the item as in the list. **422:** field rules; `kind: national` (`National lines are changed in the panel.`). Only an admin deletes.
+
+`GET /staff/summary` also returns `"scoutRequests": 2`: pending Scout requests (§7.9). The app treats a missing key as 0.
+
 #### Waking up
 
 Render's free plan can take about a minute to wake. Staff requests have no shorter timeout: the app shows "Waking the server. This can take a minute." and waits up to 90 s before offering Try again.
+
+### 7.9 Becoming a Scout
+
+Added 2026-11-10 (John). A **Scout** ("Bulig Scout") is the app's name for the `contributor` role. A `user` asks from Profile → Become a Bulig Scout; a moderator or admin answers (§7.8: yes is `PATCH /staff/users/{id}/role` with `contributor`, no is `…/contributor-request/decline`). Nothing here changes a role by itself. One table, `contributor_requests`: `id`, `user_id`, `status` (`pending`, `approved`, `declined`), `area` (text, 120), `travel` (JSON array), `why` (text, 280, nullable), `adult_confirmed_at`, `reviewed_by`, `reviewed_at`, `review_note` (200), `created_at`. At most one `pending` row per user (a partial unique index). Deleting the account deletes its rows (RA 10173).
+
+The request object:
+
+```json
+{
+  "id": "scr_01JD…",
+  "status": "pending",
+  "area": "Surok, Guiuan",
+  "travel": ["tricycle", "motorcycle"],
+  "why": "Tricycle driver, Guiuan to Mercedes every day.",
+  "createdAt": "2026-11-10T08:00:00Z",
+  "reviewedAt": null,
+  "reviewNote": null,
+  "canApplyAgainAt": null
+}
+```
+
+`reviewNote` and `canApplyAgainAt` are only set on `declined` (30 days after `reviewedAt`). The reviewer's name is never returned.
+
+#### `GET /me/contributor-request` 🔒
+
+**200:** `{ "request": <the latest request> | null }`. `null` when they never asked, or withdrew. An `approved` request means a moderator said yes: the app then calls `GET /me` to pick up the new role.
+
+#### `POST /me/contributor-request` 🔒
+
+**Request:** `{ "area": "Surok, Guiuan", "travel": ["tricycle"], "why": "…", "agreed": true, "adult": true }`. `area` 3 to 120 characters (barangay and town; the app pre-fills Profile's home area). `travel` 1 to 7 of `motorcycle`, `tricycle`, `car`, `jeepney`, `truck`, `bicycle`, `walk`. `why` optional, up to 280. `agreed` must be `true` (the Scout rules on the page). `adult` must be `true` ("I'm 18 or older"; stored as `adult_confirmed_at`). **No birthday, no house address, no ID** (RA 10173 data minimisation: a moderator doesn't need them to decide, and a leak of them hurts people). **201:** `{ "request": … }` with `status: "pending"`.
+**409:** `{ "code": "pending" }` when one is already waiting, `{ "code": "already_contributor" }` when the role is `contributor` or above. **429:** `{ "canApplyAgainAt": "2026-12-10T08:00:00Z" }` when declined less than 30 days ago; a plain `429` (no `canApplyAgainAt`) is the rate limit, 5 an hour. **422:** field rules.
+
+#### `DELETE /me/contributor-request` 🔒
+
+Takes back a **pending** request (the row is deleted, so they can ask again at once). **204.** **404:** nothing pending (answered, or already taken back).
 
 ---
 
@@ -688,13 +824,17 @@ Render's free plan can take about a minute to wake. Staff requests have no short
   "phone": "+639171234567",
   "homeArea": "Surok, Guiuan, Eastern Samar",
   "photoUrl": null,
-  "pendingEmail": null
+  "pendingEmail": null,
+  "hasPassword": true,
+  "google": false
 }
 ```
 
+`hasPassword` is `false` for an account made with Google that never set a password ([§4.7](#47-post-authgoogle), [§5.5](#55-put-mepassword-)); `google` is `true` once a Google account is linked. Both were added 2026-11-10; the app reads a missing `hasPassword` as `true`.
+
 `pendingEmail` is the address waiting for confirmation ([§5.7](#57-post-meemail-)), or `null`. It turns back to `null` when the link is used, cancelled or expires.
 
-Matches `Account` in `app/src/auth/types.ts`, except `photo` (a data URL on the phone today) becomes `photoUrl`. `areas` lists a moderator's area IDs (each covers the areas inside it); empty for users and admins. Until area assignment ships it is `[]` for everyone, and an empty list on a moderator means the whole country. Never returned: password hashes, tokens, deleted state.
+Matches `Account` in `app/src/auth/types.ts`, except `photo` (a data URL on the phone today) becomes `photoUrl`. `areas` lists a moderator's area IDs (each covers the areas inside it); empty for users and admins. Until area assignment ships it is `[]` for everyone, and an empty list on a moderator means the whole country. Never returned: password hashes, tokens, `google_sub`, deleted state.
 
 ### 8.2 Envelope, Area, EmergencyContact, Service, Labels
 
@@ -740,6 +880,9 @@ If traffic grows past fair use: self-host OSRM with a Philippines extract and No
 | `bulig.drafts.new-place.<email>` | An unsent Add a place form (upload IDs and small previews, not the photos) | Stays on the phone until sent |
 | `bulig.updatesSeen.<email>` | Which answers in My updates the person has seen, for the bell | Stays on the phone |
 | `bulig.localSubmissions` | Dev and tests only: new places sent with no backend | Not in the API build |
+| `bulig.finishProfile.<email>` | "Finish your profile" on Home was closed (Profile still shows it until a photo or home area is added) | Stays on the phone |
+| `bulig.traveller.<email>` | Staff only: "Use the app as: Traveller" (everyday tabs back) | Stays on the phone; holds no data |
+| Staff snapshots (`staff/snapshot.ts`) | The last copy of the queue, people, areas and hotlines, so screens open at once | **Memory only**, never stored; dropped on sign-out or another sign-in |
 
 Only `AuthProvider` (`app/src/auth/`) and the data source (`app/src/data/`) change; pages keep calling `useAuth()` and `useAppData()`.
 

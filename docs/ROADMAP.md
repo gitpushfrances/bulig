@@ -284,6 +284,17 @@ Pick features based on what pilot users actually asked for, not on this list. Ca
 
 ---
 
+## Nice to have (parked)
+
+Ideas John wants kept, but not built now. Each needs a reason to come back (a real problem it solves) and must still pass the ground rules: free services, RA 10173, nothing near Emergency.
+
+- **Stronger Scout checks** (John, 2026-11-10). Today a Scout is trusted because every submission waits for a moderator (UI-UX.md, Become a Bulig Scout). Parked options, cheapest first:
+  1. **Probation** (recommended first, free, no personal data): a new Scout's first 10 places get extra checks; under 50% approved puts them back to User automatically.
+  2. **Driver's licence photo**, seen once by a moderator and deleted after 7 days. Needs, before it ships: a named Data Protection Officer, a Privacy Policy update, encrypted storage that isn't the public photo bucket, and an NPC-ready breach plan. A licence number is *sensitive* personal information under RA 10173. Also shuts out Scouts who don't drive (passengers, vendors, people on foot).
+  3. **Face match to the ID (KYC)**: only through a paid vendor (about ₱5 to ₱30 a check), which breaks the free-only rule; a free on-phone face check is fooled by a printed photo. Face data is treated as sensitive too. Only if Scouts ever get rights that skip moderation.
+
+---
+
 ## What to do when you finish a ticket
 
 1. Merge the pull request, then confirm CI is green and the Cloudflare deploy succeeded.

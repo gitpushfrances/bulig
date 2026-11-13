@@ -276,3 +276,70 @@
   color: var(--color-sample-text);
   font-size: 0.875rem;
 }
+
+/* ---------- Continue with Google (API.md §4.7) ---------- */
+
+.google {
+  display: grid;
+  gap: 12px;
+}
+
+/* Google draws its own 40px pill (its branding rules); the slot keeps the space so nothing jumps. */
+.googleSlot {
+  position: relative;
+  display: grid;
+  min-height: 48px;
+  place-items: center;
+}
+
+.googleButton {
+  display: flex;
+  width: 100%;
+  max-width: 400px;
+  justify-content: center;
+  color-scheme: normal;
+}
+
+.googleBusy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+}
+
+.small {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.small a {
+  color: var(--color-primary-text);
+  font-weight: 600;
+}
+
+/* Facebook, Messenger and other in-app browsers: Google refuses to sign in there. */
+.inApp {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.inApp p {
+  margin: 0;
+}
+
+.inApp .link {
+  justify-self: start;
+  color: var(--color-info);
+  font-weight: 600;
+}

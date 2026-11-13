@@ -82,7 +82,7 @@
 }
 
 .pending {
-  color: #b45309;
+  color: var(--color-warning);
 }
 
 .approved,
@@ -95,13 +95,13 @@
 }
 
 .pill_pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .pill_approved {
   background: var(--color-checked);
-  color: #ffffff;
+  color: var(--color-on-checked);
 }
 
 .pill_partly_approved {
@@ -112,22 +112,4 @@
 .pill_rejected {
   background: var(--color-status-bg);
   color: var(--color-status-text);
-}
-
-@media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme='light'])) .pending {
-    color: #fbbf24;
-  }
-
-  :global(:root:not([data-theme='light'])) .pill_approved {
-    color: #052e16;
-  }
-}
-
-:global(:root[data-theme='dark']) .pending {
-  color: #fbbf24;
-}
-
-:global(:root[data-theme='dark']) .pill_approved {
-  color: #052e16;
 }

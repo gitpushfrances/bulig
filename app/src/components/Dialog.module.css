@@ -1,0 +1,66 @@
+/* A floating dialog: dimmed page, a centred card that rises and fades in (Dialog.tsx). */
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: max(16px, env(safe-area-inset-top, 0px)) var(--gutter) max(16px, env(safe-area-inset-bottom, 0px));
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(9 9 11 / 0.55);
+  color: var(--color-text);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: dialog-dim 200ms var(--ease-out);
+}
+
+/* showModal draws its own backdrop; the dialog's own background already dims, so hide it. */
+.dialog::backdrop {
+  background: transparent;
+}
+
+.dialog:not([open]) {
+  display: none;
+}
+
+.card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 24rem;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow:
+    var(--card-highlight),
+    var(--shadow-raised);
+  text-align: center;
+  animation: dialog-rise 240ms var(--ease-out);
+}
+
+.title {
+  outline: none;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+@keyframes dialog-dim {
+  from {
+    background: rgb(9 9 11 / 0);
+  }
+}
+
+@keyframes dialog-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}

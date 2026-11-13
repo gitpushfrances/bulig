@@ -132,10 +132,15 @@ export async function themedStyle(mode: 'light' | 'dark', signal?: AbortSignal):
   return style
 }
 
+// Layers the app adds on top of the style (the route line, the Nearby ring). They carry their own
+// colours, so a theme change must not repaint them as roads or land.
+export const OWN_LAYER = /^(route-|nearby-ring-)/
+
 // Recolours every layer of the style by what it draws, on a theme change while the map is open.
 export function applyMapTheme(map: MapLibreMap, mode: 'light' | 'dark') {
   const p = PALETTES[mode]
   for (const layer of map.getStyle().layers ?? []) {
+    if (OWN_LAYER.test(layer.id)) continue
     const { paint, hidden } = themeLayer(layer, p)
     if (hidden) {
       map.setLayoutProperty(layer.id, 'visibility', 'none')

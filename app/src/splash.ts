@@ -2,7 +2,7 @@
 // stays at least MIN_VISIBLE_MS from then, so on a slow network (the HTML arriving late) it is still
 // seen, and on a fast one it doesn't blink. Then it fades out (index.html, "splash-out").
 const MIN_VISIBLE_MS = 700
-const FADE_MS = 200
+const FADE_MS = 320
 
 let resolveGone: () => void = () => {}
 const gone = new Promise<void>((resolve) => {

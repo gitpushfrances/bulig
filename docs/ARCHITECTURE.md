@@ -210,7 +210,8 @@ Roles, scopes and the sign-in phases are in [WORKFLOW.md](WORKFLOW.md#roles). In
 
 - **Now (test UI):** everything except Emergency needs an account (John, 2026-10-30). Three test logins (`test@`, `moderator@`, `admin@bulig.com`) plus accounts made on the phone (`auth/localAccounts.ts`, salted SHA-256 hash). No guest mode (removed 2026-11-04); `/emergency` is open without an account. Not security: it goes when Phase 4 sign-in lands.
 - **Phase 4:** real accounts on the API with Sanctum tokens: register, login, logout, forgot and reset password, `/me` (profile, photo, password, delete) and `/me/saved`. Every request and payload is in [API.md](API.md). Admins and moderators also sign in to Filament.
-- **Phase 5:** Google sign-in (Socialite), business owners claiming listings, in-app reports (`POST /submissions`).
+- **Phase 4 (moved up 2026-11-10):** Continue with Google: a Google ID token checked on the server, no Socialite and no redirect ([API.md §4.7](API.md#47-post-authgoogle)).
+- **Phase 5:** business owners claiming listings, in-app reports (`POST /submissions`).
 - Emergency Help never needs an account, in any phase.
 
 **Roles from Phase 4.** Roles live on the server as data (`spatie/laravel-permission`), so adding one later (owner, LGU partner, regional lead) is a new row with a set of permissions, not new code. The app's `can()` keeps working from the `role` the API returns.
@@ -336,7 +337,7 @@ A moderator's own edits go live straight away but are written to the activity lo
 | --- | --- |
 | Update details | Built in Phase 4 (`POST /api/v1/submissions`, [API.md §7](API.md#7-community-updates-update-details)); here only the extras: guest reports without an account. Protected by Cloudflare Turnstile (free), a honeypot field, and Laravel rate limiting (5 per hour per IP). `<ReportButton>` already posts here from Phase 4. |
 | Hazard reports | Submission `type: 'hazard'` with `{ kind: flood \| landslide \| road_closed, lat, lng, note }`. Approving it creates a row in `hazards(id, kind, location, country, area, expires_at, approved_at)`. Default expiry is 24 hours for floods and 72 hours for landslides and closures. `GET /api/v1/hazards?country=&area=` returns approved, unexpired rows only, as an additive contract (`hazards.schema.json`). Shown as a banner on Services and as pins on the Map. |
-| Owner accounts | Google sign-in through Laravel Socialite, issuing a Sanctum **token** (not a cookie, because the `workers.dev` app and the API host are different domains). The owner sends `type: 'claim'`. You confirm it by calling the shop's listed number. Approved owners send `type: 'owner_edit'` for hours and phone, and those are still reviewed. |
+| Owner accounts | Email or Google sign-in (the Phase 4 `POST /auth/google`), issuing a Sanctum **token** (not a cookie, because the `workers.dev` app and the API host are different domains). The owner sends `type: 'claim'`. You confirm it by calling the shop's listed number. Approved owners send `type: 'owner_edit'` for hours and phone, and those are still reviewed. |
 | Privacy and abuse | Store a salted hash of the IP, never the IP itself, and delete it after 30 days. Delete resolved submissions after 180 days. Add a "Report this" link on hazards. Publish a privacy notice per country served: Data Privacy Act (RA 10173) for the Philippines first, GDPR before any EU area. Notices are per-country files, like `labels.json`. |
 
 **Connects to:** spine 3 (it adds an endpoint to the `submissions` table Phase 4 built; it's still the same review queue), and spine 4 (identity for owners only).

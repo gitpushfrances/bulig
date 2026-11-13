@@ -73,6 +73,10 @@ export function saveDraft(email: string, draft: Draft | null): void {
   writeSaved(draftKey(email), draft ? JSON.stringify(draft) : null)
 }
 
+export function forgetDraft(email: string): void {
+  saveDraft(email, null)
+}
+
 export const MAX_PHOTOS = 3
 export const LANDMARK_MAX = 120
 export const NAME_MAX = 80

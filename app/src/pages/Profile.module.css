@@ -192,24 +192,21 @@ button.row:active {
 
 /* ---------- Danger zone ---------- */
 
-.danger {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
+/* Delete account's floating confirm (Dialog.tsx): the field fills the card, the buttons stack full
+   width, and the safe choice (Keep my account) sits last, nearest the thumb. */
+.dialogField {
+  width: 100%;
+  text-align: left;
 }
 
-.dangerTitle {
-  font-family: var(--font-body);
-  font-size: 1rem;
-  font-weight: 700;
+.dialogActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
 .dangerButton {
-  align-self: flex-start;
   border-color: var(--color-error) !important;
   color: var(--color-error) !important;
 }
@@ -306,24 +303,7 @@ button.row:active {
   flex-basis: 100%;
 }
 
-/* Picked a photo: a big preview and a clear choice before it replaces the current one. */
-.photoConfirm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card, 16px);
-  background: var(--color-surface);
-  text-align: center;
-}
-
-.photoConfirmTitle {
-  font-size: 1.125rem;
-  font-weight: 700;
-}
-
+/* Picked a photo: a big preview in a floating dialog (Dialog.tsx) before it replaces the current one. */
 .photoBig {
   display: block;
   width: 132px;

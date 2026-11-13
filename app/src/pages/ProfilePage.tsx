@@ -1,12 +1,17 @@
 import BackButton from '../components/BackButton.tsx'
-import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, Trash, UserGear } from '@phosphor-icons/react'
+import { Binoculars, DownloadSimple, EnvelopeSimple, FileText, Globe, GoogleLogo, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
-import { ROLE_LABELS } from '../auth/types.ts'
+import { ROLE_LABELS, SCOUT } from '../auth/types.ts'
+import { knownScoutRequest } from '../contribute/scout.ts'
 import { can } from '../rules/permissions.ts'
+import { setTravellerMode, useTravellerMode } from '../staff/mode.ts'
 import { TextField } from '../components/Fields.tsx'
 import Avatar from '../components/Avatar.tsx'
+import FinishProfile from '../components/FinishProfile.tsx'
+import Dialog from '../components/Dialog.tsx'
+import { BusyContent } from '../components/Spinner.tsx'
 import { SettingsButton, SettingsGroup, SettingsInfo, SettingsLink } from '../components/Settings.tsx'
 import { useAppData } from '../data/context.ts'
 import { homeAreaText } from '../auth/homeArea.ts'
@@ -52,62 +57,75 @@ function DeleteAccount() {
   const [typed, setTyped] = useState('')
 
   const [failed, setFailed] = useState(false)
+  const [busy, setBusy] = useState(false)
 
   // Kept out of the way (John, 2026-11-05) but never removed: Google Play and RA 10173 need an
-  // in-app delete. A quiet link at the very bottom; the warning and confirm open only on tap.
+  // in-app delete. A quiet link at the very bottom; the warning and confirm float over the page on
+  // tap (2026-11-06), so the bottom of Profile stays clean and nothing jumps.
   if (!canManage) return null
-  if (!open) {
-    return (
-      <button type="button" className={styles.deleteLink} onClick={() => setOpen(true)}>
-        Delete account
-      </button>
-    )
+  const close = () => {
+    setOpen(false)
+    setTyped('')
+    setFailed(false)
   }
 
   return (
-    <div className={styles.danger}>
-      <h2 className={styles.dangerTitle}>Delete account</h2>
-      <p className={page.hint}>
-        {accountsOnline
-          ? 'Deletes your account and saved places from Bulig. This can\u2019t be undone.'
-          : 'Removes your account, saved places and details from this phone. This can\u2019t be undone.'}
-      </p>
-      <TextField
-        label='Type "delete" to confirm'
-        autoComplete="off"
-        autoCapitalize="none"
-        value={typed}
-        onChange={setTyped}
-      />
-      {failed && (
-        <p className={page.error} role="alert">
-          Couldn&apos;t delete your account. Check your connection and try again.
+    <>
+      <button type="button" className={styles.deleteLink} onClick={() => setOpen(true)}>
+        Delete account
+      </button>
+      <Dialog open={open} title="Delete your account?" busy={busy} onClose={close}>
+        <p className={page.hint}>
+          {accountsOnline
+            ? 'Deletes your account and saved places from Bulig. This can\u2019t be undone.'
+            : 'Removes your account, saved places and details from this phone. This can\u2019t be undone.'}
         </p>
-      )}
-      <div className={page.actions}>
-        <button type="button" className={page.secondary} onClick={() => setOpen(false)}>
-          Keep my account
-        </button>
-        <button
-          type="button"
-          className={`${page.secondary} ${styles.dangerButton}`}
-          disabled={typed.trim().toLowerCase() !== 'delete'}
-          onClick={async () => {
-            setFailed(false)
-            if (await deleteAccount()) navigate('/login', { replace: true })
-            else setFailed(true)
-          }}
-        >
-          <Trash size={18} aria-hidden="true" />
-          Delete account
-        </button>
-      </div>
-    </div>
+        <div className={styles.dialogField}>
+          <TextField
+            label='Type "delete" to confirm'
+            autoComplete="off"
+            autoCapitalize="none"
+            value={typed}
+            onChange={setTyped}
+          />
+        </div>
+        {failed && (
+          <p className={page.error} role="alert">
+            Couldn&apos;t delete your account. Check your connection and try again.
+          </p>
+        )}
+        <div className={styles.dialogActions}>
+          <button
+            type="button"
+            className={`${page.secondary} ${styles.dangerButton}`}
+            disabled={busy || typed.trim().toLowerCase() !== 'delete'}
+            aria-busy={busy}
+            onClick={async () => {
+              setFailed(false)
+              setBusy(true)
+              const ok = await deleteAccount()
+              setBusy(false)
+              if (ok) navigate('/login', { replace: true })
+              else setFailed(true)
+            }}
+          >
+            <BusyContent busy={busy} busyLabel="Deleting your account…">
+              <Trash size={18} aria-hidden="true" />
+              Delete account
+            </BusyContent>
+          </button>
+          <button type="button" className={page.primaryButton} disabled={busy} onClick={close}>
+            Keep my account
+          </button>
+        </div>
+      </Dialog>
+    </>
   )
 }
 
 export default function ProfilePage() {
   const { account, signOut, saved } = useAuth()
+  const traveller = useTravellerMode(account?.email)
   const { data } = useAppData()
   const navigate = useNavigate()
   const { choice } = useTheme()
@@ -141,9 +159,16 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      <FinishProfile account={account} />
+
       <SettingsGroup title="Account">
         <SettingsLink to="/profile/edit" icon={UserGear} label="Edit profile" />
-        <SettingsLink to="/profile/password" icon={Key} label="Change password" />
+        {account.google && <SettingsInfo icon={GoogleLogo} label="Google sign-in" value="On" />}
+        {account.hasPassword === false ? (
+          <SettingsLink to="/profile/password" icon={Key} label="Set a password" value="Optional" />
+        ) : (
+          <SettingsLink to="/profile/password" icon={Key} label="Change password" />
+        )}
         <SettingsLink
           to="/profile/email"
           icon={EnvelopeSimple}
@@ -160,7 +185,32 @@ export default function ProfilePage() {
         {homeArea && <SettingsInfo icon={MapPin} label="Home area" value={homeArea} />}
       </SettingsGroup>
 
+      {account.role === 'user' && (
+        <SettingsGroup title="Community">
+          {/* John, 2026-11-10: regular users ask to become a Scout (the contributor role). */}
+          <SettingsLink
+            to="/profile/scout"
+            icon={Binoculars}
+            label={`Become a ${SCOUT}`}
+            value={knownScoutRequest(account.email)?.status === 'pending' ? 'Waiting' : undefined}
+          />
+        </SettingsGroup>
+      )}
+
       <SettingsGroup title="Preferences">
+        {can(account, 'review') && (
+          <SettingsInfo icon={SteeringWheel} label="Use the app as">
+            {/* Staff get Review and Manage; a drive needs Services and Saved back (John, 2026-11-06). */}
+            <div className={styles.switch} role="group" aria-label="Use the app as">
+              <button type="button" aria-pressed={!traveller} onClick={() => setTravellerMode(account.email, false)}>
+                Staff
+              </button>
+              <button type="button" aria-pressed={traveller} onClick={() => setTravellerMode(account.email, true)}>
+                Traveller
+              </button>
+            </div>
+          </SettingsInfo>
+        )}
         <SettingsInfo icon={Palette} label="Appearance">
           <div className={styles.switch} role="group" aria-label="Appearance">
             {THEMES.map((t) => (

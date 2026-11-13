@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { smoothly } from '../motion.ts'
 import { readSaved, writeSaved } from '../data/storage.ts'
 import { appAccounts } from './appAccounts.ts'
+import { forgetOnSignOut } from './forgetOnSignOut.ts'
+import { forgetFinishProfile } from './finishProfile.ts'
 import { AuthContext } from './context.ts'
 import type { SavedStatus, UpdateProfileResult } from './context.ts'
 import type { AccountStore, NewAccount, SaveResult, SetPhotoResult } from './store.ts'
@@ -214,6 +217,12 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     return result
   }
 
+  const signInWithGoogle = async (idToken: string) => {
+    const result = await store.signInWithGoogle(idToken)
+    if (result.ok) start(result.account)
+    return result
+  }
+
   const register = async (details: NewAccount) => {
     const result = await store.register(details)
     if (result.ok) start(result.account)
@@ -224,7 +233,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     if (account) {
       writeSaved(savedCacheKey(account.email), null)
       writeSaved(outboxKey(account.email), null)
+      // A server account's profile copy is only a photo that didn't upload; a phone-only account's
+      // is the account itself, so it stays.
+      if (store.online) writeSaved(profileKey(account.email), null)
       outbox.current = { email: null, ops: {} }
+      forgetOnSignOut(account.email)
     }
     void store.signOut()
     setAccount(null)
@@ -262,8 +275,13 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     return photoFailed ? { photo: photoFailed } : ('ok' as const)
   }
 
-  const changePassword = (current: string, next: string) =>
-    account ? store.changePassword(account, current, next) : Promise.resolve('wrong' as const)
+  const changePassword = async (current: string, next: string) => {
+    if (!account) return 'wrong' as const
+    const result = await store.changePassword(account, current, next)
+    // A Google account that just set its first password can now change its email too.
+    if (result === 'ok' && account.hasPassword === false) setAccount({ ...account, hasPassword: true })
+    return result
+  }
 
   const requestEmailChange = async (newEmail: string, password: string) => {
     if (!account) return { ok: false as const, reason: 'offline' as const }
@@ -292,8 +310,11 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
   const deleteAccount = async () => {
     if (!account || !(await store.deleteAccount(account))) return false
     writeSaved(profileKey(account.email), null)
+    forgetFinishProfile(account.email)
     writeSaved(savedCacheKey(account.email), null)
     writeSaved(outboxKey(account.email), null)
+    outbox.current = { email: null, ops: {} }
+    forgetOnSignOut(account.email)
     setAccount(null)
     return true
   }
@@ -304,7 +325,8 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
     if (!account) return
     const on = !saved.includes(id)
     const next = on ? [...saved, id] : saved.filter((s) => s !== id)
-    setSaved(() => next)
+    // On Saved, the card fades out and the rest glide up (motion.ts).
+    smoothly(() => setSaved(() => next))
     const tap = { n: (taps.current.at(-1)?.n ?? 0) + 1, id, on }
     taps.current = [...taps.current.slice(-49), tap]
     ops(account.email)[id] = on
@@ -320,8 +342,14 @@ export default function AuthProvider({ children, store = appAccounts }: { childr
       value={{
         account,
         signIn,
+        signInWithGoogle,
         register,
         signOut,
+        refreshAccount: async () => {
+          const fresh = await store.refresh()
+          if (fresh === undefined) return
+          setAccount((current) => (fresh === null ? null : current && current.email === fresh.email ? withDetails(fresh, store) : current))
+        },
         updateProfile,
         changePassword,
         requestEmailChange,

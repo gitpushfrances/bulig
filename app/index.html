@@ -6,7 +6,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Bulig: road help and local services wherever you travel. Checked emergency numbers, mechanics, tire repair, fuel and food." />
-    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#f4f7f5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
     <!-- Installed to the home screen, Bulig opens full screen like an app, with no browser bar. -->
@@ -16,14 +16,21 @@
     <meta name="apple-mobile-web-app-title" content="Bulig" />
     <script>
       // The saved theme (Profile > Appearance), applied before the first paint. See src/theme.ts.
+      // Light unless the person picked Dark, or System to follow the phone.
       try {
         var t = localStorage.getItem('bulig.theme')
-        if (t === 'light' || t === 'dark') {
+        if (t !== 'system') {
+          t = t === 'dark' ? 'dark' : 'light'
           document.documentElement.setAttribute('data-theme', t)
-          var c = t === 'dark' ? '#09090b' : '#fafafa'
+          // "only light" stops a dark-mode phone from force-darkening the light page.
+          document.querySelector('meta[name=color-scheme]').setAttribute('content', t === 'dark' ? 'dark' : 'only light')
+          var c = t === 'dark' ? '#09090b' : '#f4f7f5'
           document.querySelectorAll('meta[name=theme-color]').forEach(function (m) { m.setAttribute('content', c) })
         }
-      } catch (e) {}
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light')
+        document.querySelector('meta[name=color-scheme]').setAttribute('content', 'only light')
+      }
 
       // The splash shows once per launch, and never in front of Emergency: a link to /emergency
       // opens straight to it. Decided here, before the splash can paint.
@@ -41,11 +48,15 @@
     <!-- The splash: painted with the HTML, before any script, so opening Bulig never shows a blank
          screen. src/splash.ts fades it out once the app has drawn. See docs/UI-UX.md, "Splash". -->
     <style>
+      /* One colour in every theme (John, 2026-11-06): the same near-black as the manifest's
+         background_color, which Android paints (with the icon) before this page even exists. A
+         themed splash flashed white, then black, on a phone in dark mode; a manifest can only hold
+         one colour, so the splash follows it, and fades into the app's own theme. */
       #splash {
-        --splash-bg: #fafafa;
-        --splash-text: #18181b;
-        --splash-muted: #52525b;
-        --splash-brand: #016982;
+        --splash-bg: #09090b;
+        --splash-text: #fafafa;
+        --splash-muted: #a1a1aa;
+        --splash-brand: #22d3ee;
         position: fixed;
         inset: 0;
         z-index: 100;
@@ -62,20 +73,6 @@
       }
       .no-splash #splash {
         display: none;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme='light']) #splash {
-          --splash-bg: #09090b;
-          --splash-text: #fafafa;
-          --splash-muted: #a1a1aa;
-          --splash-brand: #22d3ee;
-        }
-      }
-      :root[data-theme='dark'] #splash {
-        --splash-bg: #09090b;
-        --splash-text: #fafafa;
-        --splash-muted: #a1a1aa;
-        --splash-brand: #22d3ee;
       }
       /* The logo is inline (about 3 kB, no request): the pin drops onto the road and settles, its
          shadow grows under it, then the name and tagline rise in. CSS only, no animation library:
@@ -119,7 +116,7 @@
       }
       #splash.splash-out {
         pointer-events: none;
-        animation: splash-out 200ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        animation: splash-out 320ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
       }
       @keyframes splash-in {
         from {
@@ -150,10 +147,19 @@
           transform: scaleX(1.08);
         }
       }
+      /* The logo lifts away a touch as the splash fades, so the app comes up from under it. */
       @keyframes splash-out {
         to {
           opacity: 0;
         }
+      }
+      #splash.splash-out .splash-mark,
+      #splash.splash-out p {
+        transition:
+          transform 320ms cubic-bezier(0.23, 1, 0.32, 1),
+          opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
+        transform: translateY(-8px) scale(0.98);
+        opacity: 0;
       }
       @keyframes splash-gone {
         to {

@@ -9,6 +9,9 @@ export interface PlacedAddress extends Position {
   at: number // ms since epoch of the lookup
 }
 
+// The last address looked up, kept on the phone for a fast start. Cleared on sign-out.
+export const ADDRESS_KEY = 'bulig.address'
+
 // Reverse geocoding (position to address) by OpenStreetMap's Nominatim: free, no key, any country.
 // Its usage policy allows light use: one request at a time, cached, not repeated for small moves.
 const ENDPOINT = 'https://nominatim.openstreetmap.org/reverse'

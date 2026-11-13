@@ -1,9 +1,10 @@
 import { Camera, Check, FloppyDisk, Trash } from '@phosphor-icons/react'
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
 import { toAvatar } from '../auth/photo.ts'
 import BackButton from '../components/BackButton.tsx'
+import Dialog from '../components/Dialog.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { useAppData } from '../data/context.ts'
@@ -113,10 +114,10 @@ export function EditProfilePage() {
       )
   }
 
-  const pickPhoto = (
+  const pickPhoto = (label: string) => (
     <label className={page.secondary}>
       <Camera size={18} aria-hidden="true" />
-      {photoStep.kind === 'preview' ? 'Choose another' : photo ? 'Change photo' : 'Add a photo'}
+      {label}
       <input
         type="file"
         accept="image/*"
@@ -142,87 +143,106 @@ export function EditProfilePage() {
       title="Edit profile"
       lead={accountsOnline ? 'Saved to your account, so it follows you to any phone.' : 'This stays on this phone until accounts move online.'}
     >
-      {photoStep.kind === 'preview' ? (
-        <section className={styles.photoConfirm} aria-labelledby="photo-confirm-title">
-          <h2 id="photo-confirm-title" className={styles.photoConfirmTitle}>
-            Use this photo?
-          </h2>
-          <span className={styles.photoBig}>
-            <img src={photoStep.photo} alt="Your new profile photo" className={styles.photoImg} />
-          </span>
-          <p className={page.hint}>It shows on Home and your Profile.</p>
-          <div className={styles.photoConfirmActions}>
-            <button
-              type="button"
-              className={page.primaryButton}
-              disabled={photoBusy}
-              aria-busy={photoBusy}
-              onClick={() => savePhoto(photoStep.photo)}
-            >
-              <BusyContent busy={photoBusy} busyLabel="Saving your photo…">
-                <Check size={18} aria-hidden="true" />
-                Use this photo
-              </BusyContent>
+      <div className={styles.photoRow}>
+        <span className={styles.photoPreview} aria-hidden="true">
+          <img src={photo ?? '/assets/mascot/ropi-head.webp'} alt="" className={photo ? styles.photoImg : styles.photoRopi} />
+        </span>
+        <div className={styles.photoActions}>
+          {pickPhoto(photo ? 'Change photo' : 'Add a photo')}
+          {photo && (
+            <button type="button" className={page.secondary} onClick={() => setPhotoStep({ kind: 'remove' })}>
+              <Trash size={18} aria-hidden="true" />
+              Remove
             </button>
-            {pickPhoto}
-            <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
-              Cancel
-            </button>
-          </div>
-          {photoNote && !photoNote.ok && (
-            <p className={page.error} role="alert">
+          )}
+          {photoNote ? (
+            <p className={photoNote.ok ? styles.done : page.error} role={photoNote.ok ? 'status' : 'alert'}>
               {photoNote.text}
             </p>
+          ) : (
+            <p className={page.hint}>
+              {photo ? 'Shown on Home and your Profile.' : 'Until you add one, Ropi stands in on Profile and your initials on Home.'}
+            </p>
           )}
-        </section>
-      ) : (
-        <div className={styles.photoRow}>
-          <span className={styles.photoPreview} aria-hidden="true">
-            <img src={photo ?? '/assets/mascot/ropi-head.webp'} alt="" className={photo ? styles.photoImg : styles.photoRopi} />
-          </span>
-          <div className={styles.photoActions}>
-            {photoStep.kind === 'remove' ? (
-              <>
-                <p className={page.hint}>Remove your photo? Your initials show instead.</p>
-                <button
-                  type="button"
-                  className={page.primaryButton}
-                  disabled={photoBusy}
-                  aria-busy={photoBusy}
-                  onClick={() => savePhoto(undefined)}
-                >
-                  <BusyContent busy={photoBusy} busyLabel="Removing your photo…">
-                    Remove photo
-                  </BusyContent>
-                </button>
-                <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
-                  Keep it
-                </button>
-              </>
-            ) : (
-              <>
-                {pickPhoto}
-                {photo && (
-                  <button type="button" className={page.secondary} onClick={() => setPhotoStep({ kind: 'remove' })}>
-                    <Trash size={18} aria-hidden="true" />
-                    Remove
-                  </button>
-                )}
-                {!photoNote && (
-                  <p className={page.hint}>
-                    {photo ? 'Shown on Home and your Profile.' : 'Until you add one, Ropi stands in on Profile and your initials on Home.'}
-                  </p>
-                )}
-              </>
-            )}
-            {photoNote && (
-              <p className={photoNote.ok ? styles.done : page.error} role={photoNote.ok ? 'status' : 'alert'}>
+        </div>
+      </div>
+
+      {/* Confirms float over the page (John, 2026-11-06), so the form below never jumps. */}
+      <Dialog
+        open={photoStep.kind === 'preview'}
+        title="Use this photo?"
+        busy={photoBusy}
+        onClose={() => {
+          setPhotoStep({ kind: 'idle' })
+          setPhotoNote(null)
+        }}
+      >
+        {photoStep.kind === 'preview' && (
+          <>
+            <span className={styles.photoBig}>
+              <img src={photoStep.photo} alt="Your new profile photo" className={styles.photoImg} />
+            </span>
+            <p className={page.hint}>It shows on Home and your Profile.</p>
+            {photoNote && !photoNote.ok && (
+              <p className={page.error} role="alert">
                 {photoNote.text}
               </p>
             )}
-          </div>
+            <div className={styles.photoConfirmActions}>
+              <button
+                type="button"
+                className={page.primaryButton}
+                disabled={photoBusy}
+                aria-busy={photoBusy}
+                onClick={() => savePhoto(photoStep.photo)}
+              >
+                <BusyContent busy={photoBusy} busyLabel="Saving your photo…">
+                  <Check size={18} aria-hidden="true" />
+                  Use this photo
+                </BusyContent>
+              </button>
+              {pickPhoto('Choose another')}
+              <button
+                type="button"
+                className={page.secondary}
+                disabled={photoBusy}
+                onClick={() => {
+                  setPhotoStep({ kind: 'idle' })
+                  setPhotoNote(null)
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </Dialog>
+
+      <Dialog open={photoStep.kind === 'remove'} title="Remove your photo?" busy={photoBusy} onClose={() => setPhotoStep({ kind: 'idle' })}>
+        <p className={page.hint}>Your initials show on Home instead, and Ropi on your Profile.</p>
+        {photoNote && !photoNote.ok && (
+          <p className={page.error} role="alert">
+            {photoNote.text}
+          </p>
+        )}
+        <div className={styles.photoConfirmActions}>
+          <button
+            type="button"
+            className={page.primaryButton}
+            disabled={photoBusy}
+            aria-busy={photoBusy}
+            onClick={() => savePhoto(undefined)}
+          >
+            <BusyContent busy={photoBusy} busyLabel="Removing your photo…">
+              <Trash size={18} aria-hidden="true" />
+              Remove photo
+            </BusyContent>
+          </button>
+          <button type="button" className={page.secondary} disabled={photoBusy} onClick={() => setPhotoStep({ kind: 'idle' })}>
+            Keep it
+          </button>
         </div>
-      )}
+      </Dialog>
 
       <form className={styles.form} onSubmit={submit} noValidate>
         <TextField
@@ -294,7 +314,9 @@ export function EditProfilePage() {
 }
 
 export function ChangePasswordPage() {
-  const { canManage, changePassword } = useAuth()
+  const { account, canManage, changePassword } = useAuth()
+  // Made with Google and no password yet: set one, no current password to ask for (API.md §5.5).
+  const first = account?.hasPassword === false
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -313,7 +335,7 @@ export function ChangePasswordPage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const found = {
-      current: current ? '' : 'Enter your current password.',
+      current: current || first ? '' : 'Enter your current password.',
       next: next.length >= MIN_PASSWORD ? '' : `Use at least ${MIN_PASSWORD} characters.`,
       confirm: confirm === next ? '' : "The passwords don't match.",
     }
@@ -326,7 +348,11 @@ export function ChangePasswordPage() {
     if (result !== 'ok') {
       setErrors({
         current:
-          result === 'offline' ? "Couldn't reach Bulig. Check your connection and try again." : "That isn't your current password.",
+          result === 'offline'
+            ? "Couldn't reach Bulig. Check your connection and try again."
+            : first
+              ? "Bulig couldn't save that password. Try again."
+              : "That isn't your current password.",
       })
       return
     }
@@ -337,18 +363,29 @@ export function ChangePasswordPage() {
   }
 
   return (
-    <SubPage title="Change password">
+    <SubPage
+      title={first ? 'Set a password' : 'Change password'}
+      lead={first ? 'You sign in with Google. A password lets you sign in with your email too.' : undefined}
+    >
       <form className={styles.form} onSubmit={submit} noValidate>
-        <PasswordField
-          label="Current password"
-          autoComplete="current-password"
-          value={current}
-          error={errors.current}
-          onChange={(v) => {
-            setCurrent(v)
-            setErrors((e) => ({ ...e, current: '' }))
-          }}
-        />
+        {first ? (
+          errors.current && (
+            <p className={page.error} role="alert">
+              {errors.current}
+            </p>
+          )
+        ) : (
+          <PasswordField
+            label="Current password"
+            autoComplete="current-password"
+            value={current}
+            error={errors.current}
+            onChange={(v) => {
+              setCurrent(v)
+              setErrors((e) => ({ ...e, current: '' }))
+            }}
+          />
+        )}
         <PasswordField
           label="New password"
           autoComplete="new-password"
@@ -372,12 +409,12 @@ export function ChangePasswordPage() {
         />
         {done && (
           <p className={styles.done} role="status">
-            Password changed.
+            {account?.google ? 'Password saved. You can sign in with Google or your email.' : 'Password changed.'}
           </p>
         )}
         <button type="submit" className={page.primaryButton} disabled={busy} aria-busy={busy}>
-          <BusyContent busy={busy} busyLabel="Changing your password…">
-            Change password
+          <BusyContent busy={busy} busyLabel={first ? 'Saving your password…' : 'Changing your password…'}>
+            {first ? 'Set password' : 'Change password'}
           </BusyContent>
         </button>
       </form>
@@ -402,6 +439,20 @@ export function ChangeEmailPage() {
     return (
       <SubPage title="Change email">
         <p className={styles.draft}>Accounts kept on this phone can&apos;t change their email. Accounts on Bulig&apos;s server can.</p>
+      </SubPage>
+    )
+  }
+
+  // The current password guards this page; a Google account sets one first.
+  if (account.hasPassword === false) {
+    return (
+      <SubPage title="Change email" lead={`You sign in with Google as ${account.email}.`}>
+        <p className={page.lead}>
+          To change your email, first set a password, so nobody else can change it from your phone.
+        </p>
+        <Link className={page.primaryButton} to="/profile/password">
+          Set a password
+        </Link>
       </SubPage>
     )
   }

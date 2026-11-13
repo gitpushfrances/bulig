@@ -4,6 +4,8 @@ import { useAuth } from '../auth/context.ts'
 import Avatar from '../components/Avatar.tsx'
 import { HotlineCard, NumberRow, PlaceRow, SectionHead, ServiceBento } from '../components/Cards.tsx'
 import DataNotice from '../components/DataNotice.tsx'
+import FinishProfile from '../components/FinishProfile.tsx'
+import { useFinishProfile } from '../auth/finishProfile.ts'
 import LocationLine from '../components/LocationLine.tsx'
 import MiniMap, { MINI_PINS } from '../components/MiniMap.tsx'
 import { BentoSkeleton, RowsSkeleton } from '../components/Skeleton.tsx'
@@ -27,6 +29,8 @@ export default function HomePage() {
   const welcome = useWelcome()
   // Contributors and above: the bell lights up when a moderator has answered (no push; UI-UX.md).
   const updates = useMyUpdates()
+  // A new account (often one tap with Google) fills in the rest later (UI-UX.md, Home).
+  const finish = useFinishProfile(account)
 
   const contacts = data.status === 'ready' ? visibleContacts(data.emergency, area, new Date()) : []
   const national = contacts.find((c) => c.kind === 'national' && c.area === null)
@@ -77,6 +81,8 @@ export default function HomePage() {
           </Link>
         </div>
       </header>
+
+      {account && finish.showOnHome && <FinishProfile account={account} onClose={finish.close} />}
 
       <div className={styles.section}>
         <div className={styles.sectionHead}>
