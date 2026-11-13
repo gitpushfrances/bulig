@@ -26,6 +26,8 @@ interface ApiUser {
   homeArea?: string | null
   photoUrl?: string | null
   pendingEmail?: string | null
+  hasPassword?: boolean
+  google?: boolean
 }
 
 // "data:image/webp;base64,..." → a Blob to upload as multipart (no fetch(), so it works everywhere).
@@ -56,6 +58,8 @@ export function toAccount(user: ApiUser): Account {
     homeArea: user.homeArea ?? null,
     photo: user.photoUrl ?? undefined,
     pendingEmail: user.pendingEmail ?? undefined,
+    hasPassword: user.hasPassword ?? true,
+    google: user.google ?? false,
   }
 }
 
@@ -151,6 +155,28 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
       }
     },
 
+    async signInWithGoogle(idToken) {
+      try {
+        const { created, ...session } = await call<{ token: string; user: ApiUser; created?: boolean }>('/auth/google', {
+          method: 'POST',
+          // The button's small print is the consent: "By continuing with Google you agree to…".
+          body: { idToken, acceptedTerms: true, device: DEVICE },
+          token: null,
+        })
+        const account = await startSession(Promise.resolve(session))
+        await sendOldHearts(account)
+        return { ok: true, account, created: !!created }
+      } catch (err) {
+        if (err instanceof OfflineError) return { ok: false, reason: 'offline' }
+        if (err instanceof ApiError && err.status === 403 && err.body.reason === 'suspended')
+          return { ok: false, reason: 'suspended' }
+        if (err instanceof ApiError && err.status === 429) return { ok: false, reason: 'busy' }
+        if (err instanceof ApiError && err.status === 422) return { ok: false, reason: 'invalid' }
+        // 404 or 501: a server without Google sign-in yet. Anything else: the same honest "not now".
+        return { ok: false, reason: 'unavailable' }
+      }
+    },
+
     async register({ name, username, email, password }) {
       try {
         const account = await startSession(
@@ -225,9 +251,11 @@ export function createApiStore(base: string, fetchFn: typeof fetch = (...args) =
       }
     },
 
-    async changePassword(_account, current, next) {
+    async changePassword(account, current, next) {
       try {
-        await call('/me/password', { method: 'PUT', body: { currentPassword: current, newPassword: next } })
+        // A Google account with no password yet sets one without a current password (API.md §5.5).
+        await call('/me/password', { method: 'PUT', body: current ? { currentPassword: current, newPassword: next } : { newPassword: next } })
+        if (account.hasPassword === false) keep(readSaved(TOKEN_KEY), { ...account, hasPassword: true })
         return 'ok'
       } catch (err) {
         if (err instanceof OfflineError) return 'offline'

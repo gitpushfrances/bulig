@@ -7,6 +7,7 @@ import { safeNext } from '../auth/next.ts'
 import { USERNAME_HINT, USERNAME_INPUT, usernameError } from '../auth/username.ts'
 import AuthLayout, { AuthMark } from '../components/AuthLayout.tsx'
 import FormAlert from '../components/FormAlert.tsx'
+import GoogleSignIn from '../components/GoogleSignIn.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
 import { PasswordField, TextField } from '../components/Fields.tsx'
 import { EMAIL_INPUT, looksLikeEmail } from '../components/fieldRules.ts'
@@ -353,7 +354,11 @@ export default function SignupPage() {
       </div>
 
       {onForm ? (
-        <SignupForm next={next} />
+        <>
+          {/* One tap, no password; name and email come from Google, the rest can wait (Profile). */}
+          <GoogleSignIn next={next} mode="signup" />
+          <SignupForm next={next} />
+        </>
       ) : (
         <div className={styles.nav}>
           {at > 0 && (

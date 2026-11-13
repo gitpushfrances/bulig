@@ -41,24 +41,6 @@ type Status = 'loading' | 'ready' | 'failed'
 const ROUTE_COLOUR = '#2563eb'
 const ROUTE_CASING = { light: '#ffffff', dark: '#09090b' }
 
-// The faint 5 km ring for Nearby, so the edge of "near" is visible. Raw colour: MapLibre paints it.
-const RING_COLOUR = '#2563eb'
-
-// Draws (or clears) the Nearby ring, adding its source and layers the first time.
-function drawRing(m: MapLibreMap, ring: [number, number][] | null) {
-  const data = { type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: ring ? [ring] : [] } }
-  const source = m.getSource('nearby-ring') as GeoJSONSource | undefined
-  if (source) return source.setData(data)
-  m.addSource('nearby-ring', { type: 'geojson', data })
-  // Under the route, so a route line is never covered.
-  const before = m.getLayer('route-casing') ? 'route-casing' : undefined
-  m.addLayer({ id: 'nearby-ring-fill', type: 'fill', source: 'nearby-ring', paint: { 'fill-color': RING_COLOUR, 'fill-opacity': 0.05 } }, before)
-  m.addLayer(
-    { id: 'nearby-ring-line', type: 'line', source: 'nearby-ring', paint: { 'line-color': RING_COLOUR, 'line-width': 1.5, 'line-opacity': 0.5, 'line-dasharray': [2, 2] } },
-    before,
-  )
-}
-
 // How long "Route ended · Undo" stays.
 const UNDO_MS = 5000
 
@@ -430,16 +412,8 @@ export default function MapPage() {
     drawRoute(m, path, resolved)
   }, [status, path, resolved])
 
-  // The 5 km ring around you while Nearby is on. Moves with the fix, in ~100 m steps.
-  const ringKey = scope === 'nearby' && origin ? `${origin.lat.toFixed(3)},${origin.lng.toFixed(3)}` : ''
-  useEffect(() => {
-    const m = map.current
-    if (status !== 'ready' || !m) return
-    const [lat, lng] = ringKey ? ringKey.split(',').map(Number) : []
-    drawRing(m, ringKey ? circle({ lat, lng }) : null)
-  }, [status, ringKey])
-
-  // Nearby or All: show the whole of what was picked. Nearby goes back to following you.
+  // Nearby zooms to the 5 km around you and goes back to following you. All keeps the view where it
+  // is and just shows the places Nearby hid (John, 2026-11-07); pan or zoom out to see more.
   const pickScope = (next: MapScope) => {
     setScope(next)
     saveScope(next)
@@ -457,11 +431,8 @@ export default function MapPage() {
       m.fitBounds(box, { padding, duration: 600 })
       return
     }
-    // All: stop following, or the next GPS fix pulls the view back to you.
+    // All: stay put. Stop following, or the next GPS fix pulls the view back to you.
     setFollowing(false)
-    const pins = placesInScope(services, { scope: 'all', category: filter, position, origin })
-    const box = boundsOf(pins.map((r) => [r.item.lng, r.item.lat]))
-    if (box) m.fitBounds(box, { padding, duration: 600, maxZoom: 15 })
   }
 
   const recentre = () => {
@@ -536,13 +507,13 @@ export default function MapPage() {
       )}
 
       <div className={styles.chips} role="group" aria-label="Show on map">
-        <button type="button" aria-pressed={scope === 'nearby'} onClick={() => pickScope('nearby')} aria-label={`Nearby, within ${NEARBY_KM} km`}>
-          <Target size={16} aria-hidden="true" />
-          Nearby {NEARBY_KM} km
-        </button>
         <button type="button" aria-pressed={scope === 'all'} onClick={() => pickScope('all')} aria-label="All places">
           <MapTrifold size={16} aria-hidden="true" />
           All
+        </button>
+        <button type="button" aria-pressed={scope === 'nearby'} onClick={() => pickScope('nearby')} aria-label={`Nearby, within ${NEARBY_KM} km`}>
+          <Target size={16} aria-hidden="true" />
+          Nearby
         </button>
         <span className={styles.chipGap} aria-hidden="true" />
         {CATEGORIES.map((c) => {

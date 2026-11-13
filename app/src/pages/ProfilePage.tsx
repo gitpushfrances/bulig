@@ -1,13 +1,15 @@
 import BackButton from '../components/BackButton.tsx'
-import { DownloadSimple, EnvelopeSimple, FileText, Globe, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
+import { Binoculars, DownloadSimple, EnvelopeSimple, FileText, Globe, GoogleLogo, HardDrive, Heart, Info, Key, Lifebuoy, ListChecks, MapPin, Palette, PlusCircle, Shield, SignOut, SteeringWheel, Trash, UserGear } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/context.ts'
-import { ROLE_LABELS } from '../auth/types.ts'
+import { ROLE_LABELS, SCOUT } from '../auth/types.ts'
+import { knownScoutRequest } from '../contribute/scout.ts'
 import { can } from '../rules/permissions.ts'
 import { setTravellerMode, useTravellerMode } from '../staff/mode.ts'
 import { TextField } from '../components/Fields.tsx'
 import Avatar from '../components/Avatar.tsx'
+import FinishProfile from '../components/FinishProfile.tsx'
 import Dialog from '../components/Dialog.tsx'
 import { BusyContent } from '../components/Spinner.tsx'
 import { SettingsButton, SettingsGroup, SettingsInfo, SettingsLink } from '../components/Settings.tsx'
@@ -157,9 +159,16 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      <FinishProfile account={account} />
+
       <SettingsGroup title="Account">
         <SettingsLink to="/profile/edit" icon={UserGear} label="Edit profile" />
-        <SettingsLink to="/profile/password" icon={Key} label="Change password" />
+        {account.google && <SettingsInfo icon={GoogleLogo} label="Google sign-in" value="On" />}
+        {account.hasPassword === false ? (
+          <SettingsLink to="/profile/password" icon={Key} label="Set a password" value="Optional" />
+        ) : (
+          <SettingsLink to="/profile/password" icon={Key} label="Change password" />
+        )}
         <SettingsLink
           to="/profile/email"
           icon={EnvelopeSimple}
@@ -175,6 +184,18 @@ export default function ProfilePage() {
         )}
         {homeArea && <SettingsInfo icon={MapPin} label="Home area" value={homeArea} />}
       </SettingsGroup>
+
+      {account.role === 'user' && (
+        <SettingsGroup title="Community">
+          {/* John, 2026-11-10: regular users ask to become a Scout (the contributor role). */}
+          <SettingsLink
+            to="/profile/scout"
+            icon={Binoculars}
+            label={`Become a ${SCOUT}`}
+            value={knownScoutRequest(account.email)?.status === 'pending' ? 'Waiting' : undefined}
+          />
+        </SettingsGroup>
+      )}
 
       <SettingsGroup title="Preferences">
         {can(account, 'review') && (

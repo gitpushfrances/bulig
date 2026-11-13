@@ -1,5 +1,13 @@
 import { createContext, useContext } from 'react'
-import type { ChangePasswordResult, ConfirmEmailResult, EmailChangeResult, NewAccount, RegisterResult, SignInResult } from './store.ts'
+import type {
+  ChangePasswordResult,
+  ConfirmEmailResult,
+  EmailChangeResult,
+  GoogleSignInResult,
+  NewAccount,
+  RegisterResult,
+  SignInResult,
+} from './store.ts'
 import type { Account, ProfileDetails } from './types.ts'
 
 export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | 'usernameTaken' | 'usernameReserved' | { photo: 'offline' | 'invalid' | 'busy' | 'unavailable' }
@@ -7,12 +15,16 @@ export type UpdateProfileResult = 'ok' | 'offline' | 'invalid' | 'usernameTaken'
 export interface Auth {
   account: Account | null
   signIn: (login: string, password: string) => Promise<SignInResult>
+  // "Continue with Google" (API.md §4.7): signs in, links the same email, or makes a new account.
+  signInWithGoogle: (idToken: string) => Promise<GoogleSignInResult>
   register: (details: NewAccount) => Promise<RegisterResult>
   signOut: () => void
+  // Asks the server again who this is (GET /me), e.g. after a moderator made them a Scout.
+  refreshAccount: () => Promise<void>
   // 'ok', or why it didn't save: no connection, or the server refused a field. `photo`: the details
   // saved but the photo didn't (and why), so the page can say exactly that.
   updateProfile: (details: ProfileDetails) => Promise<UpdateProfileResult>
-  // Test logins keep their password.
+  // Test logins keep their password. An empty `current` sets a first password (Google accounts).
   changePassword: (current: string, next: string) => Promise<ChangePasswordResult>
   // API.md §5.7: sends a link to the new address; the account shows pendingEmail until it is opened.
   requestEmailChange: (newEmail: string, password: string) => Promise<EmailChangeResult>

@@ -22,11 +22,14 @@
         if (t !== 'system') {
           t = t === 'dark' ? 'dark' : 'light'
           document.documentElement.setAttribute('data-theme', t)
+          // "only light" stops a dark-mode phone from force-darkening the light page.
+          document.querySelector('meta[name=color-scheme]').setAttribute('content', t === 'dark' ? 'dark' : 'only light')
           var c = t === 'dark' ? '#09090b' : '#f4f7f5'
           document.querySelectorAll('meta[name=theme-color]').forEach(function (m) { m.setAttribute('content', c) })
         }
       } catch (e) {
         document.documentElement.setAttribute('data-theme', 'light')
+        document.querySelector('meta[name=color-scheme]').setAttribute('content', 'only light')
       }
 
       // The splash shows once per launch, and never in front of Emergency: a link to /emergency

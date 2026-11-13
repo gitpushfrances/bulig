@@ -5,6 +5,7 @@ import BackButton from '../../components/BackButton.tsx'
 import Dialog from '../../components/Dialog.tsx'
 import { BusyContent } from '../../components/Spinner.tsx'
 import { formatDate } from '../../data/format.ts'
+import { TRAVEL_LABELS } from '../../contribute/scout.ts'
 import { appStaff } from '../../staff/api.ts'
 import { initials } from '../../staff/format.ts'
 import { KEYS, useStaffUser } from '../../staff/hooks.ts'
@@ -14,7 +15,7 @@ import page from '../Page.module.css'
 import { Loaded } from './common.tsx'
 import styles from './Staff.module.css'
 
-// One person, as much as a moderator may do (UserPolicy): switch User ↔ Contributor and take down
+// One person, as much as a moderator may do (UserPolicy): switch User ↔ Scout and take down
 // an offensive photo. Suspending, password resets and staff roles stay with admins in the panel.
 export default function UserPage() {
   const { id } = useParams()
@@ -30,7 +31,9 @@ export default function UserPage() {
 }
 
 function Person({ user }: { user: StaffUserDetail }) {
-  const [busy, setBusy] = useState<'role' | 'photo' | null>(null)
+  const [busy, setBusy] = useState<'role' | 'photo' | 'decline' | null>(null)
+  const [askDecline, setAskDecline] = useState(false)
+  const [declineNote, setDeclineNote] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [askPhoto, setAskPhoto] = useState(false)
@@ -44,8 +47,20 @@ function Person({ user }: { user: StaffUserDetail }) {
     setBusy(null)
     if (!r.ok) return setError(r.message)
     update<StaffUserDetail>(KEYS.user(user.id), () => r.value)
-    invalidate('users:')
-    setNotice(role === 'contributor' ? 'Now a contributor. They can add places.' : 'Now a user.')
+    invalidate('users:', KEYS.summary)
+    setNotice(role === 'contributor' ? 'Now a Scout. They can add places.' : 'Now a user.')
+  }
+
+  const decline = async () => {
+    setBusy('decline')
+    setError('')
+    const r = await appStaff.declineScout(user.id, declineNote)
+    setBusy(null)
+    setAskDecline(false)
+    if (!r.ok) return setError(r.message)
+    update<StaffUserDetail>(KEYS.user(user.id), () => r.value)
+    invalidate('users:', KEYS.summary)
+    setNotice('Declined. They can ask again in 30 days.')
   }
 
   const removePhoto = async () => {
@@ -95,6 +110,30 @@ function Person({ user }: { user: StaffUserDetail }) {
         </p>
       )}
 
+      {user.scoutRequest && user.role === 'user' && user.canChangeRole && (
+        <div className={styles.request}>
+          <h2 className={page.sectionTitle}>Asked to be a Scout</h2>
+          <p>
+            {formatDate(user.scoutRequest.createdAt.slice(0, 10))} · knows <strong>{user.scoutRequest.area}</strong>
+          </p>
+          {user.scoutRequest.travel?.length > 0 && (
+            <p>
+              Gets around by{' '}
+              {user.scoutRequest.travel.map((t) => TRAVEL_LABELS[t as keyof typeof TRAVEL_LABELS] ?? t).join(', ')}
+            </p>
+          )}
+          {user.scoutRequest.why && <p>“{user.scoutRequest.why}”</p>}
+          <button type="button" className={page.primaryButton} disabled={!!busy} onClick={() => setRole('contributor')}>
+            <BusyContent busy={busy === 'role'} busyLabel="Saving">
+              Make them a Scout
+            </BusyContent>
+          </button>
+          <button type="button" className={page.secondary} disabled={!!busy} onClick={() => setAskDecline(true)}>
+            Decline
+          </button>
+        </div>
+      )}
+
       {staff || !user.canChangeRole ? (
         <p className={styles.status}>
           Moderators, admins and your own account are changed by an admin, in the web panel.
@@ -110,7 +149,7 @@ function Person({ user }: { user: StaffUserDetail }) {
             ))}
           </div>
           <p className={page.hint}>
-            Contributors can add places and send new details. Everything still waits for a moderator.
+            Scouts can add places and send new details. Everything still waits for a moderator.
           </p>
         </div>
       )}
@@ -124,6 +163,29 @@ function Person({ user }: { user: StaffUserDetail }) {
           <p className={page.hint}>For an offensive photo. Suspending and password resets are admin only.</p>
         </div>
       )}
+
+      <Dialog open={askDecline} title="Decline this request?" onClose={() => setAskDecline(false)} busy={busy === 'decline'}>
+        <label className={page.field}>
+          <span className={page.fieldLabel}>Tell them why (optional)</span>
+          <textarea
+            className={page.input}
+            value={declineNote}
+            maxLength={200}
+            rows={3}
+            placeholder="We have enough Scouts in your barangay for now."
+            onChange={(e) => setDeclineNote(e.target.value)}
+          />
+          <span className={page.hint}>They see this. They can ask again in 30 days.</span>
+        </label>
+        <button type="button" className={page.primaryButton} onClick={decline} disabled={!!busy}>
+          <BusyContent busy={busy === 'decline'} busyLabel="Declining">
+            Decline
+          </BusyContent>
+        </button>
+        <button type="button" className={page.secondary} onClick={() => setAskDecline(false)} disabled={!!busy}>
+          Keep it waiting
+        </button>
+      </Dialog>
 
       <Dialog open={askPhoto} title="Take down this photo?" onClose={() => setAskPhoto(false)} busy={busy === 'photo'}>
         <p className={page.lead}>{user.name} will see Ropi's head instead. This is logged with your name.</p>

@@ -45,9 +45,15 @@ export default function StaffHomePage() {
               <strong>{s.dueEmergencyContacts + s.hiddenEmergencyContacts}</strong>
               Hotlines to check
             </Link>
-            <Link to="/manage" className={styles.stat}>
-              <strong>{s.users}</strong>Users
-            </Link>
+            {s.scoutRequests ? (
+              <Link to="/manage?asked=1" className={`${styles.stat} ${styles.hot}`}>
+                <strong>{s.scoutRequests}</strong>Asked to be a Scout
+              </Link>
+            ) : (
+              <Link to="/manage" className={styles.stat}>
+                <strong>{s.users}</strong>Users
+              </Link>
+            )}
           </div>
         )}
       </Loaded>

@@ -22,6 +22,13 @@ export type RegisterResult =
 
 export type ChangePasswordResult = 'ok' | 'wrong' | 'offline'
 
+// API.md §4.7. created: a new account was made (land on Home with "Finish your profile").
+// 'invalid': Google's answer didn't check out (expired, another app's, email not verified).
+// 'unavailable': this server has no Google sign-in yet.
+export type GoogleSignInResult =
+  | { ok: true; account: Account; created: boolean }
+  | { ok: false; reason: 'invalid' | 'suspended' | 'offline' | 'busy' | 'unavailable' }
+
 // API.md §5.7. 'same': already this account's email. 'wrong': not the current password.
 // 'busy': 5 asks an hour used. 'unavailable': any other answer (e.g. a server without this yet). 'preview': this build sends no email (phone-only accounts).
 export type EmailChangeResult =
@@ -57,9 +64,12 @@ export interface AccountStore {
   refresh(): Promise<Account | null | undefined>
   // `login` is the email or the username (API.md §4.2).
   signIn(login: string, password: string): Promise<SignInResult>
+  // The ID token Google's button hands the page (a JWT). The server checks it and signs in, links or creates.
+  signInWithGoogle(idToken: string): Promise<GoogleSignInResult>
   register(details: NewAccount): Promise<RegisterResult>
   signOut(): Promise<void>
   updateProfile(account: Account, details: ServerProfile): Promise<Account | 'offline' | 'invalid' | 'usernameTaken' | 'usernameReserved'>
+  // `current` is empty when the account has no password yet (made with Google): that sets one.
   changePassword(account: Account, current: string, next: string): Promise<ChangePasswordResult>
   // Replaces the photo (a 256px data URL from auth/photo.ts), or removes it with null.
   setPhoto(account: Account, photo: string | null): Promise<SetPhotoResult>

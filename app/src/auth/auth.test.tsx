@@ -61,7 +61,7 @@ describe('Login', () => {
 
   it.each([
     ['test@bulig.com', 'Test traveller', 'User'],
-    ['contributor@bulig.com', 'Test contributor', 'Contributor'],
+    ['contributor@bulig.com', 'Test Scout', 'Scout'],
     ['moderator@bulig.com', 'Test moderator', 'Moderator'],
     ['admin@bulig.com', 'Test admin', 'Admin'],
     ['test', 'Test traveller', 'User'],

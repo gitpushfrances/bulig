@@ -13,7 +13,6 @@ import { accountFor, checkLogin } from './testAccount.ts'
 
 const SESSION_KEY = 'bulig.session'
 const savedKey = (email: string) => `bulig.saved.${email}`
-
 function readList(key: string): string[] {
   try {
     const value: unknown = JSON.parse(readSaved(key) ?? '[]')
@@ -42,6 +41,11 @@ export const localStore: AccountStore = {
     if (!account) return { ok: false, reason: 'wrong' }
     writeSaved(SESSION_KEY, account.email)
     return { ok: true, account }
+  },
+
+  // Google needs the server (it checks Google's answer), so phone-only builds don't show the button.
+  async signInWithGoogle() {
+    return { ok: false, reason: 'unavailable' }
   },
 
   async register(details) {

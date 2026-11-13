@@ -26,6 +26,9 @@ function apply(choice: ThemeChoice) {
   const root = document.documentElement
   if (choice === 'system') root.removeAttribute('data-theme')
   else root.setAttribute('data-theme', choice)
+  // "only light" stops a dark-mode phone from force-darkening (inverting) the light page.
+  const scheme = { system: 'light dark', light: 'only light', dark: 'dark' }[choice]
+  document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', scheme)
   const bar = BAR[resolvedTheme(choice)]
   document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
     // A fixed choice overrides both media-specific tags; "system" restores them.
