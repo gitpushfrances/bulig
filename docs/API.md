@@ -599,7 +599,7 @@ Public settings an admin sets in the panel. `Cache-Control: public, max-age=300`
 
 ### 7.7 `GET /health`
 
-For UptimeRobot only. **200** `{ "ok": true }` when the database and R2 answer; **503** `{ "ok": false, "failing": ["db"] }` otherwise. No auth and no details beyond that. `Cache-Control: no-store`, but on Neon the server reuses its database check for 30 minutes so 5-minute pings don't keep the database awake.
+For a manual check. UptimeRobot watches `/up`, so monitoring never wakes Neon (John, 2026-11-05). **200** `{ "ok": true }` when the database answers; **503** `{ "ok": false, "failing": ["db"] }` otherwise. No auth and no details beyond that. `Cache-Control: no-store`, but on Neon the server reuses its database check for 30 minutes so 5-minute pings don't keep the database awake.
 
 Not part of the app's contract: `POST /internal/schedule` (alpha and beta on Render, which has no cron). A GitHub Actions schedule calls it hourly with a secret header; it runs `schedule:run`. It answers `404` without the secret.
 
