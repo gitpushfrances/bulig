@@ -119,6 +119,8 @@ These four replace the JSON files one to one: **same envelope, same fields, same
 
 Every listed area of a country. The app picks the nearest one from GPS (`nearestArea()` in `rules/nearby.ts`).
 
+Provinces, cities and municipalities only. Barangays (`level: "barangay"`, under their town) live in the database for staff and the panel and are left out here, so the town picker and the nearest-town pick never land on a barangay. `level` is one of `province`, `city`, `municipality`.
+
 **Query:** `country` (required, `PH`).
 
 **200**
